@@ -382,6 +382,10 @@ class RMENU_Quick_View {
                 'select_options' => esc_html__('Select options', 'one-page-quick-checkout-for-woocommerce'),
                 'view_details' => get_option('rmenu_quick_view_details_text', 'View Full Details'),
                 'out_of_stock' => esc_html__('Out of stock', 'one-page-quick-checkout-for-woocommerce'),
+                'share_this_product' => esc_html__('Share this product', 'one-page-quick-checkout-for-woocommerce'),
+                'facebook' => esc_html__('Facebook', 'one-page-quick-checkout-for-woocommerce'),
+                'twitter' => esc_html__('Twitter', 'one-page-quick-checkout-for-woocommerce'),
+                'pinterest' => esc_html__('Pinterest', 'one-page-quick-checkout-for-woocommerce'),
             )
         ));
         
@@ -481,6 +485,63 @@ class RMENU_Quick_View {
 
 // Initialize the quick view class
 $rmenu_quick_view = new RMENU_Quick_View();
+
+
+/**
+ * Generate CSS for rmenu quick view modal based on WordPress options
+ */
+function rmenu_quick_view_modal_css() {
+    $modal_size = get_option('rmenu_quick_view_modal_size', 'medium');
+    
+    // Start CSS output
+    $css = '<style type="text/css">';
+    $css .= '.rmenu-quick-view-modal {';
+    
+    switch ($modal_size) {
+        case 'small':
+            $css .= 'width: 40%;';
+            break;
+            
+        case 'medium':
+            $css .= 'width: 90%;';
+            break;
+            
+        case 'large':
+            $css .= 'width: 100%;  max-width: 1240px;';
+            break;
+            
+        case 'full':
+            $css .= 'width: 95%;  max-width: 100%;margin: auto 10px;';
+            break;
+            
+        case 'custom':
+            $custom_width = get_option('rmenu_quick_view_custom_width', '800');
+            $custom_height = get_option('rmenu_quick_view_custom_height', '600');
+            
+            // Ensure values have units (px if numeric)
+            $width = is_numeric($custom_width) ? $custom_width . 'px' : $custom_width;
+            $height = is_numeric($custom_height) ? $custom_height . 'px' : $custom_height;
+            
+            $css .= "width: {$width}; height: {$height};";
+            break;
+            
+        default:
+            $css .= 'width: 600px; height: 450px;'; // fallback to medium
+    }
+    
+    $css .= '}';
+    $css .= '</style>';
+    
+    return $css;
+}
+
+/**
+ * Hook to output the CSS in the head section
+ */
+function rmenu_add_modal_css() {
+    echo rmenu_quick_view_modal_css();
+}
+add_action('wp_head', 'rmenu_add_modal_css');
 
 /**
  * Add shortcode for quick view button

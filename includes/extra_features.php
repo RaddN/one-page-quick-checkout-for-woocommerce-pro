@@ -169,7 +169,7 @@ function add_variation_buttons_to_loop($link, $product)
                 border-color: #4CAF50;
             }
         </style>
-<?php
+        <?php
 
         // Append the variations container before the add to cart link
         return ob_get_clean() . $link; // Return the variations and the link
@@ -191,4 +191,125 @@ if (get_option('rmenu_wc_hide_select_option', 1)) {
         </style>';
         }
     }
+}
+
+
+
+
+// Change WooCommerce checkout layout based on onpage_checkout_layout option
+add_action('wp_head', 'apply_checkout_layout_styles');
+
+function apply_checkout_layout_styles()
+{
+    $layout = get_option('onpage_checkout_layout', 'two_column');
+
+
+    switch ($layout) {
+        case 'one_column':
+            echo '
+                <style>
+                @media (min-width: 768px) {
+                    .onepagecheckoutwidget  form.checkout.woocommerce-checkout {
+                        flex-direction: column;
+                    }
+                    .onepagecheckoutwidget  div#customer_details,.onepagecheckoutwidget  div#order_review {
+                        width: 100% !important;
+                        margin: 0 auto;
+                    }
+                }
+                </style>
+                ';
+            break;
+
+        case 'product_first':
+            echo '
+                <style>
+                @media (min-width: 768px) {
+                    .onepagecheckoutwidget  form.checkout.woocommerce-checkout{
+                        display: flex;
+                        flex-direction: column;
+                        gap: 20px;
+                    }
+                    .onepagecheckoutwidget .woocommerce-checkout .col2-set {
+                            width: 100% !important;
+                            margin: 0 !important;
+                        }
+                    .onepagecheckoutwidget  .woocommerce-checkout>table.shop_table.woocommerce-checkout-review-order-table {
+                            width: 100% !important;
+                            float: none !important;
+                            margin: 0 auto !important;
+                        }
+                    .onepagecheckoutwidget  tr.cart_item td.product-name {
+                        display: flex;
+                        padding: 12px !important;
+                        gap: 10px;
+                    }
+                    .onepagecheckoutwidget  tr td.product-total,.onepagecheckoutwidget  tr.cart-subtotal td, .onepagecheckoutwidget  tr.order-total td {
+                        padding-left: 20px !important;
+                    }
+                    .onepagecheckoutwidget  .payment_box p {
+                        padding: 20px;
+                    }
+                    
+                }
+                </style>
+                ';
+        ?>
+            <script>
+                jQuery(document).ready(function($) {
+                    function moveOrderReview() {
+                        if ($('.onepagecheckoutwidget  #order_review_heading').length && $('.onepagecheckoutwidget  table.shop_table.woocommerce-checkout-review-order-table').length && !$('.onepagecheckoutwidget  .woocommerce-checkout>table.shop_table.woocommerce-checkout-review-order-table').length) {
+                            var orderReviewHeading = $('.onepagecheckoutwidget  #order_review_heading').detach();
+                            var orderReview = $('.onepagecheckoutwidget  table.shop_table.woocommerce-checkout-review-order-table').detach();
+                            $('.onepagecheckoutwidget  .woocommerce-checkout').prepend(orderReview).prepend(orderReviewHeading);
+                            orderReview.css('margin-bottom', '30px');
+                            orderReviewHeading.css('margin-bottom', '10px');
+                        }
+                    }
+
+                    // Initial load
+                    moveOrderReview();
+
+                    // After AJAX updates
+                    $(document.body).on('updated_checkout', function() {
+                        moveOrderReview();
+                    });
+                });
+            </script>
+<?php
+            break;
+
+        case 'two_column':
+        default:
+            echo '
+                <style>
+                @media (min-width: 768px) {
+                    .onepagecheckoutwidget form.woocommerce-checkout{
+                        display: flex;
+                        gap: 40px;
+                    }
+                    .onepagecheckoutwidget #customer_details,.onepagecheckoutwidget #order_review {
+                        width: 48% !important;
+                        margin: 0 !important;
+                    }
+                    .onepagecheckoutwidget #order_review_heading {
+                        display: none;
+                    }
+                }
+                </style>
+                ';
+            break;
+    }
+}
+
+// Alternative method using body class for more targeted CSS
+add_filter('body_class', 'add_checkout_layout_body_class');
+
+function add_checkout_layout_body_class($classes)
+{
+    if (is_checkout()) {
+        $layout = get_option('onpage_checkout_layout', 'two_column');
+        $classes[] = 'checkout-layout-' . $layout;
+    }
+    return $classes;
 }

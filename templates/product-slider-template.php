@@ -2,8 +2,8 @@
 if (!defined('ABSPATH')) exit;
 // Shortcode: [plugincy_one_page_checkout product_ids="" template="product-slider"]
 
-wp_enqueue_style( 'owl-carousel', plugin_dir_url(__FILE__) . '../assets/css/owl.carousel.min.css', array(), "1.0.3");
-wp_enqueue_style( 'owl-theme', plugin_dir_url(__FILE__) . '../assets/css/owl.theme.default.css', array(), "1.0.3" );
+wp_enqueue_style( 'owl-carousel', plugin_dir_url(__FILE__) . '../assets/css/owl.carousel.min.css', array(), "1.0.4");
+wp_enqueue_style( 'owl-theme', plugin_dir_url(__FILE__) . '../assets/css/owl.theme.default.css', array(), "1.0.4" );
 ?>
 
 <div class="product-slider-template">
@@ -12,7 +12,6 @@ wp_enqueue_style( 'owl-theme', plugin_dir_url(__FILE__) . '../assets/css/owl.the
 
     <div class="one-page-checkout-slider owl-carousel">
         <?php
-        $product_ids = explode(',', $atts['product_ids']);
         $product_ids = array_map('trim', $product_ids);
 
         foreach ($product_ids as $item_id) {
@@ -39,7 +38,7 @@ wp_enqueue_style( 'owl-theme', plugin_dir_url(__FILE__) . '../assets/css/owl.the
 
 <!-- Initialize Owl Carousel -->
 
-<?php wp_enqueue_script('owl-carousel', plugin_dir_url(__FILE__) . '../assets/js/owl.carousel.min.js', array('jquery'), "1.0.3", true); ?>
+<?php wp_enqueue_script('owl-carousel', plugin_dir_url(__FILE__) . '../assets/js/owl.carousel.min.js', array('jquery'), "1.0.4", true); ?>
 <?php
 $inline_script = "
     (function($) {

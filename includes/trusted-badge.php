@@ -89,7 +89,6 @@ function onepaquc_trust_badges_settings_content() {
                     </select>
                 </td>
             </tr>
-            <?php if (!empty($badges)) : ?>
             <tr valign="top">
                 <th scope="row"><?php esc_html_e('Trust Badge Items', 'one-page-quick-checkout-for-woocommerce'); ?></th>
                 <td>
@@ -138,7 +137,6 @@ function onepaquc_trust_badges_settings_content() {
                     </div>
                 </td>
             </tr>
-            <?php endif; ?>
             
             <tr valign="top" class="custom-html-section">
                 <th scope="row"><?php esc_html_e('Advanced: Custom HTML', 'one-page-quick-checkout-for-woocommerce'); ?></th>

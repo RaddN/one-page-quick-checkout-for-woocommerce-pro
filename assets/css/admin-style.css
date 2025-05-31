@@ -405,3 +405,7 @@ table.form-table tbody {
       flex-direction: column;
   }
 }
+
+li.rmenu-settings-tab-item.active {
+    color: #0092ff;
+}

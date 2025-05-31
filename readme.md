@@ -1,10 +1,10 @@
-# One Page Quick Checkout for WooCommerce
+# One Page Quick Checkout for WooCommerce Pro
 
 **Contributors:** Plugincy  
 **Tags:** WooCommerce, Popup Checkout, Quick Checkout, One-Page Checkout, Cart Drawer  
 **Requires at least:** 5.0  
 **Tested up to:** 6.8  
-**Stable tag:** 1.0.3  
+**Stable tag:** 1.0.4  
 **Requires PHP:** 7.2  
 **License:** GPLv2 or later  
 **License URI:** https://www.gnu.org/licenses/gpl-2.0.html  
@@ -15,7 +15,7 @@ Enhance WooCommerce with popup checkout, cart drawer, and flexible checkout temp
 
 ## Description
 
-**One Page Quick Checkout for WooCommerce** revolutionizes your store's checkout process by offering a frictionless, on-page purchasing experience. It allows customers to complete transactions without page redirects, significantly reducing cart abandonment and enhancing conversion rates.
+**One Page Quick Checkout for WooCommerce Pro** revolutionizes your store's checkout process by offering a frictionless, on-page purchasing experience. It allows customers to complete transactions without page redirects, significantly reducing cart abandonment and enhancing conversion rates.
 
 ### Key Features
 
@@ -62,13 +62,13 @@ Enhance WooCommerce with popup checkout, cart drawer, and flexible checkout temp
 
 ### From your WordPress Dashboard
 1. Go to **Plugins > Add New**
-2. Search for **One Page Quick Checkout for WooCommerce**
+2. Search for **One Page Quick Checkout for WooCommerce Pro**
 3. Click **Install Now** and then **Activate**
 
 ### Manual Installation
 1. Download the plugin ZIP file
 2. Upload it to your WordPress site under the **wp-content/plugins/** directory
-3. Go to **Plugins** and activate **One Page Quick Checkout for WooCommerce**
+3. Go to **Plugins** and activate **One Page Quick Checkout for WooCommerce Pro**
 
 ---
 
@@ -133,7 +133,7 @@ Display products with a built-in checkout using these shortcodes:
 ## Frequently Asked Questions (FAQ)
 
 **Q: Is this plugin compatible with all WooCommerce themes?**  
-A: Yes, One Page Quick Checkout for WooCommerce is designed to be compatible with most WooCommerce themes. In case of styling conflicts, you can use the customization options to ensure proper display.
+A: Yes, One Page Quick Checkout for WooCommerce Pro is designed to be compatible with most WooCommerce themes. In case of styling conflicts, you can use the customization options to ensure proper display.
 
 **Q: Can I customize the appearance of the checkout popup?**  
 A: Absolutely! The plugin offers extensive customization options for colors, button text, form layout, and more through the plugin settings page.
@@ -157,7 +157,7 @@ A: The plugin is translation-ready and compatible with popular translation plugi
 
 ## Changelog
 
-### 1.0.3
+### 1.0.4
 - Initial release with complete feature set including popup checkout, menu cart drawer, product templates, and AJAX checkout processing
 
 ---

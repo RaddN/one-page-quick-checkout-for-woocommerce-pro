@@ -338,6 +338,38 @@
                 html += '</div>';
             }
 
+            // social sharing buttons
+            if ($.inArray('sharing', elements) !== -1) {
+                html += '<div class="rmenu-quick-view-social-share">';
+                html += '<h4 style="margin: 8px 0;">' + self.settings.i18n.share_this_product + '</h4>';
+                var shareUrl = encodeURIComponent(productData.permalink);
+                var shareTitle = encodeURIComponent(productData.title);
+
+                html += '<div style="display: flex; gap: 10px;">';
+                // Facebook
+                html += '<a href="https://www.facebook.com/sharer/sharer.php?u=' + shareUrl + '" target="_blank" rel="noopener noreferrer" class="facebook-share">' +
+                    (self.settings.i18n.facebook || 'Facebook') + '</a>';
+                // Twitter/X
+                html += '<a href="https://twitter.com/intent/tweet?url=' + shareUrl + '&text=' + shareTitle + '" target="_blank" rel="noopener noreferrer" class="twitter-share">' +
+                    (self.settings.i18n.twitter || 'Twitter') + '</a>';
+                // Pinterest
+                html += '<a href="https://pinterest.com/pin/create/button/?url=' + shareUrl + '&description=' + shareTitle + '" target="_blank" rel="noopener noreferrer" class="pinterest-share">' +
+                    (self.settings.i18n.pinterest || 'Pinterest') + '</a>';
+                // WhatsApp
+                html += '<a href="https://wa.me/?text=' + shareTitle + '%20' + shareUrl + '" target="_blank" rel="noopener noreferrer" class="whatsapp-share">' +
+                    (self.settings.i18n.whatsapp || 'WhatsApp') + '</a>';
+                // LinkedIn
+                html += '<a href="https://www.linkedin.com/shareArticle?mini=true&url=' + shareUrl + '&title=' + shareTitle + '" target="_blank" rel="noopener noreferrer" class="linkedin-share">' +
+                    (self.settings.i18n.linkedin || 'LinkedIn') + '</a>';
+                // Reddit
+                html += '<a href="https://www.reddit.com/submit?url=' + shareUrl + '&title=' + shareTitle + '" target="_blank" rel="noopener noreferrer" class="reddit-share">' +
+                    (self.settings.i18n.reddit || 'Reddit') + '</a>';
+                // Email
+                html += '<a href="mailto:?subject=' + shareTitle + '&body=' + shareUrl + '" class="email-share">' +
+                    (self.settings.i18n.email || 'Email') + '</a>';
+                html += '</div></div>';
+            }
+
             html += '</div>'; // End right column
             html += '</div>'; // End product container
 

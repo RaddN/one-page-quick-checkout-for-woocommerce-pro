@@ -4,7 +4,7 @@ if (! defined('ABSPATH')) exit; // Exit if accessed directly
 
 
 /**
- * One Page Quick Checkout for WooCommerce
+ * One Page Quick Checkout for WooCommerce Pro
  * 
  * Adds a checkbox to product settings and displays checkout form directly on product page
  * when enabled, creating a streamlined purchasing experience.
