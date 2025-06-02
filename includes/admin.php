@@ -214,7 +214,7 @@ function onepaquc_cart_dashboard()
                         <th scope="row">Enable One Page Checkout</th>
                         <td>
                             <label class="switch">
-                                <input type="checkbox" name="onpage_checkout_enable" value="1" <?php checked(1, get_option("onpage_checkout_enable"), true); ?> />
+                                <input type="checkbox" name="onpage_checkout_enable" value="1" <?php checked(1, get_option("onpage_checkout_enable", 1), true); ?> />
                                 <span class="slider round"></span>
                             </label>
                             <span class="tooltip">
@@ -300,6 +300,24 @@ function onepaquc_cart_dashboard()
                         </td>
                     </tr>
                 </table>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        // if the "Enable One Page Checkout" checkbox is checked, enable the "Checkout Layout" select
+                        const enableCheckout = document.querySelector('div#tab-2 input[name="onpage_checkout_enable"]');
+
+                        const allinputFields = Array.from(document.querySelectorAll('div#tab-2 table:nth-of-type(1) input, div#tab-2 table:nth-of-type(1) select')).filter(
+                            el => !(el.name === "onpage_checkout_enable")
+                        );
+                        allinputFields.forEach(field => {
+                            field.disabled = !enableCheckout.checked;
+                        });
+                        enableCheckout.addEventListener('change', function() {
+                            allinputFields.forEach(field => {
+                                field.disabled = !this.checked;
+                            });
+                        });
+                    });
+                </script>
                 <hr />
 
                 <h2>Multi-product One Page Checkout <span class="tooltip">
@@ -522,7 +540,7 @@ function onepaquc_cart_dashboard()
                         </div>
                     </div>
 
-                    <div class="rmenu-settings-section">
+                    <div class="rmenu-settings-section direct-button-style-section">
                         <div class="rmenu-settings-section-header">
                             <h3><span class="dashicons dashicons-admin-appearance"></span> Button Style</h3>
                         </div>
@@ -602,6 +620,31 @@ function onepaquc_cart_dashboard()
                             </div>
                         </div>
                     </div>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            // if the "Enable One Page Checkout" checkbox is checked, enable the "Checkout Layout" select
+                            const button_style = document.querySelector('div#tab-4 select[name="rmenu_wc_checkout_style"]');
+
+                            // Select all children except the first two in the .button-style-section & except div#rmenu-atc-custom-width-row
+                            const buttonStyleSection = document.querySelector('.rmenu-settings-section.direct-button-style-section');
+                            const allFields = Array.from(buttonStyleSection ? buttonStyleSection.children : []).slice(2);
+
+                            // if button_style !== 'custom', none all fields except the first two
+                            if (button_style) {
+                                button_style.addEventListener('change', function() {
+                                    if (this.value !== 'default') {
+                                        allFields.forEach(field => field.style.display = 'flex');
+                                    } else {
+                                        allFields.forEach(field => field.style.display = 'none');
+                                    }
+                                });
+
+                                // Trigger change event on page load to set initial visibility
+                                button_style.dispatchEvent(new Event('change'));
+
+                            }
+                        });
+                    </script>
 
                 </div>
 
@@ -989,6 +1032,24 @@ function onepaquc_cart_dashboard()
                     });
                 </script>
             </div>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    // if the "Enable One Page Checkout" checkbox is checked, enable the "Checkout Layout" select
+                    const enableCheckout = document.querySelector('div#tab-4 input[name="rmenu_add_direct_checkout_button"]');
+
+                    const allinputFields = Array.from(document.querySelectorAll('div#tab-4 input, div#tab-4 select')).filter(
+                        el => !(el.name === "rmenu_add_direct_checkout_button")
+                    );
+                    allinputFields.forEach(field => {
+                        field.disabled = !enableCheckout.checked;
+                    });
+                    enableCheckout.addEventListener('change', function() {
+                        allinputFields.forEach(field => {
+                            field.disabled = !this.checked;
+                        });
+                    });
+                });
+            </script>
             <div class="tab-content" id="tab-5">
                 <h2>Manage Features</h2>
                 <table class="form-table">
@@ -1172,7 +1233,7 @@ function onepaquc_cart_dashboard()
                             </div>
                         </div>
                     </div>
-                    <div class="rmenu-settings-section">
+                    <div class="rmenu-settings-section quick-view-button-style">
                         <div class="rmenu-settings-section-header">
                             <h3><span class="dashicons dashicons-admin-appearance"></span> Button Style</h3>
                         </div>
@@ -1249,6 +1310,31 @@ function onepaquc_cart_dashboard()
                             </div>
                         </div>
                     </div>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            // if the "Enable One Page Checkout" checkbox is checked, enable the "Checkout Layout" select
+                            const button_style = document.querySelector('div#tab-7 select[name="rmenu_quick_view_button_style"]');
+
+                            // Select all children except the first two in the .button-style-section & except div#rmenu-atc-custom-width-row
+                            const buttonStyleSection = document.querySelector('.rmenu-settings-section.quick-view-button-style');
+                            const allFields = Array.from(buttonStyleSection ? buttonStyleSection.children : []).slice(2);
+
+                            // if button_style !== 'custom', none all fields except the first two
+                            if (button_style) {
+                                button_style.addEventListener('change', function() {
+                                    if (this.value !== 'default') {
+                                        allFields.forEach(field => field.style.display = 'flex');
+                                    } else {
+                                        allFields.forEach(field => field.style.display = 'none');
+                                    }
+                                });
+
+                                // Trigger change event on page load to set initial visibility
+                                button_style.dispatchEvent(new Event('change'));
+
+                            }
+                        });
+                    </script>
                 </div>
                 <div class="rmenu-settings-section tab-content" id="quick-popup" style="padding: 0;">
                     <div class="rmenu-settings-section-header">
@@ -1745,6 +1831,24 @@ function onepaquc_cart_dashboard()
                     });
                 </script>
             </div>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    // if the "Enable One Page Checkout" checkbox is checked, enable the "Checkout Layout" select
+                    const enableCheckout = document.querySelector('div#tab-7 input[name="rmenu_enable_quick_view"]');
+
+                    const allinputFields = Array.from(document.querySelectorAll('div#tab-7 input, div#tab-7 select')).filter(
+                        el => !(el.name === "rmenu_enable_quick_view")
+                    );
+                    allinputFields.forEach(field => {
+                        field.disabled = !enableCheckout.checked;
+                    });
+                    enableCheckout.addEventListener('change', function() {
+                        allinputFields.forEach(field => {
+                            field.disabled = !this.checked;
+                        });
+                    });
+                });
+            </script>
             <div class="tab-content" id="tab-8">
                 <div class="rmenu-settings-header">
                     <h2>WooCommerce Add To Cart</h2>
@@ -1817,7 +1921,7 @@ function onepaquc_cart_dashboard()
                         </div>
                     </div>
 
-                    <div class="rmenu-settings-section">
+                    <div class="rmenu-settings-section button-style-section">
                         <div class="rmenu-settings-section-header">
                             <h3><span class="dashicons dashicons-admin-appearance"></span> Button Style</h3>
                         </div>
@@ -1963,6 +2067,36 @@ function onepaquc_cart_dashboard()
                             </div>
                         </div>
                     </div>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            // if the "Enable One Page Checkout" checkbox is checked, enable the "Checkout Layout" select
+                            const button_style = document.querySelector('div#tab-8 select[name="rmenu_add_to_cart_style"]');
+
+                            // Select all children except the first two in the .button-style-section & except div#rmenu-atc-custom-width-row
+                            const buttonStyleSection = document.querySelector('.rmenu-settings-section.button-style-section');
+                            const allFields = Array.from(buttonStyleSection ? buttonStyleSection.children : []).slice(2);
+                            const customWidthRow = document.getElementById('rmenu-atc-custom-width-row');
+                            if (customWidthRow) {
+                                allFields.splice(allFields.indexOf(customWidthRow), 1); // Remove custom width row from the list
+                            }
+
+
+                            // if button_style !== 'custom', none all fields except the first two
+                            if (button_style) {
+                                button_style.addEventListener('change', function() {
+                                    if (this.value !== 'default') {
+                                        allFields.forEach(field => field.style.display = 'flex');
+                                    } else {
+                                        allFields.forEach(field => field.style.display = 'none');
+                                    }
+                                });
+
+                                // Trigger change event on page load to set initial visibility
+                                button_style.dispatchEvent(new Event('change'));
+
+                            }
+                        });
+                    </script>
                 </div>
 
                 <div class="tab-content" id="button-behavior" style="padding: 0;">
@@ -2316,6 +2450,24 @@ function onepaquc_cart_dashboard()
                     });
                 </script>
             </div>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    // if the "Enable One Page Checkout" checkbox is checked, enable the "Checkout Layout" select
+                    const enableCheckout = document.querySelector('div#tab-8 input[name="rmenu_enable_custom_add_to_cart"]');
+
+                    const allinputFields = Array.from(document.querySelectorAll('div#tab-8 input, div#tab-8 select')).filter(
+                        el => !(el.name === "rmenu_enable_custom_add_to_cart")
+                    );
+                    allinputFields.forEach(field => {
+                        field.disabled = !enableCheckout.checked;
+                    });
+                    enableCheckout.addEventListener('change', function() {
+                        allinputFields.forEach(field => {
+                            field.disabled = !this.checked;
+                        });
+                    });
+                });
+            </script>
             <?php submit_button(); ?>
         </form>
         <p style="text-align: center;font-size: 15px;">To add menu cart to your page, use the shortcode <b>[plugincy_cart drawer="right" cart_icon="cart" product_title_tag="h4"]</b> or use Plugincy Cart Widget/Block</p>
@@ -2343,6 +2495,7 @@ function onepaquc_cart_settings()
         "rmsg_editor",
         "onpage_checkout_position",
         "onpage_checkout_cart_empty",
+        "onpage_checkout_enable",
         "onpage_checkout_enable_all",
         "onpage_checkout_layout",
         "onpage_checkout_cart_add",

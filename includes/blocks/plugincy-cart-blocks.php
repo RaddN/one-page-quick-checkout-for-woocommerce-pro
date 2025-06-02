@@ -221,10 +221,11 @@ function onepaquc_wc_checkout_block_render($attributes = array()) {
         
         .rmenu-cart .cart-drawer {
             width: {$attributes['drawerWidth']}px !important;
+            max-width: 100% !important;
             background-color: {$attributes['drawerBackground']} !important;
         }
         
-        .rmenu-cart .cart-drawer .cart-content {
+        .rmenu-cart .cart-drawer {
             padding: {$attributes['drawerPadding']}px !important;
             margin: {$attributes['drawerMargin']}px !important;
         }
@@ -265,7 +266,7 @@ function onepaquc_wc_checkout_block_render($attributes = array()) {
             line-height: {$attributes['subtotalLineHeight']} !important;
             color: {$attributes['subtotalColor']} !important;
             padding: {$attributes['subtotalPadding']}px !important;
-            margin: {$attributes['subtotalMargin']}px !important;
+            padding-bottom: 0 !important;
         }
         
         .rmenu-cart .checkout-button {

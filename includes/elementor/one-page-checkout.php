@@ -20,7 +20,7 @@ function onepaquc_is_elementor_active()
 /**
  * Register the custom Elementor widget if Elementor is active.
  */
-function onepaquc_register_dynamic_ajax_filter_widget_elementor()
+function onepaquc_plugincy_one_page_checkout_widget()
 {
     if (! onepaquc_is_elementor_active() || ! class_exists('WooCommerce') || ! function_exists('wc_get_attribute_taxonomies')) {
         return;
@@ -584,4 +584,4 @@ function onepaquc_register_dynamic_ajax_filter_widget_elementor()
     \Elementor\Plugin::instance()->widgets_manager->register(new Plugincy_One_Page_Checkout_Widget());
 }
 
-add_action('elementor/init', 'onepaquc_register_dynamic_ajax_filter_widget_elementor');
+add_action('elementor/init', 'onepaquc_plugincy_one_page_checkout_widget');
