@@ -30,6 +30,7 @@ global $onepaquc_checkoutformfields, $onepaquc_productpageformfields, $onepaquc_
 
 require_once plugin_dir_path(__FILE__) . 'includes/global-values.php';
 require_once plugin_dir_path(__FILE__) . 'includes/quickview.php';
+require_once plugin_dir_path(__FILE__) . 'includes/checkout_form_customize.php';
 
 // Enqueue scripts and styles
 function onepaquc_cart_enqueue_scripts()
@@ -99,6 +100,7 @@ function onepaquc_cart_admin_styles($hook)
     }
     wp_enqueue_style('onepaquc_cart_admin_css', plugin_dir_url(__FILE__) . 'assets/css/admin-documentation.css', array(), "1.0.4");
     wp_enqueue_script('rmenu-admin-script', plugin_dir_url(__FILE__) . 'assets/js/admin-documentation.js', array('jquery'), "1.0.4", true);
+    wp_enqueue_editor();
 }
 
 // add shortcode

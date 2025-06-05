@@ -61,8 +61,7 @@ function onepaquc_cart_text_change_form($textvariable)
 // Dashboard page
 function onepaquc_cart_dashboard()
 {
-    global $onepaquc_checkoutformfields,
-        $onepaquc_productpageformfields;
+    global $onepaquc_checkoutformfields;
     ?>
 
     <div class="welcome-banner">
@@ -99,7 +98,7 @@ function onepaquc_cart_dashboard()
     ?>
     <div class="tab-container">
         <div class="tabs">
-            <div class="tab active" data-tab="1">Checkout Form Manage</div>
+            <div class="tab active" data-tab="0">Checkout Form Manage</div>
             <div class="tab" data-tab="3">Text Manage</div>
             <div class="tab" data-tab="2">One Page Checkout</div>
             <div class="tab" data-tab="8">Add To Cart</div>
@@ -108,56 +107,16 @@ function onepaquc_cart_dashboard()
             <div class="tab" data-tab="6">Advanced Settings</div>
             <div class="tab" data-tab="5">Features</div>
         </div>
+        <div class="tab-content active" id="tab-0">
+            <?php
+            require_once plugin_dir_path(__FILE__) . 'checkout_form_editor.php';
+            ?>
+        </div>
         <form method="post" action="options.php">
             <!-- Add nonce field for security -->
             <?php wp_nonce_field('onepaquc_cart_settings'); ?>
             <?php settings_fields('onepaquc_cart_settings'); ?>
-            <div class="tab-content active" id="tab-1">
-                <h2>Checkout Form Manage</h2>
-                <table class="form-table">
-                    <tr valign="top">
-                        <th scope="row">Remove checkout fields</th>
-                        <td>
-                            <!-- multiple select options -->
-                            <select class="remove_checkout_fields chosen_select select2-hidden-accessible enhanced" name="onepaquc_checkout_fields[]" id="qlwcdc_remove_checkout_fields" multiple>
-                                <?php
-                                global $onepaquc_rcheckoutformfields;
-                                $selected_fields = get_option('onepaquc_checkout_fields', []) ?? [];
-                                foreach ($onepaquc_rcheckoutformfields as $key => $field) {
-                                    echo '<option value="' . esc_attr($key) . '" ' . (is_array($selected_fields) && in_array($key, $selected_fields) ? 'selected' : '') . '>' . esc_html($field['title']) . '</option>';
-                                }
-                                ?>
-                            </select>
-                        </td>
-                    </tr>
-                    <?php foreach (onepaquc_rmenu_fields() as $key => $field) : ?>
-                        <tr valign="top">
-                            <th scope="row"><?php echo esc_html($field['title']); ?></th>
-                            <td>
-                                <label class="switch">
-                                    <input type="checkbox" name="<?php echo esc_attr($key); ?>" value="1" <?php checked(1, get_option($key), true); ?> />
-                                    <span class="slider round"></span>
-                                </label>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                </table>
-                <hr />
-                <h3>Heading Manage</h3>
-                <table class="form-table">
-                    <?php foreach (onepaquc_onpcheckout_heading() as $key => $field) : ?>
-                        <tr valign="top">
-                            <th scope="row"><?php echo esc_html($field['title']); ?></th>
-                            <td>
-                                <label class="switch">
-                                    <input type="checkbox" name="<?php echo esc_attr($key); ?>" value="1" <?php checked(1, get_option($key), true); ?> />
-                                    <span class="slider round"></span>
-                                </label>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                </table>
-            </div>
+            <input type="hidden" name="checkout_form_setup" id="checkout_setup" value="<?php echo esc_attr(get_option("checkout_form_setup", '')); ?>" >
             <div class="tab-content" id="tab-2">
                 <!-- Tooltip CSS -->
                 <style>
@@ -2609,6 +2568,14 @@ function onepaquc_cart_settings()
     register_setting('onepaquc_cart_settings', "rmenu_show_quick_view_by_types", 'onepaquc_sanitize_array_of_text');
     register_setting('onepaquc_cart_settings', "rmenu_show_quick_view_by_page", 'onepaquc_sanitize_array_of_text');
     register_setting('onepaquc_cart_settings', "onepaquc_my_trust_badges_items", 'onepaquc_sanitize_trust_badges_items');
+    register_setting('onepaquc_cart_settings', "checkout_form_setup", [
+        'type' => 'string',
+        'sanitize_callback' => function ($value) {
+            // Allow HTML, CSS, JS (no sanitization)
+            return $value;
+        },
+        'show_in_rest' => false,
+    ]);
     register_setting('onepaquc_cart_settings', 'onepaquc_trust_badge_custom_html', [
         'type' => 'string',
         'sanitize_callback' => function ($value) {
@@ -2683,7 +2650,7 @@ function onepaquc_cart_custom_css()
     global $onepaquc_rcheckoutformfields;
 
     // Initialize an empty string for the custom CSS
-    $custom_css = '';
+    $custom_css = '.checkout-popup .woocommerce-privacy-policy-text { display: none !important; }.onepagecheckoutwidget .woocommerce-privacy-policy-text { display: block !important; }';
 
     // Loop through the fields to generate CSS
     foreach (onepaquc_rmenu_fields() as $key => $field) {
