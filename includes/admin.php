@@ -46,7 +46,11 @@ function onepaquc_cart_text_change_form($textvariable)
             $value = esc_attr(get_option($name, ''));
 ?>
             <label>
-                <p><?php echo esc_html($label); ?></p>
+                <p style="display: inline;"><?php echo esc_html($label); ?></p>
+                <span class="tooltip" style="display: inline;">
+                    <span class="question-mark">?</span>
+                    <span class="tooltip-text">You can find "<?php echo esc_html($label); ?>" in the drawer<?php echo $name === "txt-complete_your_purchase" ? " on single product pages." : "."; ?></span>
+                </span>
                 <input type="text" name="<?php echo esc_attr($name); ?>" value="<?php echo esc_attr($value); ?>" />
             </label>
     <?php
@@ -107,6 +111,56 @@ function onepaquc_cart_dashboard()
             <div class="tab" data-tab="6">Advanced Settings</div>
             <div class="tab" data-tab="5">Features</div>
         </div>
+        <script>
+            function isColorDark(color) {
+                if (!color) return false;
+
+                // Remove # if present and convert to lowercase
+                const hex = color.replace('#', '').toLowerCase();
+
+                // Handle 3-digit hex
+                let fullHex = hex;
+                if (hex.length === 3) {
+                    fullHex = hex.split('').map(char => char + char).join('');
+                }
+
+                // Validate hex format
+                if (fullHex.length !== 6 || !/^[0-9a-f]{6}$/.test(fullHex)) {
+                    return false;
+                }
+
+                // Parse RGB values
+                const r = parseInt(fullHex.slice(0, 2), 16);
+                const g = parseInt(fullHex.slice(2, 4), 16);
+                const b = parseInt(fullHex.slice(4, 6), 16);
+
+                // Calculate relative luminance
+                const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+
+                // Color is dark if luminance is less than 0.5
+                return luminance < 0.5;
+            }
+
+            function checkColors(checkoutColor, checkoutTextColor) {
+                const bgColor = checkoutColor.value;
+                const textColor = checkoutTextColor.value;
+
+                if (isColorDark(bgColor) && isColorDark(textColor)) {
+                    showDirectCheckoutWarning(
+                        checkoutColor.closest('.rmenu-settings-row'),
+                        'Warning: Both background and text colors are dark. This may affect readability.'
+                    );
+                } else if (!isColorDark(bgColor) && !isColorDark(textColor)) {
+                    showDirectCheckoutWarning(
+                        checkoutTextColor.closest('.rmenu-settings-row'),
+                        'Warning: Both background and text colors are light. This may affect readability.'
+                    );
+                } else {
+                    removeDirectCheckoutWarning(checkoutColor.closest('.rmenu-settings-row'));
+                    removeDirectCheckoutWarning(checkoutTextColor.closest('.rmenu-settings-row'));
+                }
+            }
+        </script>
         <div class="tab-content active" id="tab-0">
             <?php
             require_once plugin_dir_path(__FILE__) . 'checkout_form_editor.php';
@@ -365,7 +419,13 @@ function onepaquc_cart_dashboard()
                             <div class="rmenu-settings-field">
                                 <label class="rmenu-settings-label">Button Text</label>
                                 <div class="rmenu-settings-control">
-                                    <input type="text" name="txt-direct-checkout" value="<?php echo esc_attr(get_option('txt-direct-checkout', 'Quick Checkout')); ?>" class="regular-text" />
+                                    <?php
+                                    $direct_checkout_text = get_option('txt-direct-checkout', '');
+                                    if (empty($direct_checkout_text)) {
+                                        $direct_checkout_text = 'Quick Checkout';
+                                    }
+                                    ?>
+                                    <input type="text" name="txt-direct-checkout" value="<?php echo esc_attr($direct_checkout_text); ?>" class="regular-text" />
                                     <p class="rmenu-field-description">Customize the text displayed on the direct checkout button.</p>
                                 </div>
                             </div>
@@ -444,7 +504,7 @@ function onepaquc_cart_dashboard()
 
                                         <label class="rmenu-checkbox-container">
                                             <input type="checkbox" name="rmenu_show_quick_checkout_by_page[]" value="cross-sells" <?php checked(in_array('cross-sells', $product_types_option)); ?> />
-                                            <span class="rmenu-checkbox-label">Cross-sells</span>
+                                            <span class="rmenu-checkbox-label">Cross-sells (Coming Soon)</span>
                                         </label>
                                     </div>
 
@@ -468,11 +528,6 @@ function onepaquc_cart_dashboard()
 
                                     <div class="rmenu-checkbox-column">
                                         <h4>Other Pages</h4>
-                                        <label class="rmenu-checkbox-container">
-                                            <input type="checkbox" name="rmenu_show_quick_checkout_by_page[]" value="search" <?php checked(in_array('search', $product_types_option)); ?> />
-                                            <span class="rmenu-checkbox-label">Search Results</span>
-                                        </label>
-
                                         <label class="rmenu-checkbox-container">
                                             <input type="checkbox" name="rmenu_show_quick_checkout_by_page[]" value="featured-products" <?php checked(in_array('featured-products', $product_types_option)); ?> />
                                             <span class="rmenu-checkbox-label">Featured Products</span>
@@ -594,12 +649,28 @@ function onepaquc_cart_dashboard()
                             // Select all children except the first two in the .button-style-section & except div#rmenu-atc-custom-width-row
                             const buttonStyleSection = document.querySelector('.rmenu-settings-section.direct-button-style-section');
                             const allFields = Array.from(buttonStyleSection ? buttonStyleSection.children : []).slice(2);
+                            // if rmenu_wc_checkout_icon is 'none', disable the icon position field
+                            const iconSelect = document.querySelector('select[name="rmenu_wc_checkout_icon"]');
+                            const iconPositionField = document.querySelector('select[name="rmenu_wc_checkout_icon_position"]');
+                            if (iconSelect && iconPositionField) {
+                                iconSelect.addEventListener('change', function() {
+                                    if (this.value === 'none') {
+                                        iconPositionField.disabled = true;
+                                    } else {
+                                        iconPositionField.disabled = false;
+                                    }
+                                });
+
+                                // Trigger change event on page load to set initial visibility
+                                iconSelect.dispatchEvent(new Event('change'));
+                            }
 
                             // if button_style !== 'custom', none all fields except the first two
                             if (button_style) {
                                 button_style.addEventListener('change', function() {
                                     if (this.value !== 'default') {
                                         allFields.forEach(field => field.style.display = 'flex');
+                                        document.querySelector('#rmenu-custom-css-row').style.display = (this.value === 'custom') ? 'block' : 'none';
                                     } else {
                                         allFields.forEach(field => field.style.display = 'none');
                                     }
@@ -609,6 +680,22 @@ function onepaquc_cart_dashboard()
                                 button_style.dispatchEvent(new Event('change'));
 
                             }
+
+                            // if rmenu_wc_checkout_color (which is bg color) & rmenu_wc_checkout_text_color (which is text color) both are dark or light, show a warning message
+                            const checkoutColor = document.querySelector('input[name="rmenu_wc_checkout_color"]');
+                            const checkoutTextColor = document.querySelector('input[name="rmenu_wc_checkout_text_color"]');
+                            if (checkoutColor && checkoutTextColor) {
+                                checkoutColor.addEventListener('change', function() {
+                                    checkColors(checkoutColor, checkoutTextColor);
+                                });
+                                checkoutTextColor.addEventListener('change', function() {
+                                    checkColors(checkoutColor, checkoutTextColor);
+                                });
+
+                                // Initial check on page load
+                                checkColors(checkoutColor, checkoutTextColor);
+                            }
+
                         });
                     </script>
 
@@ -1156,6 +1243,10 @@ function onepaquc_cart_dashboard()
                                 <input type="checkbox" name="rmenu_quantity_control" value="1" <?php checked(1, get_option("rmenu_quantity_control", "1"), true); ?> />
                                 <span class="slider round"></span>
                             </label>
+                            <span class="tooltip">
+                                <span class="question-mark">?</span>
+                                <span class="tooltip-text">Enable "Product Quantity Controller" to manage product quantities in the checkout form.</span>
+                            </span>
                         </td>
                     </tr>
                     <tr valign="top">
@@ -1165,6 +1256,10 @@ function onepaquc_cart_dashboard()
                                 <input type="checkbox" name="rmenu_remove_product" value="1" <?php checked(1, get_option("rmenu_remove_product", "1"), true); ?> />
                                 <span class="slider round"></span>
                             </label>
+                            <span class="tooltip">
+                                <span class="question-mark">?</span>
+                                <span class="tooltip-text">Enable "Remove Product Button" to allow customers to remove products from the checkout form.</span>
+                            </span>
                         </td>
                     </tr>
                     <tr valign="top">
@@ -1174,6 +1269,10 @@ function onepaquc_cart_dashboard()
                                 <input type="checkbox" name="rmenu_add_img_before_product" value="1" <?php checked(1, get_option("rmenu_add_img_before_product", "1"), true); ?> />
                                 <span class="slider round"></span>
                             </label>
+                            <span class="tooltip">
+                                <span class="question-mark">?</span>
+                                <span class="tooltip-text">Enable "Add Image Before Product" to display product images before the product name in the checkout form.</span>
+                            </span>
                         </td>
                     </tr>
                     <tr valign="top">
@@ -1183,6 +1282,10 @@ function onepaquc_cart_dashboard()
                                 <input type="checkbox" name="rmenu_at_one_product_cart" value="1" <?php checked(1, get_option("rmenu_at_one_product_cart", "1"), true); ?> />
                                 <span class="slider round"></span>
                             </label>
+                            <span class="tooltip">
+                                <span class="question-mark">?</span>
+                                <span class="tooltip-text">Enable "At least one product in cart" to add at least one product in the cart.</span>
+                            </span>
                         </td>
                     </tr>
                     <tr valign="top">
@@ -1192,6 +1295,10 @@ function onepaquc_cart_dashboard()
                                 <input type="checkbox" name="rmenu_disable_cart_page" value="1" <?php checked(1, get_option("rmenu_disable_cart_page", "1"), true); ?> />
                                 <span class="slider round"></span>
                             </label>
+                            <span class="tooltip">
+                                <span class="question-mark">?</span>
+                                <span class="tooltip-text">Enable "Disable Cart Page" to remove the cart page from your WooCommerce store.</span>
+                            </span>
                         </td>
                     </tr>
                     <tr valign="top">
@@ -1201,6 +1308,10 @@ function onepaquc_cart_dashboard()
                                 <input type="checkbox" name="rmenu_express_checkout" value="1" <?php checked(1, get_option("rmenu_express_checkout", 0), true); ?> />
                                 <span class="slider round"></span>
                             </label>
+                            <span class="tooltip">
+                                <span class="question-mark">?</span>
+                                <span class="tooltip-text">Enable "Express Checkout options" to allow customers to use express checkout options like PayPal, Stripe, etc.</span>
+                            </span>
                         </td>
                     </tr>
                     <tr valign="top">
@@ -1210,6 +1321,10 @@ function onepaquc_cart_dashboard()
                                 <input type="checkbox" name="rmenu_address_auto_complete" value="1" <?php checked(1, get_option("rmenu_address_auto_complete", 0), true); ?> />
                                 <span class="slider round"></span>
                             </label>
+                            <span class="tooltip">
+                                <span class="question-mark">?</span>
+                                <span class="tooltip-text">Enable "Address Auto-Complete" to automatically fill in address fields based on user input.</span>
+                            </span>
                         </td>
                     </tr>
                     <tr valign="top">
@@ -1219,6 +1334,10 @@ function onepaquc_cart_dashboard()
                                 <input type="checkbox" name="rmenu_multi_step_checkout" value="1" <?php checked(1, get_option("rmenu_multi_step_checkout", 0), true); ?> />
                                 <span class="slider round"></span>
                             </label>
+                            <span class="tooltip">
+                                <span class="question-mark">?</span>
+                                <span class="tooltip-text">Enable "Multi-step checkout" to break the checkout process into multiple steps for better user experience.</span>
+                            </span>
                         </td>
                     </tr>
                     <tr valign="top">
@@ -1228,6 +1347,10 @@ function onepaquc_cart_dashboard()
                                 <input type="checkbox" name="rmenu_force_login" value="1" <?php checked(1, get_option("rmenu_force_login", 0), true); ?> />
                                 <span class="slider round"></span>
                             </label>
+                            <span class="tooltip">
+                                <span class="question-mark">?</span>
+                                <span class="tooltip-text">Enable "Force login before checkout" to require users to log in before they can proceed to checkout.</span>
+                            </span>
                         </td>
                     </tr>
                     <tr valign="top">
@@ -1237,6 +1360,10 @@ function onepaquc_cart_dashboard()
                                 <input type="checkbox" name="rmenu_link_product" value="1" <?php checked(1, get_option("rmenu_link_product", "1"), true); ?> />
                                 <span class="slider round"></span>
                             </label>
+                            <span class="tooltip">
+                                <span class="question-mark">?</span>
+                                <span class="tooltip-text">Enable "Link product name in checkout page" to make product names clickable, leading to their respective product pages.</span>
+                            </span>
                         </td>
                     </tr>
                     <tr valign="top">
@@ -1246,6 +1373,10 @@ function onepaquc_cart_dashboard()
                                 <input type="checkbox" name="rmenu_enable_captcha" value="1" <?php checked(1, get_option("rmenu_enable_captcha", 0), true); ?> />
                                 <span class="slider round"></span>
                             </label>
+                            <span class="tooltip">
+                                <span class="question-mark">?</span>
+                                <span class="tooltip-text">Enable "Captcha on checkout page" to add a captcha verification step to the checkout process, enhancing security against spam and bots.</span>
+                            </span>
                         </td>
                     </tr>
                 </table>
@@ -1289,7 +1420,13 @@ function onepaquc_cart_dashboard()
                             <div class="rmenu-settings-field">
                                 <label class="rmenu-settings-label">Button Text</label>
                                 <div class="rmenu-settings-control">
-                                    <input type="text" name="rmenu_quick_view_button_text" value="<?php echo esc_attr(get_option('rmenu_quick_view_button_text', 'Quick View')); ?>" class="regular-text" />
+                                    <?php
+                                    $quick_view_button_text = get_option('rmenu_quick_view_button_text', '');
+                                    if (empty($quick_view_button_text)) {
+                                        $quick_view_button_text = 'Quick View';
+                                    }
+                                    ?>
+                                    <input type="text" name="rmenu_quick_view_button_text" value="<?php echo esc_attr($quick_view_button_text); ?>" class="regular-text" />
                                     <p class="rmenu-field-description">Customize the text displayed on the quick view button.</p>
                                 </div>
                             </div>
@@ -1329,7 +1466,7 @@ function onepaquc_cart_dashboard()
                             </div>
                         </div>
                     </div>
-                    <div class="rmenu-settings-section quick-view-button-style">
+                    <div class="rmenu-settings-section quick-view-button-style" id="rmenu-quick-view-button-style-section">
                         <div class="rmenu-settings-section-header">
                             <h3><span class="dashicons dashicons-admin-appearance"></span> Button Style</h3>
                         </div>
@@ -1428,6 +1565,21 @@ function onepaquc_cart_dashboard()
                                 // Trigger change event on page load to set initial visibility
                                 button_style.dispatchEvent(new Event('change'));
 
+                            }
+
+                            // if rmenu_quick_view_button_color (which is bg color) & rmenu_quick_view_text_color (which is text color) both are dark or light, show a warning message
+                            const checkoutColor = document.querySelector('input[name="rmenu_quick_view_button_color"]');
+                            const checkoutTextColor = document.querySelector('input[name="rmenu_quick_view_text_color"]');
+                            if (checkoutColor && checkoutTextColor) {
+                                checkoutColor.addEventListener('change', function() {
+                                    checkColors(checkoutColor, checkoutTextColor);
+                                });
+                                checkoutTextColor.addEventListener('change', function() {
+                                    checkColors(checkoutColor, checkoutTextColor);
+                                });
+
+                                // Initial check on page load
+                                checkColors(checkoutColor, checkoutTextColor);
                             }
                         });
                     </script>
@@ -1670,38 +1822,14 @@ function onepaquc_cart_dashboard()
                             <div class="rmenu-settings-field">
                                 <label class="rmenu-settings-label">"View Details" Text</label>
                                 <div class="rmenu-settings-control">
-                                    <input type="text" name="rmenu_quick_view_details_text" value="<?php echo esc_attr(get_option('rmenu_quick_view_details_text', 'View Full Details')); ?>" class="regular-text" />
+                                    <?php
+                                    $details_text = get_option('rmenu_quick_view_details_text', '');
+                                    if (empty($details_text)) {
+                                        $details_text = 'View Full Details';
+                                    }
+                                    ?>
+                                    <input type="text" name="rmenu_quick_view_details_text" value="<?php echo esc_attr($details_text); ?>" class="regular-text" />
                                     <p class="rmenu-field-description">Customize the text for the "View Full Details" link in the quick view popup.</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Close Button Text</label>
-                                <div class="rmenu-settings-control">
-                                    <input type="text" name="rmenu_quick_view_close_text" value="<?php echo esc_attr(get_option('rmenu_quick_view_close_text', 'Close')); ?>" class="regular-text" />
-                                    <p class="rmenu-field-description">Customize the text for the close button in the quick view popup.</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Previous Product Text</label>
-                                <div class="rmenu-settings-control">
-                                    <input type="text" name="rmenu_quick_view_prev_text" value="<?php echo esc_attr(get_option('rmenu_quick_view_prev_text', 'Previous Product')); ?>" class="regular-text" />
-                                    <p class="rmenu-field-description">Customize the text for the previous product navigation in the quick view popup.</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Next Product Text</label>
-                                <div class="rmenu-settings-control">
-                                    <input type="text" name="rmenu_quick_view_next_text" value="<?php echo esc_attr(get_option('rmenu_quick_view_next_text', 'Next Product')); ?>" class="regular-text" />
-                                    <p class="rmenu-field-description">Customize the text for the next product navigation in the quick view popup.</p>
                                 </div>
                             </div>
                         </div>
@@ -2075,6 +2203,41 @@ function onepaquc_cart_dashboard()
                 document.addEventListener('DOMContentLoaded', function() {
                     // if the "Enable One Page Checkout" checkbox is checked, enable the "Checkout Layout" select
                     const enableCheckout = document.querySelector('div#tab-7 input[name="rmenu_enable_quick_view"]');
+                    // if rmenu_quick_view_display_type is icon, disable the rmenu_quick_view_button_text
+                    const quickViewDisplayType = document.querySelector('div#tab-7 select[name="rmenu_quick_view_display_type"]');
+                    const quickViewButtonText = document.querySelector('div#tab-7 input[name="rmenu_quick_view_button_text"]');
+                    // if rmenu_quick_view_button_icon is none, show warning
+                    const quickViewButtonIcon = document.querySelector('div#tab-7 select[name="rmenu_quick_view_button_icon"]');
+                    const heighlight_quick_view_button_style = document.querySelector('#rmenu-quick-view-button-style-section');
+                    quickViewDisplayType.addEventListener('change', function() {
+                        if (this.value === 'icon') {
+                            quickViewButtonText.disabled = true;
+                        } else {
+                            quickViewButtonText.disabled = false;
+                        }
+
+                        if (this.value !== 'button') {
+                            if (quickViewButtonIcon.value === 'none') {
+                                showDirectCheckoutWarning(
+                                    heighlight_quick_view_button_style,
+                                    'Please select an icon for the Quick View button.'
+                                );
+                            }
+                        } else {
+                            removeDirectCheckoutWarning(heighlight_quick_view_button_style);
+                        }
+                    });
+
+                    quickViewButtonIcon.addEventListener('change', function() {
+                        if (this.value === 'none' && quickViewDisplayType.value !== 'button') {
+                            showDirectCheckoutWarning(
+                                heighlight_quick_view_button_style,
+                                'Please select an icon for the Quick View button.'
+                            );
+                        } else {
+                            removeDirectCheckoutWarning(heighlight_quick_view_button_style);
+                        }
+                    });
 
                     const allinputFields = Array.from(document.querySelectorAll('div#tab-7 input, div#tab-7 select')).filter(
                         el => !(el.name === "rmenu_enable_quick_view")
@@ -2087,6 +2250,37 @@ function onepaquc_cart_dashboard()
                             field.disabled = !this.checked;
                         });
                     });
+
+                    // Show/hide custom CSS row based on selected style after page load
+                    const styleSelect = document.querySelector('select[name="rmenu_quick_view_button_style"]');
+                    const customCssRow = document.querySelector('textarea[name="rmenu_quick_view_custom_css"]').closest('.rmenu-settings-row');
+                    // if rmenu_quick_view_display_type is button, hide the rmenu_quick_view_button_icon & rmenu_quick_view_icon_position
+                    const quickViewButtonIconRow = quickViewButtonIcon.closest('.rmenu-settings-row');
+                    const updateQuickViewDisplayType = () => {
+                        if (quickViewDisplayType.value === 'button') {
+                            quickViewButtonIconRow.style.display = 'none';
+                        } else {
+                            quickViewButtonIconRow.style.display = 'flex';
+                        }
+                    };
+
+                    const updateCustomCssRowVisibility = () => {
+                        if (styleSelect.value === 'custom') {
+                            customCssRow.style.display = 'block';
+                        } else {
+                            customCssRow.style.display = 'none';
+                        }
+                        updateQuickViewDisplayType();
+                    };
+
+                    // Initial check
+                    updateCustomCssRowVisibility();
+
+                    // Add change event listener
+                    styleSelect.addEventListener('change', updateCustomCssRowVisibility);
+
+                    updateQuickViewDisplayType();
+                    quickViewDisplayType.addEventListener('change', updateQuickViewDisplayType);
                 });
             </script>
             <div class="tab-content" id="tab-8">
@@ -2316,6 +2510,23 @@ function onepaquc_cart_dashboard()
                             const buttonStyleSection = document.querySelector('.rmenu-settings-section.button-style-section');
                             const allFields = Array.from(buttonStyleSection ? buttonStyleSection.children : []).slice(2);
                             const customWidthRow = document.getElementById('rmenu-atc-custom-width-row');
+                            // if rmenu_add_to_cart_icon is none, hide the rmenu-atc-icon-position-row
+                            const iconPositionRow = document.getElementById('rmenu-atc-icon-position-row');
+                            const iconSelect = document.querySelector('select[name="rmenu_add_to_cart_icon"]');
+
+                            if (iconSelect && iconPositionRow) {
+                                iconSelect.addEventListener('change', function() {
+                                    if (this.value === 'none') {
+                                        iconPositionRow.style.display = 'none';
+                                    } else {
+                                        iconPositionRow.style.display = 'block';
+                                    }
+                                });
+
+                                // Trigger change event on page load to set initial visibility
+                                iconSelect.dispatchEvent(new Event('change'));
+                            }
+
                             if (customWidthRow) {
                                 allFields.splice(allFields.indexOf(customWidthRow), 1); // Remove custom width row from the list
                             }
@@ -2326,6 +2537,11 @@ function onepaquc_cart_dashboard()
                                 button_style.addEventListener('change', function() {
                                     if (this.value !== 'default') {
                                         allFields.forEach(field => field.style.display = 'flex');
+                                        if (this.value !== 'custom') {
+                                            document.getElementById('rmenu-atc-custom-css-row').style.display = 'none';
+                                        } else {
+                                            document.getElementById('rmenu-atc-custom-css-row').style.display = 'block';
+                                        }
                                     } else {
                                         allFields.forEach(field => field.style.display = 'none');
                                     }
@@ -2334,6 +2550,36 @@ function onepaquc_cart_dashboard()
                                 // Trigger change event on page load to set initial visibility
                                 button_style.dispatchEvent(new Event('change'));
 
+                            }
+
+                            // if rmenu_add_to_cart_bg_color (which is bg color) & rmenu_add_to_cart_text_color (which is text color) both are dark or light, show a warning message
+                            const checkoutColor = document.querySelector('input[name="rmenu_add_to_cart_bg_color"]');
+                            const checkoutTextColor = document.querySelector('input[name="rmenu_add_to_cart_text_color"]');
+                            if (checkoutColor && checkoutTextColor) {
+                                checkoutColor.addEventListener('change', function() {
+                                    checkColors(checkoutColor, checkoutTextColor);
+                                });
+                                checkoutTextColor.addEventListener('change', function() {
+                                    checkColors(checkoutColor, checkoutTextColor);
+                                });
+
+                                // Initial check on page load
+                                checkColors(checkoutColor, checkoutTextColor);
+                            }
+
+                            // if rmenu_add_to_cart_hover_bg_color (which is bg color) & rmenu_add_to_cart_hover_text_color (which is text color) both are dark or light, show a warning message
+                            const checkoutHoverColor = document.querySelector('input[name="rmenu_add_to_cart_hover_bg_color"]');
+                            const checkoutHoverTextColor = document.querySelector('input[name="rmenu_add_to_cart_hover_text_color"]');
+                            if (checkoutHoverColor && checkoutHoverTextColor) {
+                                checkoutHoverColor.addEventListener('change', function() {
+                                    checkColors(checkoutHoverColor, checkoutHoverTextColor);
+                                });
+                                checkoutHoverTextColor.addEventListener('change', function() {
+                                    checkColors(checkoutHoverColor, checkoutHoverTextColor);
+                                });
+
+                                // Initial check on page load
+                                checkColors(checkoutHoverColor, checkoutHoverTextColor);
                             }
                         });
                     </script>
@@ -2616,19 +2862,6 @@ function onepaquc_cart_dashboard()
                                 </div>
                             </div>
                         </div>
-
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Disable Add to Cart on Out of Stock</label>
-                                <div class="rmenu-settings-control">
-                                    <label class="rmenu-toggle-switch">
-                                        <input type="checkbox" name="rmenu_disable_btn_out_of_stock" value="1" <?php checked(1, get_option("rmenu_disable_btn_out_of_stock", 1), true); ?> />
-                                        <span class="rmenu-toggle-slider"></span>
-                                    </label>
-                                    <p class="rmenu-field-description">Completely disable the button instead of showing "Out of Stock" text.</p>
-                                </div>
-                            </div>
-                        </div>
                         <div class="rmenu-settings-row">
                             <div class="rmenu-settings-field">
                                 <label class="rmenu-settings-label">Disable continue shopping button</label>
@@ -2755,7 +2988,7 @@ function onepaquc_cart_dashboard()
                     // if the "Enable One Page Checkout" checkbox is checked, enable the "Checkout Layout" select
                     const enableCheckout = document.querySelector('div#tab-8 input[name="rmenu_enable_custom_add_to_cart"]');
 
-                    const allinputFields = Array.from(document.querySelectorAll('div#tab-8 input, div#tab-8 select')).filter(
+                    const allinputFields = Array.from(document.querySelectorAll('div#tab-8 input, div#tab-8 select,div#tab-8 textarea')).filter(
                         el => !(el.name === "rmenu_enable_custom_add_to_cart")
                     );
                     allinputFields.forEach(field => {
@@ -2770,9 +3003,9 @@ function onepaquc_cart_dashboard()
             </script>
             <?php submit_button(); ?>
         </form>
-        <form method="post" action="">
+        <form method="post" action="" onsubmit="return confirm('Are you sure you want to reset all settings to default? This action cannot be undone.');">
             <input type="hidden" name="onepaquc_reset_settings" value="1">
-            <?php submit_button('Reset Settings'); ?>
+            <?php submit_button('Reset Settings', 'button-primary', '', false, array('style' => 'margin-left: 20px;background:#dc3545;color:#fff;border-color:#dc3545;')); ?>
         </form>
         <p style="text-align: center;font-size: 15px;">To add menu cart to your page, use the shortcode <b>[plugincy_cart drawer="right" cart_icon="cart" product_title_tag="h4"]</b> or use Plugincy Cart Widget/Block</p>
         <p style="text-align: center;padding-bottom:20px; font-size: 15px;">[plugincy_one_page_checkout product_ids="152,153,151,142" template="product-tabs"] or use <b>Plugincy One Page Checkout</b> widget/block <a href="/wp-admin/admin.php?page=onepaquc_cart_documentation#multiple-products">view documentation</a></p>

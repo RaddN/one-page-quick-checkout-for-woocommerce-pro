@@ -1742,3 +1742,10 @@ table.one-page-checkout-product-table td {
 		stroke-dashoffset: 40.84;
 	}
 }
+
+
+a.rmenu-quick-view-btn.display-text_icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

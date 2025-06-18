@@ -310,9 +310,17 @@ function onepaquc_display_checkout_on_single_product()
         }
         if (get_option("onpage_checkout_hide_cart_button") === "1") {
             remove_action('woocommerce_single_product_summary', 'woocommerce_template_single_add_to_cart', 30);
-            add_filter('woocommerce_is_purchasable', function ($is_purchasable, $product) {
-                return false;
-            }, 10, 2);
+            // add_filter('woocommerce_is_purchasable', function ($is_purchasable, $product) {
+            //     return false;
+            // }, 10, 2);
+            add_action('wp_head', function () {
+                echo '<style>
+                    .quantity, 
+                    button.single_add_to_cart_button.button {
+                        display: none !important;
+                    }
+                </style>';
+            });
         }
 
         remove_action('woocommerce_single_product_summary', 'woocommerce_template_single_add_to_cart', 30);
@@ -332,6 +340,11 @@ add_action('wp', 'onepaquc_display_checkout_on_single_product', 99);
  */
 function onepaquc_display_one_page_checkout_form()
 {
+
+    // check if cart is empty
+    if (WC()->cart->is_empty()) {
+        return;
+    }
 
 ?>
     <div class="one-page-checkout-container onepagecheckoutwidget" id="checkout-popup">
