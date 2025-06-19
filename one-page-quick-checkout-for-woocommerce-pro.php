@@ -31,106 +31,107 @@ global $onepaquc_checkoutformfields, $onepaquc_productpageformfields, $onepaquc_
 require_once plugin_dir_path(__FILE__) . 'includes/global-values.php';
 require_once plugin_dir_path(__FILE__) . 'includes/quickview.php';
 require_once plugin_dir_path(__FILE__) . 'includes/checkout_form_customize.php';
+require_once plugin_dir_path(__FILE__) . 'admin/license-tab.php';
 
 
 $string_settings_fields = [
-        "rmsg_editor",
-        "onpage_checkout_position",
-        "onpage_checkout_cart_empty",
-        "onpage_checkout_enable",
-        "onpage_checkout_enable_all",
-        "onpage_checkout_layout",
-        "onpage_checkout_cart_add",
-        "onpage_checkout_widget_cart_empty",
-        "onpage_checkout_widget_cart_add",
-        "onpage_checkout_hide_cart_button",
-        "rmenu_quantity_control",
-        "rmenu_at_one_product_cart",
-        "rmenu_disable_cart_page",
-        "rmenu_link_product",
-        "rmenu_remove_product",
-        "rmenu_add_img_before_product",
-        "rmenu_add_direct_checkout_button",
-        "rmenu_enable_custom_add_to_cart",
-        "rmenu_wc_checkout_guest_enabled",
-        "rmenu_wc_checkout_mobile_optimize",
-        "rmenu_wc_direct_checkout_position",
-        "rmenu_variation_show_archive",
-        "rmenu_wc_hide_select_option",
-        "txt-direct-checkout",
-        "rmenu_wc_checkout_color",
-        "rmenu_add_to_cart_bg_color",
-        "rmenu_wc_checkout_text_color",
-        "rmenu_add_to_cart_text_color",
-        "rmenu_add_to_cart_hover_bg_color",
-        "rmenu_add_to_cart_hover_text_color",
-        "rmenu_add_to_cart_border_radius",
-        "rmenu_add_to_cart_font_size",
-        "rmenu_add_to_cart_width",
-        "rmenu_add_to_cart_icon",
-        "rmenu_add_to_cart_icon_position",
-        "rmenu_add_to_cart_catalog_display",
-        "rmenu_wc_checkout_style",
-        "rmenu_add_to_cart_style",
-        "rmenu_wc_checkout_icon",
-        "rmenu_wc_checkout_icon_position",
-        "rmenu_wc_checkout_method",
-        "rmenu_wc_clear_cart",
-        "rmenu_wc_one_click_purchase",
-        "rmenu_wc_add_confirmation",
-        "rmenu_enable_ajax_add_to_cart",
-        "rmenu_add_to_cart_default_qty",
-        "rmenu_show_quantity_archive",
-        "rmenu_redirect_after_add",
-        "rmenu_add_to_cart_animation",
-        "rmenu_add_to_cart_notification_style",
-        "rmenu_add_to_cart_success_message",
-        "rmenu_show_view_cart_link",
-        "rmenu_add_to_cart_notification_duration",
-        "rmenu_show_checkout_link",
-        "rmenu_sticky_add_to_cart_mobile",
-        "rmenu_mobile_add_to_cart_text",
-        "rmenu_mobile_button_size",
-        "rmenu_hide_on_mobile_options",
-        "rmenu_mobile_icon_only",
-        "rmenu_add_to_cart_loading_effect",
-        "rmenu_disable_btn_out_of_stock",
-        "rmenu_force_button_css",
-        "rmenu_enable_quick_view",
-        "rmenu_quick_view_button_text",
-        "rmenu_quick_view_button_position",
-        "rmenu_quick_view_display_type",
-        "rmenu_quick_view_modal_size",
-        "rmenu_quick_view_enable_lightbox",
-        "rmenu_quick_view_loading_effect",
-        "rmenu_quick_view_button_style",
-        "rmenu_quick_view_button_color",
-        "rmenu_quick_view_text_color",
-        "rmenu_quick_view_button_icon",
-        "rmenu_quick_view_icon_position",
-        "rmenu_quick_view_ajax_add_to_cart",
-        "rmenu_quick_view_direct_checkout",
-        "rmenu_quick_view_mobile_optimize",
-        "rmenu_quick_view_close_on_add",
-        "rmenu_quick_view_keyboard_nav",
-        "rmenu_quick_view_preload",
-        "rmenu_quick_view_enable_cache",
-        "rmenu_quick_view_cache_expiration",
-        "rmenu_quick_view_lazy_load",
-        "rmenu_quick_view_details_text",
-        "rmenu_quick_view_close_text",
-        "rmenu_quick_view_prev_text",
-        "rmenu_quick_view_next_text",
-        "rmenu_quick_view_track_events",
-        "rmenu_quick_view_event_category",
-        "rmenu_quick_view_event_action",
-        "rmenu_quick_view_load_scripts",
-        "rmenu_quick_view_theme_compat",
-        "onepaquc_trust_badges_enabled",
-        "onepaquc_trust_badge_position",
-        "onepaquc_trust_badge_style",
-        "show_custom_html",
-    ];
+    "rmsg_editor",
+    "onpage_checkout_position",
+    "onpage_checkout_cart_empty",
+    "onpage_checkout_enable",
+    "onpage_checkout_enable_all",
+    "onpage_checkout_layout",
+    "onpage_checkout_cart_add",
+    "onpage_checkout_widget_cart_empty",
+    "onpage_checkout_widget_cart_add",
+    "onpage_checkout_hide_cart_button",
+    "rmenu_quantity_control",
+    "rmenu_at_one_product_cart",
+    "rmenu_disable_cart_page",
+    "rmenu_link_product",
+    "rmenu_remove_product",
+    "rmenu_add_img_before_product",
+    "rmenu_add_direct_checkout_button",
+    "rmenu_enable_custom_add_to_cart",
+    "rmenu_wc_checkout_guest_enabled",
+    "rmenu_wc_checkout_mobile_optimize",
+    "rmenu_wc_direct_checkout_position",
+    "rmenu_variation_show_archive",
+    "rmenu_wc_hide_select_option",
+    "txt-direct-checkout",
+    "rmenu_wc_checkout_color",
+    "rmenu_add_to_cart_bg_color",
+    "rmenu_wc_checkout_text_color",
+    "rmenu_add_to_cart_text_color",
+    "rmenu_add_to_cart_hover_bg_color",
+    "rmenu_add_to_cart_hover_text_color",
+    "rmenu_add_to_cart_border_radius",
+    "rmenu_add_to_cart_font_size",
+    "rmenu_add_to_cart_width",
+    "rmenu_add_to_cart_icon",
+    "rmenu_add_to_cart_icon_position",
+    "rmenu_add_to_cart_catalog_display",
+    "rmenu_wc_checkout_style",
+    "rmenu_add_to_cart_style",
+    "rmenu_wc_checkout_icon",
+    "rmenu_wc_checkout_icon_position",
+    "rmenu_wc_checkout_method",
+    "rmenu_wc_clear_cart",
+    "rmenu_wc_one_click_purchase",
+    "rmenu_wc_add_confirmation",
+    "rmenu_enable_ajax_add_to_cart",
+    "rmenu_add_to_cart_default_qty",
+    "rmenu_show_quantity_archive",
+    "rmenu_redirect_after_add",
+    "rmenu_add_to_cart_animation",
+    "rmenu_add_to_cart_notification_style",
+    "rmenu_add_to_cart_success_message",
+    "rmenu_show_view_cart_link",
+    "rmenu_add_to_cart_notification_duration",
+    "rmenu_show_checkout_link",
+    "rmenu_sticky_add_to_cart_mobile",
+    "rmenu_mobile_add_to_cart_text",
+    "rmenu_mobile_button_size",
+    "rmenu_hide_on_mobile_options",
+    "rmenu_mobile_icon_only",
+    "rmenu_add_to_cart_loading_effect",
+    "rmenu_disable_btn_out_of_stock",
+    "rmenu_force_button_css",
+    "rmenu_enable_quick_view",
+    "rmenu_quick_view_button_text",
+    "rmenu_quick_view_button_position",
+    "rmenu_quick_view_display_type",
+    "rmenu_quick_view_modal_size",
+    "rmenu_quick_view_enable_lightbox",
+    "rmenu_quick_view_loading_effect",
+    "rmenu_quick_view_button_style",
+    "rmenu_quick_view_button_color",
+    "rmenu_quick_view_text_color",
+    "rmenu_quick_view_button_icon",
+    "rmenu_quick_view_icon_position",
+    "rmenu_quick_view_ajax_add_to_cart",
+    "rmenu_quick_view_direct_checkout",
+    "rmenu_quick_view_mobile_optimize",
+    "rmenu_quick_view_close_on_add",
+    "rmenu_quick_view_keyboard_nav",
+    "rmenu_quick_view_preload",
+    "rmenu_quick_view_enable_cache",
+    "rmenu_quick_view_cache_expiration",
+    "rmenu_quick_view_lazy_load",
+    "rmenu_quick_view_details_text",
+    "rmenu_quick_view_close_text",
+    "rmenu_quick_view_prev_text",
+    "rmenu_quick_view_next_text",
+    "rmenu_quick_view_track_events",
+    "rmenu_quick_view_event_category",
+    "rmenu_quick_view_event_action",
+    "rmenu_quick_view_load_scripts",
+    "rmenu_quick_view_theme_compat",
+    "onepaquc_trust_badges_enabled",
+    "onepaquc_trust_badge_position",
+    "onepaquc_trust_badge_style",
+    "show_custom_html",
+];
 
 // Enqueue scripts and styles
 function onepaquc_cart_enqueue_scripts()
@@ -139,7 +140,7 @@ function onepaquc_cart_enqueue_scripts()
     $checkout_page_id = wc_get_page_id('checkout');
 
     // Check if checkout page exists and has [woocommerce_checkout] shortcode
-    if ($checkout_page_id === -1){
+    if ($checkout_page_id === -1) {
         // Create a new checkout page if it doesn't exist
         $new_checkout_id = wp_insert_post([
             'post_title'   => __('Checkout'),
@@ -462,9 +463,7 @@ function onepaquc_add_settings_link($links)
         $links = [];
     }
     $settings_link = '<a href="' . esc_url(admin_url('admin.php?page=onepaquc_cart')) . '">' . esc_html__('Settings', 'one-page-quick-checkout-for-woocommerce') . '</a>';
-    $pro_link = '<a href="https://plugincy.com/one-page-quick-checkout-for-woocommerce" style="color: #ff5722; font-weight: bold;" target="_blank">' . esc_html__('Get Pro', 'one-page-quick-checkout-for-woocommerce') . '</a>';
     $links[] = $settings_link;
-    $links[] = $pro_link;
     return $links;
 }
 
@@ -552,3 +551,218 @@ add_action('wp_head', function () {
 <?php
     }
 });
+
+
+
+
+
+
+
+
+
+
+
+// Add this after your plugin initialization
+if (onepaquc_premium_feature()) {
+    add_action('plugins_loaded', 'onepaquc_init_updater');
+}
+
+function onepaquc_init_updater()
+{
+    if (class_exists('onepaquc_License_Manager')) {
+        $license_manager = new onepaquc_License_Manager();
+
+        // Hook into WordPress update system
+        add_filter('pre_set_site_transient_update_plugins', function ($transient) use ($license_manager) {
+            return onepaquc_check_for_plugin_updates($transient, $license_manager);
+        });
+
+        add_filter('plugins_api', function ($result, $action, $args) use ($license_manager) {
+            return onepaquc_plugin_api_call($result, $action, $args, $license_manager);
+        }, 10, 3);
+
+        add_action('upgrader_process_complete', function ($upgrader_object, $options) use ($license_manager) {
+            onepaquc_clear_cache_after_update($upgrader_object, $options, $license_manager);
+        }, 10, 2);
+
+        add_action('admin_notices', array($license_manager, 'show_license_notices'));
+    }
+}
+
+function onepaquc_check_for_plugin_updates($transient, $license_manager)
+{
+    if (empty($transient->checked)) {
+        return $transient;
+    }
+
+    if (!$license_manager->is_license_valid_cached()) {
+        return $transient;
+    }
+
+    $plugin_file = plugin_basename(__FILE__); // This will automatically get the correct path
+    $current_version = defined('RMENU_VERSION') ? RMENU_VERSION : '1.0.0';
+
+    $update_info = $license_manager->check_for_updates();
+
+    if ($update_info && version_compare($current_version, $update_info->new_version, '<')) {
+        $transient->response[$plugin_file] = (object) array(
+            'slug' => dirname($plugin_file),
+            'plugin' => $plugin_file,
+            'new_version' => $update_info->new_version,
+            'url' => isset($update_info->homepage) ? $update_info->homepage : 'https://plugincy.com/',
+            'package' => isset($update_info->download_link) ? $update_info->download_link : '',
+            'tested' => /*isset($update_info->tested) ? $update_info->tested :*/ get_bloginfo('version'),
+            'requires_php' => isset($update_info->requires_php) ? $update_info->requires_php : '7.0',
+            'compatibility' => new stdClass()
+        );
+    }
+
+    return $transient;
+}
+
+
+function onepaquc_plugin_api_call($result, $action, $args, $license_manager)
+{
+    if ($action !== 'plugin_information') {
+        return $result;
+    }
+
+    $plugin_slug = dirname(plugin_basename(__FILE__)); // Auto-detect plugin slug
+
+    if (!isset($args->slug) || $args->slug !== $plugin_slug) {
+        return $result;
+    }
+
+    if (!$license_manager->is_license_valid_cached()) {
+        return $result;
+    }
+
+    $license_key = get_option('onepaquc_license_key', '');
+    $version_info = $license_manager->get_version_info($license_key);
+
+    if ($version_info) {
+        // Unserialize sections if they exist and are serialized
+        $sections = array(
+            'description' => 'Professional One Page Quick Checkout for WooCommerce Pro solution for WooCommerce.',
+            'changelog' => 'Various improvements and bug fixes.'
+        );
+
+        if (isset($version_info->sections)) {
+            if (is_string($version_info->sections)) {
+                // If sections is a serialized string, unserialize it
+                $unserialized_sections = @unserialize($version_info->sections);
+                if ($unserialized_sections !== false && is_array($unserialized_sections)) {
+                    $sections = array_merge($sections, $unserialized_sections);
+                }
+            } elseif (is_object($version_info->sections)) {
+                // If sections is already an object, convert to array
+                $sections = array_merge($sections, (array)$version_info->sections);
+            } elseif (is_array($version_info->sections)) {
+                // If sections is already an array
+                $sections = array_merge($sections, $version_info->sections);
+            }
+        }
+
+        // Handle banners
+        $banners = array();
+        if (isset($version_info->banners)) {
+            if (is_string($version_info->banners)) {
+                // If banners is a serialized string, unserialize it
+                $unserialized_banners = @unserialize($version_info->banners);
+                if ($unserialized_banners !== false && is_array($unserialized_banners)) {
+                    $banners = $unserialized_banners;
+                }
+            } elseif (is_object($version_info->banners)) {
+                // If banners is already an object, convert to array
+                $banners = (array)$version_info->banners;
+            } elseif (is_array($version_info->banners)) {
+                // If banners is already an array
+                $banners = $version_info->banners;
+            }
+        }
+
+        // Handle screenshots - WordPress expects array of URLs with numeric keys
+        $base_url = "https://ps.w.org/dynamic-ajax-product-filters-for-woocommerce/assets/";
+        $default_screenshots = array(
+            "1" => "Filters Demo 1",
+            "2" => "Filters Demo 2",
+            "3" => "Filters Demo 3",
+            "4" => "Filters Demo 4 - Mobile View",
+            "5" => "Filters Demo 5 - Mobile View",
+            "6" => "Form Manage Settings",
+            "7" => "Form Style Settings",
+            "8" => "Plugin Advance Settings"
+        );
+
+        // Get captions from server or use defaults
+        $screenshot_captions = $default_screenshots;
+        if (isset($version_info->screenshots)) {
+            if (is_string($version_info->screenshots)) {
+                $unserialized_screenshots = @unserialize($version_info->screenshots);
+                if ($unserialized_screenshots !== false && is_array($unserialized_screenshots)) {
+                    $screenshot_captions = $unserialized_screenshots;
+                }
+            } elseif (is_object($version_info->screenshots)) {
+                $screenshot_captions = (array)$version_info->screenshots;
+            } elseif (is_array($version_info->screenshots)) {
+                $screenshot_captions = $version_info->screenshots;
+            }
+        }
+
+        // Also add screenshot captions to sections for better display
+        if (!empty($screenshot_captions)) {
+            $screenshot_section = "<ol>";
+            foreach ($screenshot_captions as $number => $caption) {
+                $screenshot_section .= "<li>";
+                $screenshot_section .= "<a href='{$base_url}screenshot-{$number}.png' target='_blank'><img class='screenshots' src='{$base_url}screenshot-{$number}.png' alt='{$caption}'></a><p>{$caption}</p>";
+                $screenshot_section .= "</li>";
+            }
+            $screenshot_section .= "</ol>";
+            $sections['screenshots'] = $screenshot_section;
+        }
+
+        return (object) array(
+            'name' => 'One Page Quick Checkout for WooCommerce Pro',
+            'slug' => $plugin_slug,
+            'version' => $version_info->new_version,
+            'author' => '<a href="https://plugincy.com">Plugincy</a>',
+            'homepage' => 'https://plugincy.com/',
+            'requires' => isset($version_info->requires) ? $version_info->requires : '5.0',
+            'tested' => /*isset($version_info->tested) ? $version_info->tested :*/ get_bloginfo('version'),
+            'requires_php' => isset($version_info->requires_php) ? $version_info->requires_php : '7.0',
+            'contributors' => array(
+                'plugincy' => array(
+                    'profile' => 'https://profiles.wordpress.org/plugincy/',
+                    'avatar' => 'https://secure.gravatar.com/avatar/ee0db1e8766d68a4bc66e91b4098310d9604ca7670ac9662c15915c517662b39',
+                    'display_name' => 'Plugincy'
+                )
+            ),
+            'sections' => $sections,
+            'banners' => $banners,
+            'download_link' => isset($version_info->download_link) ? $version_info->download_link : ''
+        );
+    }
+
+    return $result;
+}
+
+function onepaquc_clear_cache_after_update($upgrader_object, $options, $license_manager)
+{
+    if ($options['action'] === 'update' && $options['type'] === 'plugin') {
+        $plugin_file = plugin_basename(__FILE__);
+
+        if (isset($options['plugins']) && in_array($plugin_file, $options['plugins'])) {
+            $license_manager->clear_all_cache();
+        }
+    }
+}
+if (onepaquc_premium_feature()) {
+    // Add this temporarily for testing - remove after testing
+    add_action('admin_init', function () {
+        if (isset($_GET['force_check_updates']) && $_GET['force_check_updates'] === '1') {
+            delete_site_transient('update_plugins');
+            wp_redirect(admin_url('plugins.php'));
+            exit;
+        }
+    });
+}

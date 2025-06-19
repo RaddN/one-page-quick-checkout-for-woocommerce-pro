@@ -192,7 +192,11 @@ function ajax_add_to_cart() {
         $product_id = apply_filters('woocommerce_add_to_cart_product_id', absint(isset($_POST['product_id']) ? $_POST['product_id'] : 0));
 
         // Get default quantity from settings if quantity is not provided
-        $default_qty = get_option('rmenu_add_to_cart_default_qty', '1');
+        if(onepaquc_premium_feature()) {
+            $default_qty = get_option('rmenu_add_to_cart_default_qty', '1');
+        } else {
+            $default_qty = 1; // Default to 1 if premium feature is not available
+        }
         
         // Use posted quantity if available, otherwise use default
         $quantity = empty($_POST['quantity']) ? $default_qty : (int) sanitize_text_field(wp_unslash($_POST['quantity']));

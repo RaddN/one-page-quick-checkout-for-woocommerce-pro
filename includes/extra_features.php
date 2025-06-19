@@ -47,23 +47,23 @@ function onepaquc_add_random_product_if_cart_empty()
 
         // Set a flag in local storage via JavaScript to indicate a random product was added
         add_action('wp_footer', function () {
-            ?>
+?>
             <script>
                 try {
                     localStorage.setItem('random_product_added', '1');
                 } catch (e) {}
             </script>
-            <?php
+        <?php
         });
-    }else{
+    } else {
         add_action('wp_footer', function () {
-            ?>
+        ?>
             <script>
                 try {
                     localStorage.removeItem('random_product_added');
                 } catch (e) {}
             </script>
-            <?php
+        <?php
         });
     }
 }
@@ -152,7 +152,7 @@ function add_variation_buttons_to_loop($link, $product)
         echo '</div>'; // .archive-variations-container
 
         // Simple JS to update the variation_id when a button is clicked
-?>
+        ?>
         <script type="text/javascript">
             jQuery(document).ready(function($) {
                 $('.variation-button').click(function() {
@@ -220,7 +220,9 @@ if (get_option('rmenu_wc_hide_select_option', 1)) {
 
 
 // Change WooCommerce checkout layout based on onpage_checkout_layout option
-add_action('wp_head', 'apply_checkout_layout_styles');
+if (onepaquc_premium_feature()) {
+    add_action('wp_head', 'apply_checkout_layout_styles');
+}
 
 function apply_checkout_layout_styles()
 {
@@ -324,9 +326,10 @@ function apply_checkout_layout_styles()
             break;
     }
 }
-
-// Alternative method using body class for more targeted CSS
-add_filter('body_class', 'add_checkout_layout_body_class');
+if (onepaquc_premium_feature()) {
+    // Alternative method using body class for more targeted CSS
+    add_filter('body_class', 'add_checkout_layout_body_class');
+}
 
 function add_checkout_layout_body_class($classes)
 {

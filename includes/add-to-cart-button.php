@@ -34,14 +34,14 @@ function rmenu_apply_add_to_cart_styles()
     $custom_css = get_option('rmenu_add_to_cart_custom_css', '');
 
     // Mobile-specific settings
-    $sticky_mobile = get_option('rmenu_sticky_add_to_cart_mobile', 0);
-    $mobile_text = get_option('rmenu_mobile_add_to_cart_text', '');
-    $mobile_button_size = get_option('rmenu_mobile_button_size', 'default');
-    $mobile_icon_only = get_option('rmenu_mobile_icon_only', 0);
+    $sticky_mobile = !onepaquc_premium_feature() ? 0 : get_option('rmenu_sticky_add_to_cart_mobile', 0);
+    $mobile_text = !onepaquc_premium_feature() ? '' : get_option('rmenu_mobile_add_to_cart_text', '');
+    $mobile_button_size = !onepaquc_premium_feature() ? 'default' : get_option('rmenu_mobile_button_size', 'default');
+    $mobile_icon_only = !onepaquc_premium_feature() ? 0 : get_option('rmenu_mobile_icon_only', 0);
 
     // Advanced options
-    $loading_effect = get_option('rmenu_add_to_cart_loading_effect', 'spinner');
-    $disable_out_of_stock = get_option('rmenu_disable_btn_out_of_stock', 1);
+    $loading_effect = !onepaquc_premium_feature() ? 'spinner' : get_option('rmenu_add_to_cart_loading_effect', 'spinner');
+    $disable_out_of_stock = !onepaquc_premium_feature() ? 1 : get_option('rmenu_disable_btn_out_of_stock', 1);
 
     // Compatibility settings
     $force_css = get_option('rmenu_force_button_css', 0);
@@ -352,7 +352,7 @@ function rmenu_add_icons_to_buttons()
         document.addEventListener('DOMContentLoaded', function() {
             const addToCartButtons = document.querySelectorAll('.add_to_cart_button:not(.product_type_variable), .single_add_to_cart_button:not(.product_type_variable)');
             const svgIcon = `<?php echo $svg_icon; ?>`;
-            const iconPosition = '<?php echo esc_attr( $icon_position ); ?>';
+            const iconPosition = '<?php echo esc_attr($icon_position); ?>';
             const mobileIconOnly = <?php echo $mobile_icon_only ? 'true' : 'false'; ?>;
 
             addToCartButtons.forEach(function(button) {
@@ -639,7 +639,7 @@ class RMENU_Add_To_Cart_Handler
         }
 
         // Add quantity selector to archive pages if enabled
-        if (get_option('rmenu_show_quantity_archive', 0)) {
+        if (get_option('rmenu_show_quantity_archive', 0) && onepaquc_premium_feature()) {
             add_action('woocommerce_after_shop_loop_item', array($this, 'add_quantity_field'), 9);
         }
 
@@ -681,7 +681,7 @@ class RMENU_Add_To_Cart_Handler
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('rmenu-ajax-nonce'),
             'animation' => get_option('rmenu_add_to_cart_animation', 'slide'),
-            'notification_style' => get_option('rmenu_add_to_cart_notification_style', 'default'),
+            'notification_style' => !onepaquc_premium_feature() ? "default" : get_option('rmenu_add_to_cart_notification_style', 'default'),
             'notification_duration' => intval(get_option('rmenu_add_to_cart_notification_duration', 3000)),
             'i18n' => array(
                 'success' => get_option('rmenu_add_to_cart_success_message', '{product} has been added to your cart.'),
@@ -698,10 +698,13 @@ class RMENU_Add_To_Cart_Handler
     {
         check_ajax_referer('rmenu-ajax-nonce', 'nonce');
 
-        $product_id = apply_filters('woocommerce_add_to_cart_product_id', absint( isset($_POST['product_id']) ? $_POST['product_id'] : 0));
+        $product_id = apply_filters('woocommerce_add_to_cart_product_id', absint(isset($_POST['product_id']) ? $_POST['product_id'] : 0));
 
-        // Get default quantity from settings if quantity is not provided
-        $default_qty = get_option('rmenu_add_to_cart_default_qty', '1');
+        if (onepaquc_premium_feature()) {
+            $default_qty = get_option('rmenu_add_to_cart_default_qty', '1');
+        } else {
+            $default_qty = 1; // Default to 1 if premium feature is not available
+        }
 
         // Use posted quantity if available, otherwise use default
         // $quantity = empty($_POST['quantity']) ? $default_qty : wc_stock_amount($_POST['quantity']);
@@ -781,7 +784,11 @@ class RMENU_Add_To_Cart_Handler
         global $product;
 
         if ($product && $product->is_type('simple') && $product->is_purchasable() && $product->is_in_stock()) {
-            $default_qty = get_option('rmenu_add_to_cart_default_qty', '1');
+            if (onepaquc_premium_feature()) {
+                $default_qty = get_option('rmenu_add_to_cart_default_qty', '1');
+            } else {
+                $default_qty = 1; // Default to 1 if premium feature is not available
+            }
 
             // Add a unique class to help identify which product this quantity belongs to
             echo '<div class="rmenu-quantity-wrapper" data-product_id="' . esc_attr($product->get_id()) . '">';
@@ -803,7 +810,11 @@ class RMENU_Add_To_Cart_Handler
      */
     public function set_default_quantity($args, $product)
     {
-        $default_qty = get_option('rmenu_add_to_cart_default_qty', '1');
+        if(onepaquc_premium_feature()) {
+            $default_qty = get_option('rmenu_add_to_cart_default_qty', '1');
+        } else {
+            $default_qty = 1; // Default to 1 if premium feature is not available
+        }
 
         if (is_numeric($default_qty) && $default_qty > 0) {
             $args['input_value'] = $default_qty;
@@ -883,7 +894,11 @@ class RMENU_Add_To_Cart_Handler
     {
         if ($product && $product->is_type('simple') && $product->is_purchasable() && $product->is_in_stock()) {
             // Get default quantity from settings
-            $default_qty = get_option('rmenu_add_to_cart_default_qty', '1');
+            if (onepaquc_premium_feature()) {
+                $default_qty = get_option('rmenu_add_to_cart_default_qty', '1');
+            } else {
+                $default_qty = 1; // Default to 1 if premium feature is not available
+            }
 
             $html = sprintf(
                 '<a href="%s" data-quantity="%s" class="%s" %s data-product_id="%d" data-product_sku="%s" data-default_qty="%s" aria-label="%s" rel="nofollow">%s</a>',

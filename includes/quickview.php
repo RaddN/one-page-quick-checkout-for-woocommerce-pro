@@ -365,7 +365,7 @@ class RMENU_Quick_View {
         $mobile_optimize = get_option('rmenu_quick_view_mobile_optimize', 1);
         $debug_mode = get_option('rmenu_quick_view_debug_mode', 0);
         $lightbox = get_option('rmenu_quick_view_enable_lightbox', 1);
-        $elements_in_popup = get_option('rmenu_quick_view_content_elements', array('image', 'title', 'rating', 'price', 'excerpt', 'add_to_cart', 'meta', 'title','quantity','sharing', 'view_details', 'attributes'));
+        $elements_in_popup = get_option('rmenu_quick_view_content_elements', array('image', 'title', 'rating', 'price', 'excerpt', 'add_to_cart', 'meta', 'title','quantity', 'view_details'));
 
         // Localize script with settings
         wp_localize_script('rmenu-quick-view-scripts', 'rmenu_quick_view_params', array(

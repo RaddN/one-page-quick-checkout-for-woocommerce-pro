@@ -388,12 +388,12 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
     $payment_gateways = WC()->payment_gateways->get_available_payment_gateways();
 }
 ?>
-<div class="plugincy_container">
+<div class="plugincy_container <?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>">
 
     <div class="checkout-container">
         <div class="checkout-form">
             <!-- Coupon Section -->
-            <div class="editable-field<?php echo (isset($dataObject->{'coupon-section'}->{'visible'}) && !$dataObject->{'coupon-section'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="coupon-section">
+            <div class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'coupon-section'}->{'visible'}) && !$dataObject->{'coupon-section'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="coupon-section">
                 <div class="field-controls">
                     <button class="control-btn edit-btn" onclick="editField('coupon-section')" title="Edit">✎</button>
                     <button class="control-btn <?php echo (isset($dataObject->{'coupon-section'}->{'visible'}) && !$dataObject->{'coupon-section'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('coupon-section')" title="<?php echo (isset($dataObject->{'coupon-section'}->{'visible'}) && !$dataObject->{'coupon-section'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
@@ -414,7 +414,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
 
             <!-- Billing Details -->
             <div class="form-section">
-                <div class="editable-field<?php echo (isset($dataObject->{'billing-title'}->{'visible'}) && !$dataObject->{'billing-title'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="billing-title">
+                <div class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'billing-title'}->{'visible'}) && !$dataObject->{'billing-title'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="billing-title">
                     <div class="field-controls">
                         <button class="control-btn edit-btn" onclick="editField('billing-title')" title="Edit">✎</button>
                         <button class="control-btn <?php echo (isset($dataObject->{'billing-title'}->{'visible'}) && !$dataObject->{'billing-title'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('billing-title')" title="<?php echo (isset($dataObject->{'billing-title'}->{'visible'}) && !$dataObject->{'billing-title'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
@@ -425,7 +425,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
                 </div>
 
                 <div class="form-row row-2">
-                    <div class="editable-field<?php echo (isset($dataObject->{'first-name'}->{'visible'}) && !$dataObject->{'first-name'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="first-name">
+                    <div class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'first-name'}->{'visible'}) && !$dataObject->{'first-name'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="first-name">
                         <div class="field-controls">
                             <button class="control-btn edit-btn" onclick="editField('first-name')" title="Edit">✎</button>
                             <button class="control-btn <?php echo (isset($dataObject->{'first-name'}->{'visible'}) && !$dataObject->{'first-name'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('first-name')" title="<?php echo (isset($dataObject->{'first-name'}->{'visible'}) && !$dataObject->{'first-name'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
@@ -445,7 +445,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
                         </div>
                     </div>
 
-                    <div class="editable-field<?php echo (isset($dataObject->{'last-name'}->{'visible'}) && !$dataObject->{'last-name'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="last-name">
+                    <div class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'last-name'}->{'visible'}) && !$dataObject->{'last-name'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="last-name">
                         <div class="field-controls">
                             <button class="control-btn edit-btn" onclick="editField('last-name')" title="Edit">✎</button>
                             <button class="control-btn <?php echo (isset($dataObject->{'last-name'}->{'visible'}) && !$dataObject->{'last-name'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('last-name')" title="<?php echo (isset($dataObject->{'last-name'}->{'visible'}) && !$dataObject->{'last-name'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
@@ -466,7 +466,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
                     </div>
                 </div>
 
-                <div class="editable-field<?php echo (isset($dataObject->{'email'}->{'visible'}) && !$dataObject->{'email'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="email">
+                <div class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'email'}->{'visible'}) && !$dataObject->{'email'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="email">
                     <div class="field-controls">
                         <button class="control-btn edit-btn" onclick="editField('email')" title="Edit">✎</button>
                         <button class="control-btn <?php echo (isset($dataObject->{'email'}->{'visible'}) && !$dataObject->{'email'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('email')" title="<?php echo (isset($dataObject->{'email'}->{'visible'}) && !$dataObject->{'email'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
@@ -486,7 +486,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
                     </div>
                 </div>
 
-                <div class="editable-field<?php echo (isset($dataObject->{'phone'}->{'visible'}) && !$dataObject->{'phone'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="phone">
+                <div class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'phone'}->{'visible'}) && !$dataObject->{'phone'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="phone">
                     <div class="field-controls">
                         <button class="control-btn edit-btn" onclick="editField('phone')" title="Edit">✎</button>
                         <button class="control-btn <?php echo (isset($dataObject->{'phone'}->{'visible'}) && !$dataObject->{'phone'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('phone')" title="<?php echo (isset($dataObject->{'phone'}->{'visible'}) && !$dataObject->{'phone'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
@@ -506,7 +506,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
                     </div>
                 </div>
 
-                <div class="editable-field<?php echo (isset($dataObject->{'country'}->{'visible'}) && !$dataObject->{'country'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="country">
+                <div class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'country'}->{'visible'}) && !$dataObject->{'country'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="country">
                     <div class="field-controls">
                         <button class="control-btn edit-btn" onclick="editField('country')" title="Edit">✎</button>
                         <button class="control-btn <?php echo (isset($dataObject->{'country'}->{'visible'}) && !$dataObject->{'country'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('country')" title="<?php echo (isset($dataObject->{'country'}->{'visible'}) && !$dataObject->{'country'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
@@ -532,7 +532,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
                     </div>
                 </div>
 
-                <div class="editable-field<?php echo (isset($dataObject->{'address'}->{'visible'}) && !$dataObject->{'address'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="address">
+                <div class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'address'}->{'visible'}) && !$dataObject->{'address'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="address">
                     <div class="field-controls">
                         <button class="control-btn edit-btn" onclick="editField('address')" title="Edit">✎</button>
                         <button class="control-btn <?php echo (isset($dataObject->{'address'}->{'visible'}) && !$dataObject->{'address'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('address')" title="<?php echo (isset($dataObject->{'address'}->{'visible'}) && !$dataObject->{'address'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
@@ -551,7 +551,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
                         <input type="text" id="address-input" placeholder="<?php echo isset($dataObject->{'address'}->{'placeholder'}) ? $dataObject->{'address'}->{'placeholder'} : 'House number and street name'; ?>">
                     </div>
                 </div>
-                <div class="editable-field<?php echo (isset($dataObject->{'address2'}->{'visible'}) && !$dataObject->{'address2'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="address2">
+                <div class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'address2'}->{'visible'}) && !$dataObject->{'address2'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="address2">
                     <div class="field-controls">
                         <button class="control-btn edit-btn" onclick="editField('address2')" title="Edit">✎</button>
                         <button class="control-btn <?php echo (isset($dataObject->{'address2'}->{'visible'}) && !$dataObject->{'address2'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('address2')" title="<?php echo (isset($dataObject->{'address2'}->{'visible'}) && !$dataObject->{'address2'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
@@ -564,7 +564,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
                 </div>
 
                 <div class="form-row row-2">
-                    <div class="editable-field<?php echo (isset($dataObject->{'city'}->{'visible'}) && !$dataObject->{'city'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="city">
+                    <div class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'city'}->{'visible'}) && !$dataObject->{'city'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="city">
                         <div class="field-controls">
                             <button class="control-btn edit-btn" onclick="editField('city')" title="Edit">✎</button>
                             <button class="control-btn <?php echo (isset($dataObject->{'city'}->{'visible'}) && !$dataObject->{'city'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('city')" title="<?php echo (isset($dataObject->{'city'}->{'visible'}) && !$dataObject->{'city'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
@@ -584,7 +584,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
                         </div>
                     </div>
 
-                    <div class="editable-field<?php echo (isset($dataObject->{'state'}->{'visible'}) && !$dataObject->{'state'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="state">
+                    <div class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'state'}->{'visible'}) && !$dataObject->{'state'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="state">
                         <div class="field-controls">
                             <button class="control-btn edit-btn" onclick="editField('state')" title="Edit">✎</button>
                             <button class="control-btn <?php echo (isset($dataObject->{'state'}->{'visible'}) && !$dataObject->{'state'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('state')" title="<?php echo (isset($dataObject->{'state'}->{'visible'}) && !$dataObject->{'state'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
@@ -605,7 +605,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
                     </div>
                 </div>
 
-                <div class="editable-field<?php echo (isset($dataObject->{'postcode'}->{'visible'}) && !$dataObject->{'postcode'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="postcode">
+                <div class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'postcode'}->{'visible'}) && !$dataObject->{'postcode'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="postcode">
                     <div class="field-controls">
                         <button class="control-btn edit-btn" onclick="editField('postcode')" title="Edit">✎</button>
                         <button class="control-btn <?php echo (isset($dataObject->{'postcode'}->{'visible'}) && !$dataObject->{'postcode'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('postcode')" title="<?php echo (isset($dataObject->{'postcode'}->{'visible'}) && !$dataObject->{'postcode'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
@@ -625,7 +625,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
                     </div>
                 </div>
 
-                <div class="editable-field<?php echo (isset($dataObject->{'company'}->{'visible'}) && !$dataObject->{'company'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="company">
+                <div class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'company'}->{'visible'}) && !$dataObject->{'company'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="company">
                     <div class="field-controls">
                         <button class="control-btn edit-btn" onclick="editField('company')" title="Edit">✎</button>
                         <button class="control-btn <?php echo (isset($dataObject->{'company'}->{'visible'}) && !$dataObject->{'company'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('company')" title="<?php echo (isset($dataObject->{'company'}->{'visible'}) && !$dataObject->{'company'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
@@ -648,7 +648,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
 
             <!-- shipping Details -->
             <div class="form-section <?php echo isset($shipping_zones) && empty($shipping_zones) ? 'shipping_disabled' : ''; ?>">
-                <div class="editable-field<?php echo (isset($dataObject->{'ship-to-different'}->{'visible'}) && !$dataObject->{'ship-to-different'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="ship-to-different">
+                <div class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'ship-to-different'}->{'visible'}) && !$dataObject->{'ship-to-different'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="ship-to-different">
                     <div class="field-controls">
                         <button class="control-btn edit-btn" onclick="editField('ship-to-different')" title="Edit">✎</button>
                         <button class="control-btn <?php echo (isset($dataObject->{'ship-to-different'}->{'visible'}) && !$dataObject->{'ship-to-different'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('ship-to-different')" title="<?php echo (isset($dataObject->{'ship-to-different'}->{'visible'}) && !$dataObject->{'ship-to-different'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
@@ -665,7 +665,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
 
                 <div id="shipping-fields" style="display: none;">
                     <div class="form-row row-2">
-                        <div class="editable-field<?php echo (isset($dataObject->{'shipping-first-name'}->{'visible'}) && !$dataObject->{'shipping-first-name'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="shipping-first-name">
+                        <div class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'shipping-first-name'}->{'visible'}) && !$dataObject->{'shipping-first-name'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="shipping-first-name">
                             <div class="field-controls">
                                 <button class="control-btn edit-btn" onclick="editField('shipping-first-name')" title="Edit">✎</button>
                                 <button class="control-btn <?php echo (isset($dataObject->{'shipping-first-name'}->{'visible'}) && !$dataObject->{'shipping-first-name'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('shipping-first-name')" title="<?php echo (isset($dataObject->{'shipping-first-name'}->{'visible'}) && !$dataObject->{'shipping-first-name'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
@@ -685,7 +685,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
                             </div>
                         </div>
 
-                        <div class="editable-field<?php echo (isset($dataObject->{'shipping-last-name'}->{'visible'}) && !$dataObject->{'shipping-last-name'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="shipping-last-name">
+                        <div class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'shipping-last-name'}->{'visible'}) && !$dataObject->{'shipping-last-name'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="shipping-last-name">
                             <div class="field-controls">
                                 <button class="control-btn edit-btn" onclick="editField('shipping-last-name')" title="Edit">✎</button>
                                 <button class="control-btn <?php echo (isset($dataObject->{'shipping-last-name'}->{'visible'}) && !$dataObject->{'shipping-last-name'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('shipping-last-name')" title="<?php echo (isset($dataObject->{'shipping-last-name'}->{'visible'}) && !$dataObject->{'shipping-last-name'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
@@ -706,7 +706,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
                         </div>
                     </div>
 
-                    <div class="editable-field<?php echo (isset($dataObject->{'shipping-country'}->{'visible'}) && !$dataObject->{'shipping-country'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="shipping-country">
+                    <div class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'shipping-country'}->{'visible'}) && !$dataObject->{'shipping-country'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="shipping-country">
                         <div class="field-controls">
                             <button class="control-btn edit-btn" onclick="editField('shipping-country')" title="Edit">✎</button>
                             <button class="control-btn <?php echo (isset($dataObject->{'shipping-country'}->{'visible'}) && !$dataObject->{'shipping-country'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('shipping-country')" title="<?php echo (isset($dataObject->{'shipping-country'}->{'visible'}) && !$dataObject->{'shipping-country'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
@@ -732,7 +732,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
                         </div>
                     </div>
 
-                    <div class="editable-field<?php echo (isset($dataObject->{'shipping-address'}->{'visible'}) && !$dataObject->{'shipping-address'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="shipping-address">
+                    <div class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'shipping-address'}->{'visible'}) && !$dataObject->{'shipping-address'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="shipping-address">
                         <div class="field-controls">
                             <button class="control-btn edit-btn" onclick="editField('shipping-address')" title="Edit">✎</button>
                             <button class="control-btn <?php echo (isset($dataObject->{'shipping-address'}->{'visible'}) && !$dataObject->{'shipping-address'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('shipping-address')" title="<?php echo (isset($dataObject->{'shipping-address'}->{'visible'}) && !$dataObject->{'shipping-address'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
@@ -751,7 +751,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
                             <input type="text" id="shipping-address-input" placeholder="<?php echo isset($dataObject->{'shipping-address'}->{'placeholder'}) ? $dataObject->{'shipping-address'}->{'placeholder'} : 'House number and street name'; ?>">
                         </div>
                     </div>
-                    <div class="editable-field<?php echo (isset($dataObject->{'shipping-address2'}->{'visible'}) && !$dataObject->{'shipping-address2'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="shipping-address2">
+                    <div class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'shipping-address2'}->{'visible'}) && !$dataObject->{'shipping-address2'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="shipping-address2">
                         <div class="field-controls">
                             <button class="control-btn edit-btn" onclick="editField('shipping-address2')" title="Edit">✎</button>
                             <button class="control-btn <?php echo (isset($dataObject->{'shipping-address2'}->{'visible'}) && !$dataObject->{'shipping-address2'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('shipping-address2')" title="<?php echo (isset($dataObject->{'shipping-address2'}->{'visible'}) && !$dataObject->{'shipping-address2'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
@@ -764,7 +764,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
                     </div>
 
                     <div class="form-row row-2">
-                        <div class="editable-field<?php echo (isset($dataObject->{'shipping-city'}->{'visible'}) && !$dataObject->{'shipping-city'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="shipping-city">
+                        <div class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'shipping-city'}->{'visible'}) && !$dataObject->{'shipping-city'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="shipping-city">
                             <div class="field-controls">
                                 <button class="control-btn edit-btn" onclick="editField('shipping-city')" title="Edit">✎</button>
                                 <button class="control-btn <?php echo (isset($dataObject->{'shipping-city'}->{'visible'}) && !$dataObject->{'shipping-city'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('shipping-city')" title="<?php echo (isset($dataObject->{'shipping-city'}->{'visible'}) && !$dataObject->{'shipping-city'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
@@ -784,7 +784,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
                             </div>
                         </div>
 
-                        <div class="editable-field<?php echo (isset($dataObject->{'shipping-state'}->{'visible'}) && !$dataObject->{'shipping-state'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="shipping-state">
+                        <div class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'shipping-state'}->{'visible'}) && !$dataObject->{'shipping-state'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="shipping-state">
                             <div class="field-controls">
                                 <button class="control-btn edit-btn" onclick="editField('shipping-state')" title="Edit">✎</button>
                                 <button class="control-btn <?php echo (isset($dataObject->{'shipping-state'}->{'visible'}) && !$dataObject->{'shipping-state'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('shipping-state')" title="<?php echo (isset($dataObject->{'shipping-state'}->{'visible'}) && !$dataObject->{'shipping-state'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
@@ -805,7 +805,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
                         </div>
                     </div>
 
-                    <div class="editable-field<?php echo (isset($dataObject->{'shipping-postcode'}->{'visible'}) && !$dataObject->{'shipping-postcode'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="shipping-postcode">
+                    <div class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'shipping-postcode'}->{'visible'}) && !$dataObject->{'shipping-postcode'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="shipping-postcode">
                         <div class="field-controls">
                             <button class="control-btn edit-btn" onclick="editField('shipping-postcode')" title="Edit">✎</button>
                             <button class="control-btn <?php echo (isset($dataObject->{'shipping-postcode'}->{'visible'}) && !$dataObject->{'shipping-postcode'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('shipping-postcode')" title="<?php echo (isset($dataObject->{'shipping-postcode'}->{'visible'}) && !$dataObject->{'shipping-postcode'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
@@ -825,7 +825,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
                         </div>
                     </div>
 
-                    <div class="editable-field<?php echo (isset($dataObject->{'shipping-company'}->{'visible'}) && !$dataObject->{'shipping-company'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="shipping-company">
+                    <div class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'shipping-company'}->{'visible'}) && !$dataObject->{'shipping-company'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="shipping-company">
                         <div class="field-controls">
                             <button class="control-btn edit-btn" onclick="editField('shipping-company')" title="Edit">✎</button>
                             <button class="control-btn <?php echo (isset($dataObject->{'shipping-company'}->{'visible'}) && !$dataObject->{'shipping-company'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('shipping-company')" title="<?php echo (isset($dataObject->{'shipping-company'}->{'visible'}) && !$dataObject->{'shipping-company'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
@@ -849,7 +849,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
 
             <!-- Additional Information -->
             <div class="form-section">
-                <div class="editable-field<?php echo (isset($dataObject->{'additional-title'}->{'visible'}) && !$dataObject->{'additional-title'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="additional-title">
+                <div class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'additional-title'}->{'visible'}) && !$dataObject->{'additional-title'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="additional-title">
                     <div class="field-controls">
                         <button class="control-btn edit-btn" onclick="editField('additional-title')" title="Edit">✎</button>
                         <button class="control-btn <?php echo (isset($dataObject->{'additional-title'}->{'visible'}) && !$dataObject->{'additional-title'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('additional-title')" title="<?php echo (isset($dataObject->{'additional-title'}->{'visible'}) && !$dataObject->{'additional-title'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
@@ -859,7 +859,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
                     <h2 class="section-title" id="additional-title"><?php echo isset($dataObject->{'additional-title'}->{'text'}) ? $dataObject->{'additional-title'}->{'text'} : 'Additional information'; ?></h2>
                 </div>
 
-                <div class="editable-field<?php echo (isset($dataObject->{'order-notes'}->{'visible'}) && !$dataObject->{'order-notes'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="order-notes">
+                <div class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'order-notes'}->{'visible'}) && !$dataObject->{'order-notes'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="order-notes">
                     <div class="field-controls">
                         <button class="control-btn edit-btn" onclick="editField('order-notes')" title="Edit">✎</button>
                         <button class="control-btn <?php echo (isset($dataObject->{'order-notes'}->{'visible'}) && !$dataObject->{'order-notes'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('order-notes')" title="<?php echo (isset($dataObject->{'order-notes'}->{'visible'}) && !$dataObject->{'order-notes'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
@@ -883,7 +883,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
         </div>
 
         <div class="order-review">
-            <div class="editable-field<?php echo (isset($dataObject->{'order-review-title'}->{'visible'}) && !$dataObject->{'order-review-title'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="order-review-title">
+            <div class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'order-review-title'}->{'visible'}) && !$dataObject->{'order-review-title'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="order-review-title">
                 <div class="field-controls">
                     <button class="control-btn edit-btn" onclick="editField('order-review-title')" title="Edit">✎</button>
                     <button class="control-btn <?php echo (isset($dataObject->{'order-review-title'}->{'visible'}) && !$dataObject->{'order-review-title'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('order-review-title')" title="<?php echo (isset($dataObject->{'order-review-title'}->{'visible'}) && !$dataObject->{'order-review-title'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
@@ -893,14 +893,14 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
                 <h2 class="section-title" id="order-review-title"><?php echo isset($dataObject->{'order-review-title'}->{'text'}) ? $dataObject->{'order-review-title'}->{'text'} : 'Your order'; ?></h2>
             </div>
 
-            <div class="order-summary editable-field<?php echo (isset($dataObject->{'order-summary'}->{'visible'}) && !$dataObject->{'order-summary'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="order-summary">
+            <div class="order-summary <?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'order-summary'}->{'visible'}) && !$dataObject->{'order-summary'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="order-summary">
                 <div class="field-controls">
                     <button class="control-btn <?php echo (isset($dataObject->{'order-summary'}->{'visible'}) && !$dataObject->{'order-summary'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('order-summary')" title="<?php echo (isset($dataObject->{'order-summary'}->{'visible'}) && !$dataObject->{'order-summary'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
                         <?php echo (isset($dataObject->{'order-summary'}->{'visible'}) && !$dataObject->{'order-summary'}->{'visible'}) ? '👁‍🗨' : '👁'; ?>
                     </button>
                 </div>
                 <div class="order-item">
-                    <div class="editable-field<?php echo (isset($dataObject->{'product-header'}->{'visible'}) && !$dataObject->{'product-header'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="product-header">
+                    <div class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'product-header'}->{'visible'}) && !$dataObject->{'product-header'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="product-header">
                         <div class="field-controls">
                             <button class="control-btn edit-btn" onclick="editField('product-header')" title="Edit">✎</button>
                             <button class="control-btn <?php echo (isset($dataObject->{'product-header'}->{'visible'}) && !$dataObject->{'product-header'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('product-header')" title="<?php echo (isset($dataObject->{'product-header'}->{'visible'}) && !$dataObject->{'product-header'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
@@ -909,7 +909,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
                         </div>
                         <span><strong id="product-header-text"><?php echo isset($dataObject->{'product-header'}->{'text'}) ? $dataObject->{'product-header'}->{'text'} : 'Product'; ?></strong></span>
                     </div>
-                    <div class="editable-field<?php echo (isset($dataObject->{'subtotal-header'}->{'visible'}) && !$dataObject->{'subtotal-header'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="subtotal-header">
+                    <div class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'subtotal-header'}->{'visible'}) && !$dataObject->{'subtotal-header'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="subtotal-header">
                         <div class="field-controls">
                             <button class="control-btn edit-btn" onclick="editField('subtotal-header')" title="Edit">✎</button>
                             <button class="control-btn <?php echo (isset($dataObject->{'subtotal-header'}->{'visible'}) && !$dataObject->{'subtotal-header'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('subtotal-header')" title="<?php echo (isset($dataObject->{'subtotal-header'}->{'visible'}) && !$dataObject->{'subtotal-header'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
@@ -920,7 +920,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
                     </div>
                 </div>
                 <div class="order-item">
-                    <div style="margin-bottom:0px;" class="editable-field<?php echo (isset($dataObject->{'order-item'}->{'visible'}) && !$dataObject->{'order-item'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="order-item">
+                    <div style="margin-bottom:0px;" class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'order-item'}->{'visible'}) && !$dataObject->{'order-item'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="order-item">
                         <div class="field-controls">
                             <button class="control-btn <?php echo (isset($dataObject->{'order-item'}->{'visible'}) && !$dataObject->{'order-item'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('order-item')" title="<?php echo (isset($dataObject->{'order-item'}->{'visible'}) && !$dataObject->{'order-item'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
                                 <?php echo (isset($dataObject->{'order-item'}->{'visible'}) && !$dataObject->{'order-item'}->{'visible'}) ? '👁‍🗨' : '👁'; ?>
@@ -928,7 +928,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
                         </div>
                         <span><strong id="order-item-text"><?php echo isset($dataObject->{'order-item'}->{'text'}) ? $dataObject->{'order-item'}->{'text'} : 'Sample Product × 1'; ?></strong></span>
                     </div>
-                    <div style="margin-bottom:0px;" class="editable-field<?php echo (isset($dataObject->{'order-item-price'}->{'visible'}) && !$dataObject->{'order-item-price'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="order-item-price">
+                    <div style="margin-bottom:0px;" class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'order-item-price'}->{'visible'}) && !$dataObject->{'order-item-price'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="order-item-price">
                         <div class="field-controls">
                             <button class="control-btn <?php echo (isset($dataObject->{'order-item-price'}->{'visible'}) && !$dataObject->{'order-item-price'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('order-item-price')" title="<?php echo (isset($dataObject->{'order-item-price'}->{'visible'}) && !$dataObject->{'order-item-price'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
                                 <?php echo (isset($dataObject->{'order-item-price'}->{'visible'}) && !$dataObject->{'order-item-price'}->{'visible'}) ? '👁‍🗨' : '👁'; ?>
@@ -938,7 +938,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
                     </div>
                 </div>
                 <div class="order-item">
-                    <div style="margin-bottom:0px;" class="editable-field<?php echo (isset($dataObject->{'subtotal2'}->{'visible'}) && !$dataObject->{'subtotal2'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="subtotal2">
+                    <div style="margin-bottom:0px;" class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'subtotal2'}->{'visible'}) && !$dataObject->{'subtotal2'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="subtotal2">
                         <div class="field-controls">
                             <button class="control-btn <?php echo (isset($dataObject->{'subtotal2'}->{'visible'}) && !$dataObject->{'subtotal2'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('subtotal2')" title="<?php echo (isset($dataObject->{'subtotal2'}->{'visible'}) && !$dataObject->{'subtotal2'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
                                 <?php echo (isset($dataObject->{'subtotal2'}->{'visible'}) && !$dataObject->{'subtotal2'}->{'visible'}) ? '👁‍🗨' : '👁'; ?>
@@ -946,7 +946,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
                         </div>
                         <span><strong id="subtotal2-text"><?php echo isset($dataObject->{'subtotal-header'}->{'text'}) ? $dataObject->{'subtotal-header'}->{'text'} : 'Subtotal'; ?></strong></span>
                     </div>
-                    <div style="margin-bottom:0px;" class="editable-field<?php echo (isset($dataObject->{'subtotal-price'}->{'visible'}) && !$dataObject->{'subtotal-price'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="subtotal-price">
+                    <div style="margin-bottom:0px;" class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'subtotal-price'}->{'visible'}) && !$dataObject->{'subtotal-price'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="subtotal-price">
                         <div class="field-controls">
                             <button class="control-btn <?php echo (isset($dataObject->{'subtotal-price'}->{'visible'}) && !$dataObject->{'subtotal-price'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('subtotal-price')" title="<?php echo (isset($dataObject->{'subtotal-price'}->{'visible'}) && !$dataObject->{'subtotal-price'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
                                 <?php echo (isset($dataObject->{'subtotal-price'}->{'visible'}) && !$dataObject->{'subtotal-price'}->{'visible'}) ? '👁‍🗨' : '👁'; ?>
@@ -956,7 +956,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
                     </div>
                 </div>
                 <div class="order-item <?php echo isset($shipping_zones) && empty($shipping_zones) ? 'shipping_disabled' : ''; ?>">
-                    <div style="margin-bottom:0px;" class="editable-field<?php echo (isset($dataObject->{'shipping'}->{'visible'}) && !$dataObject->{'shipping'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="shipping">
+                    <div style="margin-bottom:0px;" class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'shipping'}->{'visible'}) && !$dataObject->{'shipping'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="shipping">
                         <div class="field-controls">
                             <button class="control-btn edit-btn" onclick="editField('shipping')" title="Edit">✎</button>
                             <button class="control-btn <?php echo (isset($dataObject->{'shipping'}->{'visible'}) && !$dataObject->{'shipping'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('shipping')" title="<?php echo (isset($dataObject->{'shipping'}->{'visible'}) && !$dataObject->{'shipping'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
@@ -965,7 +965,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
                         </div>
                         <span><strong id="shipping-text"><?php echo isset($dataObject->{'shipping'}->{'text'}) ? $dataObject->{'shipping'}->{'text'} : 'Shipping'; ?></strong></span>
                     </div>
-                    <div style="margin-bottom:0px;" class="editable-field<?php echo (isset($dataObject->{'shipping-price'}->{'visible'}) && !$dataObject->{'shipping-price'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="shipping-price">
+                    <div style="margin-bottom:0px;" class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'shipping-price'}->{'visible'}) && !$dataObject->{'shipping-price'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="shipping-price">
                         <div class="field-controls">
                             <button class="control-btn <?php echo (isset($dataObject->{'shipping-price'}->{'visible'}) && !$dataObject->{'shipping-price'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('shipping-price')" title="<?php echo (isset($dataObject->{'shipping-price'}->{'visible'}) && !$dataObject->{'shipping-price'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
                                 <?php echo (isset($dataObject->{'shipping-price'}->{'visible'}) && !$dataObject->{'shipping-price'}->{'visible'}) ? '👁‍🗨' : '👁'; ?>
@@ -975,7 +975,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
                     </div>
                 </div>
                 <div class="order-item order-total">
-                    <div class="editable-field<?php echo (isset($dataObject->{'total-header'}->{'visible'}) && !$dataObject->{'total-header'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="total-header">
+                    <div class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'total-header'}->{'visible'}) && !$dataObject->{'total-header'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="total-header">
                         <div class="field-controls">
                             <button class="control-btn edit-btn" onclick="editField('total-header')" title="Edit">✎</button>
                             <button class="control-btn <?php echo (isset($dataObject->{'total-header'}->{'visible'}) && !$dataObject->{'total-header'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('total-header')" title="<?php echo (isset($dataObject->{'total-header'}->{'visible'}) && !$dataObject->{'total-header'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
@@ -984,7 +984,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
                         </div>
                         <span><strong id="total-header-text"><?php echo isset($dataObject->{'total-header'}->{'text'}) ? $dataObject->{'total-header'}->{'text'} : 'Total'; ?></strong></span>
                     </div>
-                    <div style="margin-bottom:0px;" class="editable-field<?php echo (isset($dataObject->{'total-price'}->{'visible'}) && !$dataObject->{'total-price'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="total-price">
+                    <div style="margin-bottom:0px;" class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'total-price'}->{'visible'}) && !$dataObject->{'total-price'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="total-price">
                         <div class="field-controls">
                             <button class="control-btn <?php echo (isset($dataObject->{'total-price'}->{'visible'}) && !$dataObject->{'total-price'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('total-price')" title="<?php echo (isset($dataObject->{'total-price'}->{'visible'}) && !$dataObject->{'total-price'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
                                 <?php echo (isset($dataObject->{'total-price'}->{'visible'}) && !$dataObject->{'total-price'}->{'visible'}) ? '👁‍🗨' : '👁'; ?>
@@ -995,7 +995,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
                 </div>
             </div>
 
-            <div class="editable-field<?php echo (isset($dataObject->{'payment-methods'}->{'visible'}) && !$dataObject->{'payment-methods'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?> <?php echo isset($payment_gateways) && empty($payment_gateways) ? 'payments_disabled' : ''; ?>" data-field="payment-methods">
+            <div class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'payment-methods'}->{'visible'}) && !$dataObject->{'payment-methods'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?> <?php echo isset($payment_gateways) && empty($payment_gateways) ? 'payments_disabled' : ''; ?>" data-field="payment-methods">
                 <div class="field-controls">
                     <button class="control-btn <?php echo (isset($dataObject->{'payment-methods'}->{'visible'}) && !$dataObject->{'payment-methods'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('payment-methods')" title="<?php echo (isset($dataObject->{'payment-methods'}->{'visible'}) && !$dataObject->{'payment-methods'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
                         <?php echo (isset($dataObject->{'payment-methods'}->{'visible'}) && !$dataObject->{'payment-methods'}->{'visible'}) ? '👁‍🗨' : '👁'; ?>
@@ -1022,7 +1022,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
                 </div>
             </div>
 
-            <div class="editable-field<?php echo (isset($dataObject->{'privacy-policy'}->{'visible'}) && !$dataObject->{'privacy-policy'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="privacy-policy">
+            <div class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'privacy-policy'}->{'visible'}) && !$dataObject->{'privacy-policy'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="privacy-policy">
                 <div class="field-controls">
                     <button class="control-btn edit-btn" onclick="editField('privacy-policy')" title="Edit">✎</button>
                     <button class="control-btn <?php echo (isset($dataObject->{'privacy-policy'}->{'visible'}) && !$dataObject->{'privacy-policy'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('privacy-policy')" title="<?php echo (isset($dataObject->{'privacy-policy'}->{'visible'}) && !$dataObject->{'privacy-policy'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
@@ -1035,7 +1035,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
                 </div>
             </div>
 
-            <div class="editable-field<?php echo (isset($dataObject->{'place-order'}->{'visible'}) && !$dataObject->{'place-order'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="place-order">
+            <div class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'place-order'}->{'visible'}) && !$dataObject->{'place-order'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="place-order">
                 <div class="field-controls">
                     <button class="control-btn edit-btn" onclick="editField('place-order')" title="Edit">✎</button>
                     <button class="control-btn <?php echo (isset($dataObject->{'place-order'}->{'visible'}) && !$dataObject->{'place-order'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('place-order')" title="<?php echo (isset($dataObject->{'place-order'}->{'visible'}) && !$dataObject->{'place-order'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
@@ -1532,10 +1532,13 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
             }
         });
 
+        <?php if(onepaquc_premium_feature()){?>
+
         const checkoutSetupInput = document.getElementById('checkout_setup');
         if (checkoutSetupInput) {
             checkoutSetupInput.value = JSON.stringify(formData);
         }
+        <?php } ?>
 
         // You can also generate the PHP array format for easy copy-paste
 
