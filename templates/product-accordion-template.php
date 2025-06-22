@@ -4,7 +4,7 @@ if (!defined('ABSPATH')) exit;
 ?>
 <div class="product-accordion-template">
     <div class="one-page-checkout-container">
-        <h2><?php echo esc_html__('Products', 'one-page-quick-checkout-for-woocommerce'); ?></h2>
+        <h2><?php echo esc_html__('Products', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h2>
 
         <div class="one-page-checkout-accordion">
             <?php
@@ -75,7 +75,7 @@ if (!defined('ABSPATH')) exit;
             ?>
         </div>
 
-        <?php onepaquc_rmenu_checkout_popup(true); ?>
+        <?php onepaqucpro_rmenupro_checkout_popup(true); ?>
     </div>
 </div>
 
@@ -110,4 +110,4 @@ if (!defined('ABSPATH')) exit;
             }, 800);
         });
     });";
-    wp_add_inline_script('rmenu-cart-script', $inline_script,99);
+    wp_add_inline_script('rmenupro-cart-script', $inline_script,99);

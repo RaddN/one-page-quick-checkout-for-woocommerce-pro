@@ -1,5 +1,5 @@
 /* General styles for the cart icon */
-/* .rmenu-cart {
+/* .rmenupro-cart {
     position: fixed;
     top: 20px;
     right: 20px;
@@ -1268,7 +1268,7 @@ table.one-page-checkout-product-table td {
 
 .product-single-template
   .one-page-checkout-product-single
-  a.button.product_type_simple.add_to_cart_button.ajax_add_to_cart {
+  a.button.product_type_simple.add_to_cart_button.onepaqucpro_ajax_add_to_cart {
   margin: 0;
 }
 
@@ -1582,17 +1582,17 @@ table.one-page-checkout-product-table td {
   }
 }
 
-.rmenu-direct-checkout-btn {
+.rmenupro-direct-checkout-btn {
   margin-top: 10px !important;
 }
 @media (min-width: 768px) {
-  .single .summary.entry-summary .rmenu-direct-checkout-btn {
+  .single .summary.entry-summary .rmenupro-direct-checkout-btn {
     margin-top: 0 !important;
     margin-left: 10px !important;
   }
 }
 @media (max-width: 768px) {
-  .single .summary.entry-summary .rmenu-direct-checkout-btn {
+  .single .summary.entry-summary .rmenupro-direct-checkout-btn {
     margin-top: 0 !important;
   }
 }
@@ -1744,7 +1744,7 @@ table.one-page-checkout-product-table td {
 }
 
 
-a.rmenu-quick-view-btn.display-text_icon {
+a.rmenupro-quick-view-btn.display-text_icon {
     display: flex;
     align-items: center;
     justify-content: center;

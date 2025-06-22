@@ -2,7 +2,7 @@
  if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
  
 // Shortcode to display cart icon and drawer
-function onepaquc_cart_shortcode($atts) {
+function onepaqucpro_cart_shortcode($atts) {
     $atts = shortcode_atts(
         array(
             'drawer' => 'right',
@@ -12,12 +12,12 @@ function onepaquc_cart_shortcode($atts) {
 
     ob_start(); ?>
 
-<div class="rmenu-cart">
+<div class="rmenupro-cart">
     <?php 
-    onepaquc_cart($atts['drawer'],$atts['cart_icon'],$atts['product_title_tag']); ?>
+    onepaqucpro_cart($atts['drawer'],$atts['cart_icon'],$atts['product_title_tag']); ?>
 </div>
 
     <?php
     return ob_get_clean();
 }
-add_shortcode('plugincy_cart', 'onepaquc_cart_shortcode');
+add_shortcode('plugincy_cart', 'onepaqucpro_cart_shortcode');

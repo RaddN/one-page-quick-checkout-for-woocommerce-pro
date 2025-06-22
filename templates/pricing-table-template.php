@@ -292,7 +292,7 @@ if (! defined('ABSPATH')) exit; // Exit if accessed directly
                 </table>
             </div>
         <?php } ?>
-        <?php onepaquc_rmenu_checkout_popup(true); ?>
+        <?php onepaqucpro_rmenupro_checkout_popup(true); ?>
     </div>
 </div>
 
@@ -345,4 +345,4 @@ if (! defined('ABSPATH')) exit; // Exit if accessed directly
         });
     });';
 // Enqueue the script
-wp_add_inline_script('rmenu-cart-script', $inline_script, 99);
+wp_add_inline_script('rmenupro-cart-script', $inline_script, 99);

@@ -8,11 +8,17 @@ if (!defined('ABSPATH')) {
 /**
  * Register the Plugincy One Page Checkout Gutenberg Block
  */
-function onepaquc_register_one_page_checkout_block()
+if (!function_exists('onepaquc_register_one_page_checkout_block')) {
+function onepaqucpro_register_one_page_checkout_block()
 {
     // Skip block registration if Gutenberg is not available
     if (!function_exists('register_block_type')) {
         return;
+    }
+
+     // Check if block type is already registered
+    if (WP_Block_Type_Registry::get_instance()->is_registered('plugincy/one-page-checkout')) {
+        return; // Exit early if already registered
     }
 
     // Register the block script
@@ -36,7 +42,7 @@ function onepaquc_register_one_page_checkout_block()
     register_block_type('plugincy/one-page-checkout', array(
         'editor_script' => 'plugincy-one-page-checkout-block',
         'editor_style'  => 'plugincy-one-page-checkout-editor',
-        'render_callback' => 'onepaquc_render_one_page_checkout_block',
+        'render_callback' => 'onepaqucpro_render_one_page_checkout_block',
         'attributes' => array(
             'product_ids' => array(
                 'type' => 'string',
@@ -90,7 +96,8 @@ function onepaquc_register_one_page_checkout_block()
         ),
     ));
 }
-add_action('init', 'onepaquc_register_one_page_checkout_block');
+add_action('init', 'onepaqucpro_register_one_page_checkout_block',100);
+}
 
 /**
  * Render callback for the Plugincy One Page Checkout block
@@ -98,7 +105,7 @@ add_action('init', 'onepaquc_register_one_page_checkout_block');
  * @param array $attributes Block attributes.
  * @return string Generated shortcode.
  */
-function onepaquc_render_one_page_checkout_block($attributes)
+function onepaqucpro_render_one_page_checkout_block($attributes)
 {
     // Extract and sanitize attributes
     $product_ids = isset($attributes['product_ids']) ? sanitize_text_field($attributes['product_ids']) : '';
@@ -188,7 +195,7 @@ function onepaquc_render_one_page_checkout_block($attributes)
 /**
  * Add custom block category for Plugincy blocks
  */
-function onepaquc_add_block_category($categories)
+function onepaqucpro_add_block_category($categories)
 {
     // Check if the category already exists
     foreach ($categories as $category) {
@@ -202,19 +209,19 @@ function onepaquc_add_block_category($categories)
         array(
             array(
                 'slug'  => 'plugincy',
-                'title' => __('Plugincy', 'plugincy-one-page-checkout'),
+                'title' => __('Plugincy', 'one-page-quick-checkout-for-woocommerce-pro'),
                 'icon'  => 'cart',
             ),
         ),
         $categories
     );
 }
-add_filter('block_categories_all', 'onepaquc_add_block_category');
+add_filter('block_categories_all', 'onepaqucpro_add_block_category');
 
 /**
  * Enqueue block editor assets
  */
-function onepaquc_enqueue_block_editor_assets()
+function onepaqucpro_enqueue_block_editor_assets()
 {
     // Add custom styles to the block editor
     $custom_css = '
@@ -271,7 +278,7 @@ function onepaquc_enqueue_block_editor_assets()
 
     wp_add_inline_style('wp-edit-blocks', $custom_css);
 }
-add_action('enqueue_block_editor_assets', 'onepaquc_enqueue_block_editor_assets');
+add_action('enqueue_block_editor_assets', 'onepaqucpro_enqueue_block_editor_assets');
 
 /**
  * Validate block attributes before rendering
@@ -279,7 +286,7 @@ add_action('enqueue_block_editor_assets', 'onepaquc_enqueue_block_editor_assets'
  * @param array $attributes Block attributes.
  * @return array Validated attributes.
  */
-function onepaquc_validate_block_attributes($attributes)
+function onepaqucpro_validate_block_attributes($attributes)
 {
     $validated = array();
 
@@ -346,12 +353,12 @@ function onepaquc_validate_block_attributes($attributes)
 /**
  * Add custom category for Plugincy blocks
  */
-function onepaquc_block_categories($categories, $post)
+function onepaqucpro_block_categories($categories, $post)
 {
     // Create the new category array
     $new_category = array(
         'slug' => 'plugincy',
-        'title' => __('Plugincy', 'one-page-quick-checkout-for-woocommerce'),
+        'title' => __('Plugincy', 'one-page-quick-checkout-for-woocommerce-pro'),
         'icon'  => 'plugincy',
     );
 
@@ -360,4 +367,4 @@ function onepaquc_block_categories($categories, $post)
 
     return $categories;
 }
-add_filter('block_categories_all', 'onepaquc_block_categories', 0, 2);
+add_filter('block_categories_all', 'onepaqucpro_block_categories', 0, 2);

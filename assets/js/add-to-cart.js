@@ -7,14 +7,14 @@
 (function($) {
     'use strict';
     
-    var RMENU_Add_To_Cart = {
+    var RMENUPRO_Add_To_Cart = {
         
         init: function() {
             // Handle AJAX add to cart for archive/shop pages
-            $(document).on('click', '.rmenu-ajax-add-to-cart,.single_add_to_cart_button:not(.direct-checkout-button)', this.ajaxAddToCart);
+            $(document).on('click', '.rmenupro-ajax-add-to-cart,.single_add_to_cart_button:not(.direct-checkout-button)', this.ajaxAddToCart);
             
             // Handle quantity changes on archive pages
-            $(document).on('change', '.rmenu-archive-quantity', this.updateAddToCartQuantity);
+            $(document).on('change', '.rmenupro-archive-quantity', this.updateAddToCartQuantity);
             
             // Initialize animations
             this.initAnimations();
@@ -41,14 +41,14 @@
                 quantity = $form.find('input.qty').val();
             } else {
                 // 2. Check for quantity input in sibling elements
-                var $qtyInput = $thisButton.siblings('.rmenu-archive-quantity');
+                var $qtyInput = $thisButton.siblings('.rmenupro-archive-quantity');
                 if ($qtyInput.length > 0) {
                     quantity = $qtyInput.val();
                 } else {
                     // 3. Check for quantity in the closest wrapper by product ID
-                    var $qtyWrapper = $('.rmenu-quantity-wrapper[data-product_id="' + productId + '"]');
+                    var $qtyWrapper = $('.rmenupro-quantity-wrapper[data-product_id="' + productId + '"]');
                     if ($qtyWrapper.length > 0) {
-                        var $qtyField = $qtyWrapper.find('.rmenu-archive-quantity');
+                        var $qtyField = $qtyWrapper.find('.rmenupro-archive-quantity');
                         if ($qtyField.length > 0) {
                             quantity = $qtyField.val();
                         }
@@ -87,14 +87,14 @@
             // Send AJAX request
             $.ajax({
                 type: 'POST',
-                url: rmenu_ajax_object.ajax_url,
+                url: rmenupro_ajax_object.ajax_url,
                 data: {
-                    action: 'rmenu_ajax_add_to_cart',
+                    action: 'onepaqucpro_ajax_add_to_cart',
                     product_id: productId,
                     quantity: quantity,
                     variation_id: variationId,
                     variations: variations,
-                    nonce: rmenu_ajax_object.nonce
+                    nonce: rmenupro_ajax_object.nonce
                 },
                 success: function(response) {
                     if (response.success) {
@@ -121,21 +121,21 @@
                             }, 500);
                         } else {
                             // If no redirect, show animation and notification
-                            RMENU_Add_To_Cart.triggerAnimation($thisButton, response.product_name);
-                            RMENU_Add_To_Cart.showNotification(response);
+                            RMENUPRO_Add_To_Cart.triggerAnimation($thisButton, response.product_name);
+                            RMENUPRO_Add_To_Cart.showNotification(response);
                         }
                         
                         // Trigger WC events
                         $(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash, $thisButton]);
                     } else {
                         // Show error
-                        RMENU_Add_To_Cart.showError(response.message || 'Error adding to cart');
+                        RMENUPRO_Add_To_Cart.showError(response.message || 'Error adding to cart');
                         $thisButton.removeClass('loading').prop('disabled', false);
                     }
                 },
                 error: function() {
                     // Show error
-                    RMENU_Add_To_Cart.showError('Server error. Please try again.');
+                    RMENUPRO_Add_To_Cart.showError('Server error. Please try again.');
                     $thisButton.removeClass('loading').prop('disabled', false);
                 }
             });
@@ -155,7 +155,7 @@
             
             // 2. If in a wrapper with product ID
             if ($addToCartButton.length === 0) {
-                var $wrapper = $this.closest('.rmenu-quantity-wrapper');
+                var $wrapper = $this.closest('.rmenupro-quantity-wrapper');
                 if ($wrapper.length > 0) {
                     var productId = $wrapper.data('product_id');
                     if (productId) {
@@ -184,8 +184,8 @@
          */
         initAnimations: function() {
             // Create animation elements if needed
-            if (rmenu_ajax_object.animation === 'fly') {
-                $('body').append('<div id="rmenu-fly-item" class="rmenu-fly-item"></div>');
+            if (rmenupro_ajax_object.animation === 'fly') {
+                $('body').append('<div id="rmenupro-fly-item" class="rmenupro-fly-item"></div>');
             }
         },
         
@@ -193,7 +193,7 @@
          * Trigger add to cart animation
          */
         triggerAnimation: function($button, productName) {
-            switch (rmenu_ajax_object.animation) {
+            switch (rmenupro_ajax_object.animation) {
                 case 'slide':
                     this.slideAnimation($button);
                     break;
@@ -216,12 +216,12 @@
          * Slide animation
          */
         slideAnimation: function($button) {
-            $button.addClass('rmenu-added')
-                .append('<span class="rmenu-check">✓</span>');
+            $button.addClass('rmenupro-added')
+                .append('<span class="rmenupro-check">✓</span>');
             
             setTimeout(function() {
-                $button.find('.rmenu-check').remove();
-                $button.removeClass('rmenu-added');
+                $button.find('.rmenupro-check').remove();
+                $button.removeClass('rmenupro-added');
             }, 1500);
         },
         
@@ -236,7 +236,7 @@
          * Fly to cart animation
          */
         flyToCartAnimation: function($button, productName) {
-            var $flyItem = $('#rmenu-fly-item');
+            var $flyItem = $('#rmenupro-fly-item');
             var $cart = $('.cart-contents, .cart-icon, .site-header-cart');
             
             // If there's no cart icon found, try to find one with common classes
@@ -281,11 +281,11 @@
          * Show add to cart notification based on settings
          */
         showNotification: function(response) {
-            var successMsg = rmenu_ajax_object.i18n.success.replace('{product}', response.product_name);
-            var viewCartBtn = rmenu_ajax_object.i18n.view_cart ? '<a href="' + response.cart_url + '" class="button wc-forward">' + rmenu_ajax_object.i18n.view_cart + '</a>' : '';
-            var checkoutBtn = rmenu_ajax_object.i18n.checkout ? '<a href="' + response.checkout_url + '" class="button checkout wc-forward">' + rmenu_ajax_object.i18n.checkout + '</a>' : '';
+            var successMsg = rmenupro_ajax_object.i18n.success.replace('{product}', response.product_name);
+            var viewCartBtn = rmenupro_ajax_object.i18n.view_cart ? '<a href="' + response.cart_url + '" class="button wc-forward">' + rmenupro_ajax_object.i18n.view_cart + '</a>' : '';
+            var checkoutBtn = rmenupro_ajax_object.i18n.checkout ? '<a href="' + response.checkout_url + '" class="button checkout wc-forward">' + rmenupro_ajax_object.i18n.checkout + '</a>' : '';
             
-            switch (rmenu_ajax_object.notification_style) {
+            switch (rmenupro_ajax_object.notification_style) {
                 case 'popup':
                     this.showPopupNotification(successMsg, viewCartBtn, checkoutBtn);
                     break;
@@ -309,14 +309,14 @@
          */
         showPopupNotification: function(message, viewCartBtn, checkoutBtn) {
             // Remove any existing popups
-            $('.rmenu-popup-notification').remove();
+            $('.rmenupro-popup-notification').remove();
             
             // Create popup
-            var popup = $('<div class="rmenu-popup-notification">' +
-                '<div class="rmenu-popup-content">' +
-                '<div class="rmenu-popup-message">' + message + '</div>' +
-                '<div class="rmenu-popup-buttons">' + viewCartBtn + checkoutBtn + '</div>' +
-                '<span class="rmenu-popup-close">×</span>' +
+            var popup = $('<div class="rmenupro-popup-notification">' +
+                '<div class="rmenupro-popup-content">' +
+                '<div class="rmenupro-popup-message">' + message + '</div>' +
+                '<div class="rmenupro-popup-buttons">' + viewCartBtn + checkoutBtn + '</div>' +
+                '<span class="rmenupro-popup-close">×</span>' +
                 '</div>' +
                 '</div>');
             
@@ -329,7 +329,7 @@
             }, 10);
             
             // Handle close button
-            popup.find('.rmenu-popup-close').on('click', function() {
+            popup.find('.rmenupro-popup-close').on('click', function() {
                 popup.removeClass('show');
                 setTimeout(function() {
                     popup.remove();
@@ -342,7 +342,7 @@
                 setTimeout(function() {
                     popup.remove();
                 }, 300);
-            }, rmenu_ajax_object.notification_duration);
+            }, rmenupro_ajax_object.notification_duration);
         },
         
         /**
@@ -350,12 +350,12 @@
          */
         showToastNotification: function(message, viewCartBtn, checkoutBtn) {
             // Remove any existing toasts
-            $('.rmenu-toast-notification').remove();
+            $('.rmenupro-toast-notification').remove();
             
             // Create toast
-            var toast = $('<div class="rmenu-toast-notification">' +
-                '<div class="rmenu-toast-message">' + message + '</div>' +
-                '<div class="rmenu-toast-buttons">' + viewCartBtn + checkoutBtn + '</div>' +
+            var toast = $('<div class="rmenupro-toast-notification">' +
+                '<div class="rmenupro-toast-message">' + message + '</div>' +
+                '<div class="rmenupro-toast-buttons">' + viewCartBtn + checkoutBtn + '</div>' +
                 '</div>');
             
             // Add to body
@@ -372,7 +372,7 @@
                 setTimeout(function() {
                     toast.remove();
                 }, 300);
-            }, rmenu_ajax_object.notification_duration);
+            }, rmenupro_ajax_object.notification_duration);
         },
         
         /**
@@ -387,11 +387,11 @@
             }
             
             if ($miniCart.length > 0) {
-                $miniCart.addClass('rmenu-mini-cart-active');
+                $miniCart.addClass('rmenupro-mini-cart-active');
                 
                 setTimeout(function() {
-                    $miniCart.removeClass('rmenu-mini-cart-active');
-                }, rmenu_ajax_object.notification_duration);
+                    $miniCart.removeClass('rmenupro-mini-cart-active');
+                }, rmenupro_ajax_object.notification_duration);
             }
         },
         
@@ -400,8 +400,8 @@
          */
         showError: function(message) {
             // Create error toast
-            var errorToast = $('<div class="rmenu-toast-notification rmenu-error">' +
-                '<div class="rmenu-toast-message">' + message + '</div>' +
+            var errorToast = $('<div class="rmenupro-toast-notification rmenupro-error">' +
+                '<div class="rmenupro-toast-message">' + message + '</div>' +
                 '</div>');
             
             // Add to body
@@ -418,13 +418,13 @@
                 setTimeout(function() {
                     errorToast.remove();
                 }, 300);
-            }, rmenu_ajax_object.notification_duration);
+            }, rmenupro_ajax_object.notification_duration);
         }
     };
     
     // Initialize on document ready
     $(document).ready(function() {
-        RMENU_Add_To_Cart.init();
+        RMENUPRO_Add_To_Cart.init();
     });
     
 })(jQuery);

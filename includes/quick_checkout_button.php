@@ -12,9 +12,9 @@ if (! defined('ABSPATH')) exit; // Exit if accessed directly
  * @param WC_Product $product The product object
  * @return bool Whether the button should be displayed
  */
-function onepaquc_should_display_button($product)
+function onepaqucpro_should_display_button($product)
 {
-    if (!$product || get_option("rmenu_add_checkout_button", "1") !== "1") {
+    if (!$product || get_option("rmenupro_add_checkout_button", "1") !== "1") {
         return false;
     }
 
@@ -23,13 +23,13 @@ function onepaquc_should_display_button($product)
     }
 
     // Check user login status
-    $guest_checkout_enabled = get_option('rmenu_wc_checkout_guest_enabled', '1');
+    $guest_checkout_enabled = get_option('rmenupro_wc_checkout_guest_enabled', '1');
     if ($guest_checkout_enabled !== '1' && !is_user_logged_in()) {
         return false; // Only show for logged-in users when guest checkout is disabled
     }
 
     // Check product type
-    $allowed_product_types = get_option('rmenu_show_quick_checkout_by_types', ['simple']);
+    $allowed_product_types = get_option('rmenupro_show_quick_checkout_by_types', ['simple']);
     $product_type = $product->get_type();
 
     if (!in_array($product_type, $allowed_product_types)) {
@@ -37,7 +37,7 @@ function onepaquc_should_display_button($product)
     }
 
     // Get allowed pages
-    $allowed_pages = get_option('rmenu_show_quick_checkout_by_page', ['single']);
+    $allowed_pages = get_option('rmenupro_show_quick_checkout_by_page', ['single']);
 
     // Check current page type
 
@@ -112,49 +112,49 @@ function onepaquc_should_display_button($product)
  * 
  * @return array Array with 'classes', 'style', 'icon', and 'additional_css' for the button
  */
-function onepaquc_get_button_styling()
+function onepaqucpro_get_button_styling()
 {
     // Basic button classes
-    $classes = "button single_add_to_cart_button direct-checkout-button rmenu-direct-checkout-btn";
+    $classes = "button single_add_to_cart_button direct-checkout-button rmenupro-direct-checkout-btn";
     $style = "cursor:pointer;";
     $icon = '';
     $additional_css = '';
 
     // Apply button style settings
-    $button_style = get_option('rmenu_wc_checkout_style', 'default');
+    $button_style = get_option('rmenupro_wc_checkout_style', 'default');
     if ($button_style === 'alt') {
         $classes .= " alt-style";
     }
 
     // Apply color settings if not using default style
     if ($button_style !== 'default') {
-        $bg_color = get_option('rmenu_wc_checkout_color', '#96588a');
-        $text_color = get_option('rmenu_wc_checkout_text_color', '#ffffff');
+        $bg_color = get_option('rmenupro_wc_checkout_color', '#96588a');
+        $text_color = get_option('rmenupro_wc_checkout_text_color', '#ffffff');
         $style .= "background-color:{$bg_color}!important;color:{$text_color}!important;border-color:{$bg_color}!important;";
     }
 
     // Add mobile optimization if enabled
-    $mobile_optimize = get_option('rmenu_wc_checkout_mobile_optimize', '0');
+    $mobile_optimize = get_option('rmenupro_wc_checkout_mobile_optimize', '0');
     if ($mobile_optimize === '1') {
         $style .= "display:inline-block;";
         $classes .= " mobile-optimized-checkout";
     }
 
     // Handle button icon
-    $icon_type = get_option('rmenu_wc_checkout_icon', 'none');
-    $icon_position = get_option('rmenu_wc_checkout_icon_position', 'left');
+    $icon_type = get_option('rmenupro_wc_checkout_icon', 'none');
+    $icon_position = get_option('rmenupro_wc_checkout_icon_position', 'left');
 
     if ($icon_type !== 'none') {
         // Define icon HTML based on type
         switch ($icon_type) {
             case 'cart':
-                $icon_content = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="rmenu-icon"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>';
+                $icon_content = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="rmenupro-icon"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>';
                 break;
             case 'checkout':
-                $icon_content = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="rmenu-icon"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>';
+                $icon_content = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="rmenupro-icon"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>';
                 break;
             case 'arrow':
-                $icon_content = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="rmenu-icon"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>';
+                $icon_content = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="rmenupro-icon"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>';
                 break;
             default:
                 $icon_content = '';
@@ -173,7 +173,7 @@ function onepaquc_get_button_styling()
 
     // Add custom CSS if selected
     if ($button_style === 'custom') {
-        $additional_css = get_option('rmenu_wc_checkout_custom_css', '');
+        $additional_css = get_option('rmenupro_wc_checkout_custom_css', '');
     }
 
     return [
@@ -187,9 +187,9 @@ function onepaquc_get_button_styling()
 /**
  * Add button-specific CSS based on settings
  */
-function onepaquc_add_button_css()
+function onepaqucpro_add_button_css()
 {
-    $button_styling = onepaquc_get_button_styling();
+    $button_styling = onepaqucpro_get_button_styling();
     $additional_css = $button_styling['additional_css'];
 
     // Start output buffer for CSS
@@ -199,12 +199,12 @@ function onepaquc_add_button_css()
 ?>
     <style>
         /* Base styling for direct checkout button */
-        .rmenu-direct-checkout-btn {
+        .rmenupro-direct-checkout-btn {
             transition: all 0.3s ease;
         }
 
         /* Alternative button style */
-        .rmenu-direct-checkout-btn.alt-style {
+        .rmenupro-direct-checkout-btn.alt-style {
             border-radius: 30px;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -212,31 +212,31 @@ function onepaquc_add_button_css()
         }
 
         /* Icon positioning styles */
-        .rmenu-direct-checkout-btn .rmenu-icon {
+        .rmenupro-direct-checkout-btn .rmenupro-icon {
             display: inline-block;
             vertical-align: middle;
         }
 
-        .rmenu-direct-checkout-btn.icon-position-left .rmenu-icon {
+        .rmenupro-direct-checkout-btn.icon-position-left .rmenupro-icon {
             margin-right: 8px;
         }
 
-        .rmenu-direct-checkout-btn.icon-position-right .rmenu-icon {
+        .rmenupro-direct-checkout-btn.icon-position-right .rmenupro-icon {
             margin-left: 8px;
         }
 
-        .rmenu-direct-checkout-btn.icon-position-top .rmenu-icon {
+        .rmenupro-direct-checkout-btn.icon-position-top .rmenupro-icon {
             display: block;
             margin: 0 auto 5px;
         }
 
-        .rmenu-direct-checkout-btn.icon-position-bottom .rmenu-icon {
+        .rmenupro-direct-checkout-btn.icon-position-bottom .rmenupro-icon {
             display: block;
             margin: 5px auto 0;
         }
 
-        .rmenu-direct-checkout-btn.icon-position-top,
-        .rmenu-direct-checkout-btn.icon-position-bottom {
+        .rmenupro-direct-checkout-btn.icon-position-top,
+        .rmenupro-direct-checkout-btn.icon-position-bottom {
             text-align: center;
         }
 
@@ -266,16 +266,16 @@ function onepaquc_add_button_css()
             }
         }
 
-        <?php echo $additional_css; ?>
+        <?php echo $additional_css; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
     </style>
 <?php
 
     // Output the CSS
-    echo ob_get_clean();
+    echo ob_get_clean(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 }
 
 // Add button CSS to head
-add_action('wp_head', 'onepaquc_add_button_css');
+add_action('wp_head', 'onepaqucpro_add_button_css');
 
 /**
  * Render the button icon based on settings
@@ -284,7 +284,7 @@ add_action('wp_head', 'onepaquc_add_button_css');
  * @param string $button_text The button text
  * @return string HTML for button with icon
  */
-function onepaquc_render_button_with_icon($icon, $button_text)
+function onepaqucpro_render_button_with_icon($icon, $button_text)
 {
     if (empty($icon) || !isset($icon['content']) || !isset($icon['position'])) {
         return $button_text;
@@ -308,7 +308,7 @@ function onepaquc_render_button_with_icon($icon, $button_text)
 }
 
 // Function to add checkout button on single product page
-function onepaquc_add_checkout_button()
+function onepaqucpro_add_checkout_button()
 {
     global $product;
 
@@ -316,13 +316,13 @@ function onepaquc_add_checkout_button()
         return;
     }
 
-    if (!onepaquc_should_display_button($product)) {
+    if (!onepaqucpro_should_display_button($product)) {
         return;
     }
 
     $product_id = $product->get_id();
     $product_type = $product->get_type();
-    $button_styling = onepaquc_get_button_styling();
+    $button_styling = onepaqucpro_get_button_styling();
     $icon = $button_styling["icon"];
 
     $icon_content = isset($icon['content']) ? $icon['content'] : '';
@@ -352,52 +352,52 @@ function onepaquc_add_checkout_button()
     }
 
     $one_page_checkout = get_post_meta($product_id, '_one_page_checkout', true);
-    $onpage_checkout_cart_add = get_option('onpage_checkout_cart_add', "1");
+    $onepaqucpro_checkout_cart_add = get_option('onepaqucpro_checkout_cart_add', "1");
 
-    if ($one_page_checkout === 'yes' && $onpage_checkout_cart_add === "1") {
+    if ($one_page_checkout === 'yes' && $onepaqucpro_checkout_cart_add === "1") {
         // Remove 'single_add_to_cart_button' and 'direct-checkout-button' from classes
         $button_classes = preg_replace('/\b(single_add_to_cart_button|direct-checkout-button)\b/', '', $button_styling['classes']);
         $button_classes = trim(preg_replace('/\s+/', ' ', $button_classes));
-        echo '<a href="#checkout-popup" class="' . esc_attr($button_classes) . '" style="' . esc_attr($button_styling['style']) . '">' . $button_inner . '</a>';
+        echo '<a href="#checkout-popup" class="' . esc_attr($button_classes) . '" style="' . esc_attr($button_styling['style']) . '">' . $button_inner . '</a>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
     } else {
         // Output the button
-        echo '<a href="#checkout-popup" class="' . esc_attr($button_styling['classes']) . '" data-product-id="' . esc_attr($product_id) . '" data-product-type="' . esc_attr($product_type) . '" style="' . esc_attr($button_styling['style']) . '">' . $button_inner . '</a>';
+        echo '<a href="#checkout-popup" class="' . esc_attr($button_styling['classes']) . '" data-product-id="' . esc_attr($product_id) . '" data-product-type="' . esc_attr($product_type) . '" style="' . esc_attr($button_styling['style']) . '">' . $button_inner . '</a>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
     }
 }
 
 
 // Function to position the checkout button on single product page
-function onepaquc_modify_add_to_cart_button()
+function onepaqucpro_modify_add_to_cart_button()
 {
-    $position = get_option("rmenu_wc_direct_checkout_position", "after_add_to_cart");
+    $position = get_option("rmenupro_wc_direct_checkout_position", "after_add_to_cart");
 
     switch ($position) {
         case 'before_add_to_cart':
-            add_action('woocommerce_before_add_to_cart_button', 'onepaquc_add_checkout_button');
+            add_action('woocommerce_before_add_to_cart_button', 'onepaqucpro_add_checkout_button');
             break;
 
         case 'after_add_to_cart':
         case 'replace_add_to_cart':
-            add_action('woocommerce_after_add_to_cart_button', 'onepaquc_add_checkout_button');
+            add_action('woocommerce_after_add_to_cart_button', 'onepaqucpro_add_checkout_button');
             break;
     }
 }
 
 // Apply the checkout button modifications if enabled
-if (get_option('rmenu_add_direct_checkout_button')) {
-    $position = get_option("rmenu_wc_direct_checkout_position", "after_add_to_cart");
+if (get_option('rmenupro_add_direct_checkout_button')) {
+    $position = get_option("rmenupro_wc_direct_checkout_position", "after_add_to_cart");
     if ($position === "replace_add_to_cart") {
-        add_action('wp_head', 'onepaquc_hide_add_to_cart_css');
+        add_action('wp_head', 'onepaqucpro_hide_add_to_cart_css');
     }
-    add_action('woocommerce_before_single_product', 'onepaquc_modify_add_to_cart_button');
+    add_action('woocommerce_before_single_product', 'onepaqucpro_modify_add_to_cart_button');
 }
 
-if (get_option('rmenu_add_to_cart_catalog_display') == "hide") {
-    add_action('wp_footer', 'onepaquc_hide_add_to_cart_css');
+if (get_option('rmenupro_add_to_cart_catalog_display') == "hide") {
+    add_action('wp_footer', 'onepaqucpro_hide_add_to_cart_css');
 }
 
 // Function to hide the original add to cart button when in replace mode
-function onepaquc_hide_add_to_cart_css()
+function onepaqucpro_hide_add_to_cart_css()
 {
 ?>
     <style>
@@ -411,16 +411,16 @@ function onepaquc_hide_add_to_cart_css()
 }
 
 // Function to add checkout button to product loops (listings)
-function onepaquc_add_checkout_button_to_add_to_cart_shortcode($link, $product)
+function onepaqucpro_add_checkout_button_to_add_to_cart_shortcode($link, $product)
 {
-    if (!onepaquc_should_display_button($product)) {
+    if (!onepaqucpro_should_display_button($product)) {
         return $link;
     }
 
-    $position = get_option("rmenu_wc_direct_checkout_position", "after_add_to_cart");
+    $position = get_option("rmenupro_wc_direct_checkout_position", "after_add_to_cart");
     $product_id = $product->get_id();
     $product_type = $product->get_type();
-    $button_styling = onepaquc_get_button_styling();
+    $button_styling = onepaqucpro_get_button_styling();
     $icon = $button_styling["icon"];
 
     $icon_content = isset($icon['content']) ? $icon['content'] : '';
@@ -470,6 +470,6 @@ function onepaquc_add_checkout_button_to_add_to_cart_shortcode($link, $product)
 
 
 // Apply the checkout button to product loops if enabled
-if (get_option('rmenu_add_direct_checkout_button')) {
-    add_filter('woocommerce_loop_add_to_cart_link', 'onepaquc_add_checkout_button_to_add_to_cart_shortcode', 10, 2);
+if (get_option('rmenupro_add_direct_checkout_button')) {
+    add_filter('woocommerce_loop_add_to_cart_link', 'onepaqucpro_add_checkout_button_to_add_to_cart_shortcode', 10, 2);
 }

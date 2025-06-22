@@ -8,14 +8,14 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class RMENU_Quick_View {
+class RMENUPRO_Quick_View {
     
     /**
      * Constructor
      */
     public function __construct() {
         // Initialize only if quick view is enabled
-        if (get_option('rmenu_enable_quick_view', 0)) {
+        if (get_option('rmenupro_enable_quick_view', 0)) {
             // Add quick view button to product loops
             $this->add_quick_view_button();
             
@@ -34,7 +34,7 @@ class RMENU_Quick_View {
      * Add quick view button to appropriate locations
      */
     private function add_quick_view_button() {
-        $button_position = get_option('rmenu_quick_view_button_position', 'after_image');
+        $button_position = get_option('rmenupro_quick_view_button_position', 'after_image');
         
         switch ($button_position) {
             case 'after_image':
@@ -71,13 +71,13 @@ class RMENU_Quick_View {
         global $product;
         
         // Check if product type is allowed
-        $allowed_types = get_option('rmenu_show_quick_view_by_types', array('simple', 'variable'));
+        $allowed_types = get_option('rmenupro_show_quick_view_by_types', array('simple', 'variable'));
         if (!in_array($product->get_type(), $allowed_types)) {
             return;
         }
         
         // Check if current page is allowed
-        $allowed_pages = get_option('rmenu_show_quick_view_by_page', array('shop-page', 'category-archives', 'search'));
+        $allowed_pages = get_option('rmenupro_show_quick_view_by_page', array('shop-page', 'category-archives', 'search'));
         $display = false;
         
         if (in_array('shop-page', $allowed_pages) && is_shop()) {
@@ -115,12 +115,12 @@ class RMENU_Quick_View {
         global $product;
         
         // Same checks as display_quick_view_button
-        $allowed_types = get_option('rmenu_show_quick_view_by_types', array('simple', 'variable'));
+        $allowed_types = get_option('rmenupro_show_quick_view_by_types', array('simple', 'variable'));
         if (!in_array($product->get_type(), $allowed_types)) {
             return;
         }
         
-        echo '<div class="rmenu-quick-view-overlay">';
+        echo '<div class="rmenupro-quick-view-overlay">';
         $this->render_quick_view_button($product);
         echo '</div>';
     }
@@ -129,13 +129,13 @@ class RMENU_Quick_View {
      * Render the actual quick view button HTML
      */
     private function render_quick_view_button($product) {
-        $button_text = get_option('rmenu_quick_view_button_text', '');
+        $button_text = get_option('rmenupro_quick_view_button_text', '');
         if (empty($button_text)) {
             $button_text = 'Quick View';
         }
-        $display_type = get_option('rmenu_quick_view_display_type', 'button');
-        $button_icon = get_option('rmenu_quick_view_button_icon', 'eye');
-        $icon_position = get_option('rmenu_quick_view_icon_position', 'left');
+        $display_type = get_option('rmenupro_quick_view_display_type', 'button');
+        $button_icon = get_option('rmenupro_quick_view_button_icon', 'eye');
+        $icon_position = get_option('rmenupro_quick_view_icon_position', 'left');
         
         // Generate icon HTML if needed
         $icon_html = '';
@@ -159,8 +159,8 @@ class RMENU_Quick_View {
         }
         
         // Generate button classes
-        $button_classes = array('rmenu-quick-view-btn');
-        $button_style = get_option('rmenu_quick_view_button_style', 'default');
+        $button_classes = array('rmenupro-quick-view-btn');
+        $button_style = get_option('rmenupro_quick_view_button_style', 'default');
         
         if ($button_style === 'default') {
             $button_classes[] = 'button';
@@ -198,7 +198,7 @@ class RMENU_Quick_View {
             $button_content
         );
         
-        echo apply_filters('rmenu_quick_view_button_html', $button_html, $product);
+        echo apply_filters('rmenupro_quick_view_button_html', $button_html, $product); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
     }
     
     /**
@@ -212,7 +212,7 @@ class RMENU_Quick_View {
         }
         
         // Get elements to display
-        $elements = get_option('rmenu_quick_view_content_elements', array('image', 'title', 'rating', 'price', 'excerpt', 'add_to_cart', 'meta'));
+        $elements = get_option('rmenupro_quick_view_content_elements', array('image', 'title', 'rating', 'price', 'excerpt', 'add_to_cart', 'meta'));
         
         // Prepare product data
         $product_data = array(
@@ -310,7 +310,7 @@ class RMENU_Quick_View {
         }
         
         // Output data attribute with JSON encoded product data
-        echo '<div class="rmenu-product-data" style="display:none;" data-product-info="' . esc_attr(json_encode($product_data)) . '"></div>';
+        echo '<div class="rmenupro-product-data" style="display:none;" data-product-info="' . esc_attr(json_encode($product_data)) . '"></div>';
     }
     
     /**
@@ -318,7 +318,7 @@ class RMENU_Quick_View {
      */
     public function enqueue_scripts() {
         // Load scripts based on setting
-        $load_scripts = get_option('rmenu_quick_view_load_scripts', 'wc-only');
+        $load_scripts = get_option('rmenupro_quick_view_load_scripts', 'wc-only');
         
         $load = false;
         
@@ -327,7 +327,7 @@ class RMENU_Quick_View {
         } elseif ($load_scripts === 'wc-only' && (is_shop() || is_product_category() || is_product_tag() || is_product() || is_cart() || is_checkout())) {
             $load = true;
         } elseif ($load_scripts === 'specific') {
-            $specific_pages = get_option('rmenu_quick_view_specific_pages', '');
+            $specific_pages = get_option('rmenupro_quick_view_specific_pages', '');
             $specific_page_ids = array_map('trim', explode(',', $specific_pages));
             
             if (is_page($specific_page_ids)) {
@@ -341,35 +341,35 @@ class RMENU_Quick_View {
         
         // Register and enqueue styles
         wp_register_style(
-            'rmenu-quick-view-styles',
+            'rmenupro-quick-view-styles',
             plugin_dir_url(__FILE__) . '../assets/css/quick-view.css',
             array(),
-            RMENU_VERSION
+            RMENUPRO_VERSION
         );
-        wp_enqueue_style('rmenu-quick-view-styles');
+        wp_enqueue_style('rmenupro-quick-view-styles');
         
         // Register and enqueue scripts
         wp_register_script(
-            'rmenu-quick-view-scripts',
+            'rmenupro-quick-view-scripts',
             plugin_dir_url(__FILE__) . '../assets/js/quick-view.js',
             array('jquery'),
-            RMENU_VERSION,
+            RMENUPRO_VERSION,
             true
         );
         
         // Get settings for JS
-        $ajax_add_to_cart = get_option('rmenu_quick_view_ajax_add_to_cart', 1);
-        $close_on_add = get_option('rmenu_quick_view_close_on_add', 0);
-        $keyboard_nav = get_option('rmenu_quick_view_keyboard_nav', 1);
-        $effect = get_option('rmenu_quick_view_loading_effect', 'fade');
-        $mobile_optimize = get_option('rmenu_quick_view_mobile_optimize', 1);
-        $debug_mode = get_option('rmenu_quick_view_debug_mode', 0);
-        $lightbox = get_option('rmenu_quick_view_enable_lightbox', 1);
-        $elements_in_popup = get_option('rmenu_quick_view_content_elements', array('image', 'title', 'rating', 'price', 'excerpt', 'add_to_cart', 'meta', 'title','quantity', 'view_details'));
+        $onepaqucpro_ajax_add_to_cart = get_option('rmenupro_quick_view_ajax_add_to_cart', 1);
+        $close_on_add = get_option('rmenupro_quick_view_close_on_add', 0);
+        $keyboard_nav = get_option('rmenupro_quick_view_keyboard_nav', 1);
+        $effect = get_option('rmenupro_quick_view_loading_effect', 'fade');
+        $mobile_optimize = get_option('rmenupro_quick_view_mobile_optimize', 1);
+        $debug_mode = get_option('rmenupro_quick_view_debug_mode', 0);
+        $lightbox = get_option('rmenupro_quick_view_enable_lightbox', 1);
+        $elements_in_popup = get_option('rmenupro_quick_view_content_elements', array('image', 'title', 'rating', 'price', 'excerpt', 'add_to_cart', 'meta', 'title','quantity', 'view_details'));
 
         // Localize script with settings
-        wp_localize_script('rmenu-quick-view-scripts', 'rmenu_quick_view_params', array(
-            'ajax_add_to_cart' => (bool) $ajax_add_to_cart,
+        wp_localize_script('rmenupro-quick-view-scripts', 'rmenupro_quick_view_params', array(
+            'onepaqucpro_ajax_add_to_cart' => (bool) $onepaqucpro_ajax_add_to_cart,
             'close_on_add' => (bool) $close_on_add,
             'keyboard_nav' => (bool) $keyboard_nav,
             'effect' => $effect,
@@ -378,33 +378,33 @@ class RMENU_Quick_View {
             'lightbox' => (bool) $lightbox,
             'elements_in_popup' => $elements_in_popup,
             'i18n' => array(
-                'close' => get_option('rmenu_quick_view_close_text') !== '' ? get_option('rmenu_quick_view_close_text') : 'Close',
-                'prev' => get_option('rmenu_quick_view_prev_text') !== '' ? get_option('rmenu_quick_view_prev_text') : 'Previous Product',
-                'next' => get_option('rmenu_quick_view_next_text') !== '' ? get_option('rmenu_quick_view_next_text') : 'Next Product',
-                'add_to_cart' => esc_html__('Add to cart', 'one-page-quick-checkout-for-woocommerce'),
-                'select_options' => esc_html__('Select options', 'one-page-quick-checkout-for-woocommerce'),
-                'view_details' => get_option('rmenu_quick_view_details_text') !== '' ? get_option('rmenu_quick_view_details_text') : 'View Full Details',
-                'out_of_stock' => esc_html__('Out of stock', 'one-page-quick-checkout-for-woocommerce'),
-                'share_this_product' => esc_html__('Share this product', 'one-page-quick-checkout-for-woocommerce'),
-                'facebook' => esc_html__('Facebook', 'one-page-quick-checkout-for-woocommerce'),
-                'twitter' => esc_html__('Twitter', 'one-page-quick-checkout-for-woocommerce'),
-                'pinterest' => esc_html__('Pinterest', 'one-page-quick-checkout-for-woocommerce'),
+                'close' => get_option('rmenupro_quick_view_close_text') !== '' ? get_option('rmenupro_quick_view_close_text') : 'Close',
+                'prev' => get_option('rmenupro_quick_view_prev_text') !== '' ? get_option('rmenupro_quick_view_prev_text') : 'Previous Product',
+                'next' => get_option('rmenupro_quick_view_next_text') !== '' ? get_option('rmenupro_quick_view_next_text') : 'Next Product',
+                'add_to_cart' => esc_html__('Add to cart', 'one-page-quick-checkout-for-woocommerce-pro'),
+                'select_options' => esc_html__('Select options', 'one-page-quick-checkout-for-woocommerce-pro'),
+                'view_details' => get_option('rmenupro_quick_view_details_text') !== '' ? get_option('rmenupro_quick_view_details_text') : 'View Full Details',
+                'out_of_stock' => esc_html__('Out of stock', 'one-page-quick-checkout-for-woocommerce-pro'),
+                'share_this_product' => esc_html__('Share this product', 'one-page-quick-checkout-for-woocommerce-pro'),
+                'facebook' => esc_html__('Facebook', 'one-page-quick-checkout-for-woocommerce-pro'),
+                'twitter' => esc_html__('Twitter', 'one-page-quick-checkout-for-woocommerce-pro'),
+                'pinterest' => esc_html__('Pinterest', 'one-page-quick-checkout-for-woocommerce-pro'),
             )
         ));
         
-        wp_enqueue_script('rmenu-quick-view-scripts');
+        wp_enqueue_script('rmenupro-quick-view-scripts');
         
         // Custom JS from settings
-        $custom_js = get_option('rmenu_quick_view_custom_js', '');
+        $custom_js = get_option('rmenupro_quick_view_custom_js', '');
         if (!empty($custom_js)) {
-            wp_add_inline_script('rmenu-quick-view-scripts', $custom_js);
+            wp_add_inline_script('rmenupro-quick-view-scripts', $custom_js);
         }
         
         // Custom CSS from settings
-        if (get_option('rmenu_quick_view_button_style', 'default') === 'custom') {
-            $custom_css = get_option('rmenu_quick_view_custom_css', '');
+        if (get_option('rmenupro_quick_view_button_style', 'default') === 'custom') {
+            $custom_css = get_option('rmenupro_quick_view_custom_css', '');
             if (!empty($custom_css)) {
-                wp_add_inline_style('rmenu-quick-view-styles', $custom_css);
+                wp_add_inline_style('rmenupro-quick-view-styles', $custom_css);
             }
         }
         
@@ -416,20 +416,20 @@ class RMENU_Quick_View {
      * Add dynamic CSS for button styling
      */
     private function add_dynamic_css() {
-        $button_color = get_option('rmenu_quick_view_button_color', '#96588a');
-        $text_color = get_option('rmenu_quick_view_text_color', '#ffffff');
+        $button_color = get_option('rmenupro_quick_view_button_color', '#96588a');
+        $text_color = get_option('rmenupro_quick_view_text_color', '#ffffff');
         
         $custom_css = "
-            .rmenu-quick-view-btn.custom-style {
+            .rmenupro-quick-view-btn.custom-style {
                 background-color: {$button_color};
                 color: {$text_color};
             }
-            .rmenu-quick-view-btn.custom-style:hover {
+            .rmenupro-quick-view-btn.custom-style:hover {
                 background-color: " . $this->adjust_brightness($button_color, -15) . ";
             }
         ";
         
-        wp_add_inline_style('rmenu-quick-view-styles', $custom_css);
+        wp_add_inline_style('rmenupro-quick-view-styles', $custom_css);
     }
     
     /**
@@ -457,27 +457,27 @@ class RMENU_Quick_View {
      */
     public function quick_view_modal_container() {
         ?>
-        <div class="rmenu-quick-view-modal-container">
-            <div class="rmenu-quick-view-modal-overlay"></div>
-            <div class="rmenu-quick-view-modal">
-                <div class="rmenu-quick-view-close">
+        <div class="rmenupro-quick-view-modal-container">
+            <div class="rmenupro-quick-view-modal-overlay"></div>
+            <div class="rmenupro-quick-view-modal">
+                <div class="rmenupro-quick-view-close">
                     <span class="dashicons dashicons-no-alt"></span>
-                    <span class="screen-reader-text"><?php echo esc_html(get_option('rmenu_quick_view_close_text', 'Close')); ?></span>
+                    <span class="screen-reader-text"><?php echo esc_html(get_option('rmenupro_quick_view_close_text', 'Close')); ?></span>
                 </div>
-                <div class="rmenu-quick-view-content">
-                    <div class="rmenu-quick-view-loading">
-                        <div class="rmenu-loader"></div>
+                <div class="rmenupro-quick-view-content">
+                    <div class="rmenupro-quick-view-loading">
+                        <div class="rmenupro-loader"></div>
                     </div>
-                    <div class="rmenu-quick-view-inner"></div>
+                    <div class="rmenupro-quick-view-inner"></div>
                 </div>
-                <div class="rmenu-quick-view-nav">
-                    <a href="#" class="rmenu-quick-view-prev">
+                <div class="rmenupro-quick-view-nav">
+                    <a href="#" class="rmenupro-quick-view-prev">
                         <span class="dashicons dashicons-arrow-left-alt2"></span>
-                        <span class="screen-reader-text"><?php echo esc_html(get_option('rmenu_quick_view_prev_text', 'Previous Product')); ?></span>
+                        <span class="screen-reader-text"><?php echo esc_html(get_option('rmenupro_quick_view_prev_text', 'Previous Product')); ?></span>
                     </a>
-                    <a href="#" class="rmenu-quick-view-next">
+                    <a href="#" class="rmenupro-quick-view-next">
                         <span class="dashicons dashicons-arrow-right-alt2"></span>
-                        <span class="screen-reader-text"><?php echo esc_html(get_option('rmenu_quick_view_next_text', 'Next Product')); ?></span>
+                        <span class="screen-reader-text"><?php echo esc_html(get_option('rmenupro_quick_view_next_text', 'Next Product')); ?></span>
                     </a>
                 </div>
             </div>
@@ -487,18 +487,18 @@ class RMENU_Quick_View {
 }
 
 // Initialize the quick view class
-$rmenu_quick_view = new RMENU_Quick_View();
+$rmenupro_quick_view = new RMENUPRO_Quick_View();
 
 
 /**
- * Generate CSS for rmenu quick view modal based on WordPress options
+ * Generate CSS for rmenupro quick view modal based on WordPress options
  */
-function rmenu_quick_view_modal_css() {
-    $modal_size = get_option('rmenu_quick_view_modal_size', 'medium');
+function rmenupro_quick_view_modal_css() {
+    $modal_size = get_option('rmenupro_quick_view_modal_size', 'medium');
     
     // Start CSS output
     $css = '<style type="text/css">';
-    $css .= '.rmenu-quick-view-modal {';
+    $css .= '.rmenupro-quick-view-modal {';
     
     switch ($modal_size) {
         case 'small':
@@ -518,8 +518,8 @@ function rmenu_quick_view_modal_css() {
             break;
             
         case 'custom':
-            $custom_width = get_option('rmenu_quick_view_custom_width', '800');
-            $custom_height = get_option('rmenu_quick_view_custom_height', '600');
+            $custom_width = get_option('rmenupro_quick_view_custom_width', '800');
+            $custom_height = get_option('rmenupro_quick_view_custom_height', '600');
             
             // Ensure values have units (px if numeric)
             $width = is_numeric($custom_width) ? $custom_width . 'px' : $custom_width;
@@ -541,19 +541,19 @@ function rmenu_quick_view_modal_css() {
 /**
  * Hook to output the CSS in the head section
  */
-function rmenu_add_modal_css() {
-    echo rmenu_quick_view_modal_css();
+function rmenupro_add_modal_css() {
+    echo rmenupro_quick_view_modal_css();
 }
-add_action('wp_head', 'rmenu_add_modal_css');
+add_action('wp_head', 'rmenupro_add_modal_css');
 
 /**
  * Add shortcode for quick view button
  */
-// function rmenu_quick_view_shortcode($atts) {
+// function rmenupro_quick_view_shortcode($atts) {
 //     $atts = shortcode_atts(array(
 //         'product_id' => '',
-//         'button_text' => get_option('rmenu_quick_view_button_text', 'Quick View')
-//     ), $atts, 'rmenu_quick_view');
+//         'button_text' => get_option('rmenupro_quick_view_button_text', 'Quick View')
+//     ), $atts, 'rmenupro_quick_view');
     
 //     $product_id = absint($atts['product_id']);
     
@@ -568,11 +568,11 @@ add_action('wp_head', 'rmenu_add_modal_css');
 //     }
     
 //     // Create temporary instance to use the method
-//     $quick_view = new RMENU_Quick_View();
+//     $quick_view = new RMENUPRO_Quick_View();
     
 //     ob_start();
 //     $quick_view->render_quick_view_button($product);
 //     $quick_view->add_product_data();
 //     return ob_get_clean();
 // }
-// add_shortcode('plugincy_quick_view', 'rmenu_quick_view_shortcode');
+// add_shortcode('plugincy_quick_view', 'rmenupro_quick_view_shortcode');

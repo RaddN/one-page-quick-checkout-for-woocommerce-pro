@@ -2,10 +2,10 @@
 if (!defined('ABSPATH')) {
     exit;
 }
-class onepaquc_License_Manager
+class onepaqucpro_License_Manager
 {
     private $api_url = 'https://plugincy.com/';
-    private $item_id = 697;
+    private $item_id = 4042;
     private $cache_key = 'onepaquc_license_cache';
     private $status_cache_key = 'onepaquc_status_cache';
     private $version_cache_key = 'RMENU_VERSION_cache';
@@ -13,7 +13,7 @@ class onepaquc_License_Manager
     public function __construct()
     {
         add_action('admin_init', array($this, 'handle_license_actions'));
-        add_action('wp_ajax_onepaquc_check_updates', array($this, 'ajax_check_updates'));
+        add_action('wp_ajax_onepaqucpro_check_updates', array($this, 'ajax_check_updates'));
 
 
 
@@ -25,8 +25,8 @@ class onepaquc_License_Manager
                     if (typeof ajaxurl !== 'undefined') {
                         var xhr = new XMLHttpRequest();
                         var params = new URLSearchParams();
-                        params.append('action', 'onepaquc_background_license_check');
-                        params.append('nonce', '<?php echo esc_js(wp_create_nonce('onepaquc_background_check')); ?>');
+                        params.append('action', 'onepaqucpro_background_license_check');
+                        params.append('nonce', '<?php echo esc_js(wp_create_nonce('onepaqucpro_background_check')); ?>');
                         xhr.open('POST', ajaxurl, true);
                         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
                         xhr.send(params.toString());
@@ -50,21 +50,21 @@ class onepaquc_License_Manager
             }
         });
 
-        add_action('wp_ajax_onepaquc_background_license_check', function () {
-            check_ajax_referer('onepaquc_background_check', 'nonce');
+        add_action('wp_ajax_onepaqucpro_background_license_check', function () {
+            check_ajax_referer('onepaqucpro_background_check', 'nonce');
             $this->background_license_check();
             $this->background_update_check();
             wp_send_json_success('Checked');
         });
-        add_action('wp_ajax_nopriv_onepaquc_background_license_check', function () {
-            check_ajax_referer('onepaquc_background_check', 'nonce');
+        add_action('wp_ajax_nopriv_onepaqucpro_background_license_check', function () {
+            check_ajax_referer('onepaqucpro_background_check', 'nonce');
             $this->background_license_check();
             $this->background_update_check();
             wp_send_json_success('Checked');
         });
 
-        add_action('wp_ajax_onepaquc_remove_license', function () {
-            check_ajax_referer('onepaquc_remove_license_nonce', 'nonce');
+        add_action('wp_ajax_onepaqucpro_remove_license', function () {
+            check_ajax_referer('onepaqucpro_remove_license_nonce', 'nonce');
             delete_option('onepaquc_license_key');
             delete_option('onepaquc_license_status');
             delete_transient('onepaquc_license_deactivated_remotely');
@@ -118,7 +118,7 @@ class onepaquc_License_Manager
                 wp_send_json_success(array(
                     'update_available' => true,
                     'new_version' => $update_info->new_version,
-                    'current_version' => defined('RMENU_VERSION') ? RMENU_VERSION : '1.0.0'
+                    'current_version' => defined('RMENUPRO_VERSION') ? RMENUPRO_VERSION : '1.0.0'
                 ));
             } else {
                 wp_send_json_success(array(
@@ -148,7 +148,7 @@ class onepaquc_License_Manager
         delete_transient($this->cache_key);
         delete_transient($this->status_cache_key);
         delete_transient($this->version_cache_key);
-        delete_transient('onepaquc_last_update_check');
+        delete_transient('onepaqucpro_last_update_check');
     }
 
     public function is_license_valid_cached()
@@ -269,15 +269,15 @@ class onepaquc_License_Manager
 
     public function handle_license_actions()
     {
-        if (!isset($_POST['onepaquc_license_action']) || !wp_verify_nonce($_POST['onepaquc_license_nonce'], 'onepaquc_license_nonce')) {
+        if (!isset($_POST['onepaqucpro_license_action']) || !wp_verify_nonce($_POST['onepaqucpro_license_nonce'], 'onepaqucpro_license_nonce')) {
             return;
         }
 
         $license_key = sanitize_text_field($_POST['onepaquc_license_key']);
-        $action = sanitize_text_field($_POST['onepaquc_license_action']);
+        $action = sanitize_text_field($_POST['onepaqucpro_license_action']);
 
         if (empty($license_key)) {
-            add_settings_error('onepaquc_license', 'empty_license', 'Please enter a valid license key.', 'error');
+            add_settings_error('onepaqucpro_license', 'empty_license', 'Please enter a valid license key.', 'error');
             return;
         }
 
@@ -300,11 +300,11 @@ class onepaquc_License_Manager
         $response = wp_remote_get(add_query_arg($api_params, $this->api_url), array(
             'timeout' => 30,
             'sslverify' => true,
-            'user-agent' => 'DAPF/' . (defined('RMENU_VERSION') ? RMENU_VERSION : '1.0.0')
+            'user-agent' => 'DAPF/' . (defined('RMENUPRO_VERSION') ? RMENUPRO_VERSION : '1.0.0')
         ));
 
         if (is_wp_error($response)) {
-            add_settings_error('onepaquc_license', 'api_error', 'Unable to connect to licensing server. Please try again later.', 'error');
+            add_settings_error('onepaqucpro_license', 'api_error', 'Unable to connect to licensing server. Please try again later.', 'error');
             return;
         }
 
@@ -315,11 +315,11 @@ class onepaquc_License_Manager
             update_option('onepaquc_license_status', 'valid');
             delete_transient('onepaquc_license_deactivated_remotely');
             $this->clear_all_cache();
-            add_settings_error('onepaquc_license', 'license_activated', 'License activated successfully!', 'updated');
+            add_settings_error('onepaqucpro_license', 'license_activated', 'License activated successfully!', 'updated');
         } else {
             delete_option('onepaquc_license_status');
             $error_message = $this->get_license_error_message($license_data);
-            add_settings_error('onepaquc_license', 'activation_failed', $error_message, 'error');
+            add_settings_error('onepaqucpro_license', 'activation_failed', $error_message, 'error');
         }
     }
 
@@ -335,11 +335,11 @@ class onepaquc_License_Manager
         $response = wp_remote_get(add_query_arg($api_params, $this->api_url), array(
             'timeout' => 30,
             'sslverify' => true,
-            'user-agent' => 'DAPF/' . (defined('RMENU_VERSION') ? RMENU_VERSION : '1.0.0')
+            'user-agent' => 'DAPF/' . (defined('RMENUPRO_VERSION') ? RMENUPRO_VERSION : '1.0.0')
         ));
 
         if (is_wp_error($response)) {
-            add_settings_error('onepaquc_license', 'api_error', 'Unable to connect to licensing server. Please try again later.', 'error');
+            add_settings_error('onepaqucpro_license', 'api_error', 'Unable to connect to licensing server. Please try again later.', 'error');
             return;
         }
 
@@ -349,9 +349,9 @@ class onepaquc_License_Manager
             delete_option('onepaquc_license_key');
             delete_option('onepaquc_license_status');
             $this->clear_all_cache();
-            add_settings_error('onepaquc_license', 'license_deactivated', 'License deactivated successfully!', 'updated');
+            add_settings_error('onepaqucpro_license', 'license_deactivated', 'License deactivated successfully!', 'updated');
         } else {
-            add_settings_error('onepaquc_license', 'deactivation_failed', 'Failed to deactivate license. Please try again.', 'error');
+            add_settings_error('onepaqucpro_license', 'deactivation_failed', 'Failed to deactivate license. Please try again.', 'error');
         }
     }
 
@@ -367,7 +367,7 @@ class onepaquc_License_Manager
         $response = wp_remote_get(add_query_arg($api_params, $this->api_url), array(
             'timeout' => 30,
             'sslverify' => true,
-            'user-agent' => 'DAPF/' . (defined('RMENU_VERSION') ? RMENU_VERSION : '1.0.0')
+            'user-agent' => 'DAPF/' . (defined('RMENUPRO_VERSION') ? RMENUPRO_VERSION : '1.0.0')
         ));
 
         if (is_wp_error($response)) {
@@ -400,7 +400,7 @@ class onepaquc_License_Manager
         $response = wp_remote_get(add_query_arg($api_params, $this->api_url), array(
             'timeout' => 30,
             'sslverify' => true,
-            'user-agent' => 'DAPF/' . (defined('RMENU_VERSION') ? RMENU_VERSION : '1.0.0')
+            'user-agent' => 'DAPF/' . (defined('RMENUPRO_VERSION') ? RMENUPRO_VERSION : '1.0.0')
         ));
 
         if (is_wp_error($response)) {
@@ -431,7 +431,7 @@ class onepaquc_License_Manager
             return false;
         }
 
-        $current_version = defined('RMENU_VERSION') ? RMENU_VERSION : '1.0.0';
+        $current_version = defined('RMENUPRO_VERSION') ? RMENUPRO_VERSION : '1.0.0';
         if (version_compare($current_version, $version_info->new_version, '<')) {
             return $version_info;
         }
@@ -441,7 +441,7 @@ class onepaquc_License_Manager
 
     public function ajax_check_updates()
     {
-        check_ajax_referer('onepaquc_check_updates', 'nonce');
+        check_ajax_referer('onepaqucpro_check_updates', 'nonce');
 
         wp_cache_delete($this->version_cache_key);
         delete_transient($this->version_cache_key);
@@ -452,7 +452,7 @@ class onepaquc_License_Manager
             wp_send_json_success(array(
                 'update_available' => true,
                 'new_version' => $update_info->new_version,
-                'current_version' => defined('RMENU_VERSION') ? RMENU_VERSION : '1.0.0'
+                'current_version' => defined('RMENUPRO_VERSION') ? RMENUPRO_VERSION : '1.0.0'
             ));
         } else {
             wp_send_json_success(array(
@@ -576,7 +576,7 @@ class onepaquc_License_Manager
         <div>
             <h2>One Page Quick Checkout For WooCommerce Pro - License Settings</h2>
             <form method="post" action="">
-                <?php wp_nonce_field('onepaquc_license_nonce', 'onepaquc_license_nonce'); ?>
+                <?php wp_nonce_field('onepaqucpro_license_nonce', 'onepaqucpro_license_nonce'); ?>
                 <table class="form-table">
                     <tbody style="display: block;box-shadow:none;">
                         <tr>
@@ -662,7 +662,7 @@ class onepaquc_License_Manager
 
                                     <?php $version_info = $this->get_version_info($license_key); ?>
                                     <?php if ($version_info && isset($version_info->new_version)):
-                                        $current_version = defined('RMENU_VERSION') ? RMENU_VERSION : '1.0.0'; ?>
+                                        $current_version = defined('RMENUPRO_VERSION') ? RMENUPRO_VERSION : '1.0.0'; ?>
                                         <div style="margin-top: 15px; padding: 15px; background: #f0f0f1; border-radius: 6px;">
                                             <strong>Version Information:</strong><br>
                                             <div style="margin-top: 8px;">
@@ -680,7 +680,7 @@ class onepaquc_License_Manager
                                     <?php endif; ?>
 
                                     <br><br>
-                                    <input type="hidden" name="onepaquc_license_action" value="deactivate" />
+                                    <input type="hidden" name="onepaqucpro_license_action" value="deactivate" />
                                     <?php if ($is_expired): echo '<a href="https://plugincy.com/checkout/?edd_license_key=' . esc_attr($license_key) . '" target="_blank" class="button button-primary">Renew License</a>';
                                     endif; ?>
                                     <input type="submit" class="button button-secondary" value="Deactivate License" onclick="return confirm('Are you sure you want to deactivate your license?')" />
@@ -697,7 +697,7 @@ class onepaquc_License_Manager
                                         </div>
                                     <?php endif; ?>
                                     <br><br>
-                                    <input type="hidden" name="onepaquc_license_action" value="activate" />
+                                    <input type="hidden" name="onepaqucpro_license_action" value="activate" />
                                     <input type="submit" class="button button-primary" value="Activate License" />
                                     <?php if ($license_status === 'site_inactive'): ?>
                                         <button type="button" class="button button-secondary" id="dapfforwcpro-remove-license-btn" style="margin-left:10px;">
@@ -739,7 +739,7 @@ class onepaquc_License_Manager
                                                                     }
                                                                 }
                                                             };
-                                                            xhr.send('action=onepaquc_remove_license&nonce=<?php echo wp_create_nonce('onepaquc_remove_license_nonce'); ?>');
+                                                            xhr.send('action=onepaqucpro_remove_license&nonce=<?php echo wp_create_nonce('onepaqucpro_remove_license_nonce'); ?>');
                                                         }
                                                     });
                                                 }
@@ -811,7 +811,7 @@ class onepaquc_License_Manager
                         }
                     };
 
-                    xhr.send('action=onepaquc_check_updates&nonce=' + '<?php echo wp_create_nonce("onepaquc_check_updates"); ?>');
+                    xhr.send('action=onepaqucpro_check_updates&nonce=' + '<?php echo wp_create_nonce("onepaqucpro_check_updates"); ?>');
                 }
             </script>
         </div>
@@ -819,22 +819,22 @@ class onepaquc_License_Manager
     }
 }
 
-new onepaquc_License_Manager();
+new onepaqucpro_License_Manager();
 
-function onepaquc_is_license_valid()
+function onepaqucpro_is_license_valid()
 {
     static $license_manager = null;
     if ($license_manager === null) {
-        $license_manager = new onepaquc_License_Manager();
+        $license_manager = new onepaqucpro_License_Manager();
     }
     return $license_manager->is_license_valid_cached();
 }
 
-function onepaquc_premium_feature()
+function onepaqucpro_premium_feature()
 {
     static $license_manager = null;
     if ($license_manager === null) {
-        $license_manager = new onepaquc_License_Manager();
+        $license_manager = new onepaqucpro_License_Manager();
     }
 
     if (!$license_manager->can_use_premium_features()) {

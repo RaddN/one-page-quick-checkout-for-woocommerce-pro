@@ -4,9 +4,9 @@ if (! defined('ABSPATH')) exit; // Exit if accessed directly
 /**
  * Add product image to WooCommerce checkout page cart items
  */
-function onepaquc_add_product_image_to_checkout_cart_items($product_name, $cart_item, $cart_item_key)
+function onepaqucpro_add_product_image_to_checkout_cart_items($product_name, $cart_item, $cart_item_key)
 {
-    if (get_option("rmenu_add_img_before_product") !== "1") {
+    if (get_option("rmenupro_add_img_before_product") !== "1") {
         return $product_name;
     }
     // Get the product
@@ -18,15 +18,15 @@ function onepaquc_add_product_image_to_checkout_cart_items($product_name, $cart_
     // Return the image followed by the product name
     return '<div class="checkout-product-item"><div class="checkout-product-image">' . $thumbnail . '</div><div class="checkout-product-name">' . $product_name . '</div></div>';
 }
-add_filter('woocommerce_cart_item_name', 'onepaquc_add_product_image_to_checkout_cart_items', 10, 3);
+add_filter('woocommerce_cart_item_name', 'onepaqucpro_add_product_image_to_checkout_cart_items', 10, 3);
 
 // add a random product in cart
 
-if (get_option('rmenu_at_one_product_cart', 1)) {
-    add_action('template_redirect', 'onepaquc_add_random_product_if_cart_empty');
+if (get_option('rmenupro_at_one_product_cart', 1)) {
+    add_action('template_redirect', 'onepaqucpro_add_random_product_if_cart_empty');
 }
 
-function onepaquc_add_random_product_if_cart_empty()
+function onepaqucpro_add_random_product_if_cart_empty()
 {
 
     // If cart is empty
@@ -68,7 +68,7 @@ function onepaquc_add_random_product_if_cart_empty()
     }
 }
 
-if (get_option('rmenu_disable_cart_page', 0)) {
+if (get_option('rmenupro_disable_cart_page', 0)) {
     add_action('template_redirect', 'disable_cart_page_redirect');
     function disable_cart_page_redirect()
     {
@@ -79,7 +79,7 @@ if (get_option('rmenu_disable_cart_page', 0)) {
     }
 }
 
-if (get_option('rmenu_link_product', 0)) {
+if (get_option('rmenupro_link_product', 0)) {
     add_filter('woocommerce_cart_item_name', 'link_product_name_on_checkout', 10, 3);
     function link_product_name_on_checkout($product_name, $cart_item, $cart_item_key)
     {
@@ -102,11 +102,11 @@ if (get_option('rmenu_link_product', 0)) {
 /**
  * Add variation selection buttons to product archive pages using woocommerce_loop_add_to_cart_link
  */
-if (get_option('rmenu_variation_show_archive', 1)) {
-    add_filter('woocommerce_loop_add_to_cart_link', 'add_variation_buttons_to_loop', 10, 2);
+if (get_option('rmenupro_variation_show_archive', 1)) {
+    add_filter('woocommerce_loop_add_to_cart_link', 'onepaqucpro_add_variation_buttons_to_loop', 10, 2);
 }
 
-function add_variation_buttons_to_loop($link, $product)
+function onepaqucpro_add_variation_buttons_to_loop($link, $product)
 {
     // Only proceed if this is a variable product
     if ($product->is_type('variable')) {
@@ -201,7 +201,7 @@ function add_variation_buttons_to_loop($link, $product)
     return $link; // Return the original link for non-variable products
 }
 
-if (get_option('rmenu_wc_hide_select_option', 1)) {
+if (get_option('rmenupro_wc_hide_select_option', 1)) {
     // Add custom CSS for .product_type_variable in the footer
     add_action('wp_footer', 'add_custom_css_for_variable_products');
     function add_custom_css_for_variable_products()
@@ -219,14 +219,14 @@ if (get_option('rmenu_wc_hide_select_option', 1)) {
 
 
 
-// Change WooCommerce checkout layout based on onpage_checkout_layout option
-if (onepaquc_premium_feature()) {
+// Change WooCommerce checkout layout based on onepaqucpro_checkout_layout option
+if (onepaqucpro_premium_feature()) {
     add_action('wp_head', 'apply_checkout_layout_styles');
 }
 
 function apply_checkout_layout_styles()
 {
-    $layout = get_option('onpage_checkout_layout', 'two_column');
+    $layout = get_option('onepaqucpro_checkout_layout', 'two_column');
 
 
     switch ($layout) {
@@ -326,7 +326,7 @@ function apply_checkout_layout_styles()
             break;
     }
 }
-if (onepaquc_premium_feature()) {
+if (onepaqucpro_premium_feature()) {
     // Alternative method using body class for more targeted CSS
     add_filter('body_class', 'add_checkout_layout_body_class');
 }
@@ -334,7 +334,7 @@ if (onepaquc_premium_feature()) {
 function add_checkout_layout_body_class($classes)
 {
     if (is_checkout()) {
-        $layout = get_option('onpage_checkout_layout', 'two_column');
+        $layout = get_option('onepaqucpro_checkout_layout', 'two_column');
         $classes[] = 'checkout-layout-' . $layout;
     }
     return $classes;

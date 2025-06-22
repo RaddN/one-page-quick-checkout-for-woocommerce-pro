@@ -1,7 +1,7 @@
 <?php
 if (! defined('ABSPATH')) exit; // Exit if accessed directly
 
-$onepaquc_checkoutformfields = [
+$onepaqucpro_checkoutformfields = [
     "your_cart" => "Your Cart",
     "txt_subtotal" => "Subtotal",
     "txt_checkout" => "Place order",
@@ -10,15 +10,15 @@ $onepaquc_checkoutformfields = [
 
 // archive & single product page text
 
-$onepaquc_productpageformfields = [
+$onepaqucpro_productpageformfields = [
     "txt-add-to-cart" => "Add to cart",
     "txt-select-options" => "Select options",
     "txt-read-more" => "Read more",
-    "rmenu_grouped_add_to_cart_text" => "View products",
-    "rmenu_out_of_stock_text" => "Out of stock"
+    "rmenupro_grouped_add_to_cart_text" => "View products",
+    "rmenupro_out_of_stock_text" => "Out of stock"
 ];
 
-$onepaquc_rcheckoutformfields = [
+$onepaqucpro_rcheckoutformfields = [
     'first_name' => ['title' => 'First Name', 'selector' => '#billing_first_name_field, #shipping_first_name_field'],
     'last_name'  => ['title' => 'Last Name', 'selector' => '#billing_last_name_field, #shipping_last_name_field'],
     'country'      => ['title' => 'Country', 'selector' => '#billing_country_field, #shipping_country_field'],

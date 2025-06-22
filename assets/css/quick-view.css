@@ -3,7 +3,7 @@
  */
 
 /* Quick View Button Styles */
-.rmenu-quick-view-btn {
+.rmenupro-quick-view-btn {
     padding: 8px 15px;
     margin: 5px 0;
     display: inline-block;
@@ -16,28 +16,28 @@
     box-shadow: none;
 }
 
-.rmenu-quick-view-btn.button {
+.rmenupro-quick-view-btn.button {
     background-color: #ebe9eb;
     color: #515151;
     font-weight: 600;
 }
 
-.rmenu-quick-view-btn.button:hover {
+.rmenupro-quick-view-btn.button:hover {
     background-color: #dad8da;
     color: #515151;
 }
 
-.rmenu-quick-view-btn.button.alt {
+.rmenupro-quick-view-btn.button.alt {
     background-color: #a46497;
     color: #fff;
 }
 
-.rmenu-quick-view-btn.button.alt:hover {
+.rmenupro-quick-view-btn.button.alt:hover {
     background-color: #96588a;
 }
 
 /* Icon-only button */
-.rmenu-quick-view-btn.display-icon {
+.rmenupro-quick-view-btn.display-icon {
     padding: 6px;
     border-radius: 50%;
     width: 36px;
@@ -48,31 +48,31 @@
 }
 
 /* Text with icon button */
-.rmenu-quick-view-btn.display-text_icon {
+.rmenupro-quick-view-btn.display-text_icon {
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.rmenu-quick-view-btn.display-text_icon .dashicons {
+.rmenupro-quick-view-btn.display-text_icon .dashicons {
     margin-right: 5px;
 }
 
 /* Hover effect button */
-.rmenu-quick-view-btn.hover-effect .icon {
+.rmenupro-quick-view-btn.hover-effect .icon {
     display: none;
 }
 
-.rmenu-quick-view-btn.hover-effect:hover .text {
+.rmenupro-quick-view-btn.hover-effect:hover .text {
     display: none;
 }
 
-.rmenu-quick-view-btn.hover-effect:hover .icon {
+.rmenupro-quick-view-btn.hover-effect:hover .icon {
     display: block;
 }
 
 /* Image overlay button */
-.rmenu-quick-view-overlay {
+.rmenupro-quick-view-overlay {
     position: absolute;
     top: 0;
     left: 0;
@@ -87,12 +87,12 @@
     z-index: 10;
 }
 
-.products li.product:hover .rmenu-quick-view-overlay {
+.products li.product:hover .rmenupro-quick-view-overlay {
     opacity: 1;
 }
 
 /* Modal container */
-.rmenu-quick-view-modal-container {
+.rmenupro-quick-view-modal-container {
     position: fixed;
     top: 0;
     left: 0;
@@ -102,12 +102,12 @@
     z-index: 999999;
 }
 
-.rmenu-quick-view-modal-container.active {
+.rmenupro-quick-view-modal-container.active {
     display: block;
 }
 
 /* Modal overlay */
-.rmenu-quick-view-modal-overlay {
+.rmenupro-quick-view-modal-overlay {
     position: absolute;
     top: 0;
     left: 0;
@@ -118,7 +118,7 @@
 }
 
 /* Modal content */
-.rmenu-quick-view-modal {
+.rmenupro-quick-view-modal {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -134,7 +134,7 @@
 }
 
 /* Modal content inner */
-.rmenu-quick-view-content {
+.rmenupro-quick-view-content {
     position: relative;
     width: 100%;
     height: 100%;
@@ -143,7 +143,7 @@
 }
 
 /* Loading spinner */
-.rmenu-quick-view-loading {
+.rmenupro-quick-view-loading {
     position: absolute;
     top: 0;
     left: 0;
@@ -156,16 +156,16 @@
     z-index: 5;
 }
 
-.rmenu-loader {
+.rmenupro-loader {
     width: 40px;
     height: 40px;
     border-radius: 50%;
     border: 3px solid rgba(0, 0, 0, 0.1);
     border-top-color: #a46497;
-    animation: rmenu-spin 1s infinite linear;
+    animation: rmenupro-spin 1s infinite linear;
 }
 
-@keyframes rmenu-spin {
+@keyframes rmenupro-spin {
     0% {
         transform: rotate(0deg);
     }
@@ -175,7 +175,7 @@
 }
 
 /* Close button */
-.rmenu-quick-view-close {
+.rmenupro-quick-view-close {
     position: absolute;
     top: 10px;
     right: 10px;
@@ -191,18 +191,18 @@
     transition: all 0.3s ease;
 }
 
-.rmenu-quick-view-close:hover {
+.rmenupro-quick-view-close:hover {
     background-color: rgba(0, 0, 0, 0.8);
 }
 
-.rmenu-quick-view-close .dashicons {
+.rmenupro-quick-view-close .dashicons {
     color: #fff;
     font-size: 20px;
     width: 20px;
     height: 20px;
 }
 
-.rmenu-quick-view-close .screen-reader-text {
+.rmenupro-quick-view-close .screen-reader-text {
     position: absolute;
     clip: rect(1px, 1px, 1px, 1px);
     height: 1px;
@@ -211,7 +211,7 @@
 }
 
 /* Navigation buttons */
-.rmenu-quick-view-nav {
+.rmenupro-quick-view-nav {
     position: absolute;
     top: 50%;
     width: 100%;
@@ -221,8 +221,8 @@
     justify-content: space-between;
 }
 
-.rmenu-quick-view-prev,
-.rmenu-quick-view-next {
+.rmenupro-quick-view-prev,
+.rmenupro-quick-view-next {
     width: 40px;
     height: 40px;
     background-color: rgba(0, 0, 0, 0.5);
@@ -237,22 +237,22 @@
     color: #fff;
 }
 
-.rmenu-quick-view-prev:hover,
-.rmenu-quick-view-next:hover {
+.rmenupro-quick-view-prev:hover,
+.rmenupro-quick-view-next:hover {
     background-color: rgba(0, 0, 0, 0.8);
     color: #fff;
 }
 
-.rmenu-quick-view-prev .dashicons,
-.rmenu-quick-view-next .dashicons {
+.rmenupro-quick-view-prev .dashicons,
+.rmenupro-quick-view-next .dashicons {
     color: #fff;
     font-size: 22px;
     width: 22px;
     height: 22px;
 }
 
-.rmenu-quick-view-prev .screen-reader-text,
-.rmenu-quick-view-next .screen-reader-text {
+.rmenupro-quick-view-prev .screen-reader-text,
+.rmenupro-quick-view-next .screen-reader-text {
     position: absolute;
     clip: rect(1px, 1px, 1px, 1px);
     height: 1px;
@@ -261,50 +261,50 @@
 }
 
 /* Product layout */
-.rmenu-quick-view-product-wrap {
+.rmenupro-quick-view-product-wrap {
     position: relative;
     padding: 30px;
 }
 
-.rmenu-quick-view-product {
+.rmenupro-quick-view-product {
     display: flex;
     flex-wrap: wrap;
 }
 
-.rmenu-quick-view-left {
+.rmenupro-quick-view-left {
     width: 45%;
     padding-right: 20px;
 }
 
-.rmenu-quick-view-right {
+.rmenupro-quick-view-right {
     width: 55%;
     padding: 30px 20px 20px 10px;
 }
 
 /* Product images */
-.rmenu-quick-view-images {
+.rmenupro-quick-view-images {
     position: relative;
 }
 
-.rmenu-quick-view-main-image {
+.rmenupro-quick-view-main-image {
     position: relative;
     text-align: center;
 }
 
-.rmenu-quick-view-main-image img {
+.rmenupro-quick-view-main-image img {
     max-width: 100%;
     height: auto;
     margin: 0 auto;
 }
 
-.rmenu-quick-view-thumbnails {
+.rmenupro-quick-view-thumbnails {
     display: flex;
     flex-wrap: wrap;
     gap: 5px;
     margin-top: 10px;
 }
 
-.rmenu-quick-view-thumbnail {
+.rmenupro-quick-view-thumbnail {
     width: 60px;
     height: 60px;
     border: 2px solid transparent;
@@ -312,95 +312,95 @@
     overflow: hidden;
 }
 
-.rmenu-quick-view-thumbnail.active {
+.rmenupro-quick-view-thumbnail.active {
     border-color: #a46497;
 }
 
-.rmenu-quick-view-thumbnail img {
+.rmenupro-quick-view-thumbnail img {
     max-width: 100%;
     height: auto;
 }
 
 /* Product details */
-.rmenu-quick-view-right .product_title {
+.rmenupro-quick-view-right .product_title {
     font-size: 24px;
     margin-bottom: 10px;
 }
 
-.rmenu-quick-view-right .price {
+.rmenupro-quick-view-right .price {
     font-size: 18px;
     font-weight: 600;
     margin-bottom: 15px;
     color: #a46497;
 }
 
-.rmenu-quick-view-right .woocommerce-product-details__short-description {
+.rmenupro-quick-view-right .woocommerce-product-details__short-description {
     margin-bottom: 20px;
 }
 
 /* Add to cart section */
-.rmenu-quick-view-add-to-cart {
+.rmenupro-quick-view-add-to-cart {
     margin-bottom: 20px;
 }
 
-.rmenu-quick-view-add-to-cart .variations {
+.rmenupro-quick-view-add-to-cart .variations {
     margin-bottom: 15px;
 }
 
-.rmenu-quick-view-add-to-cart .variations select {
+.rmenupro-quick-view-add-to-cart .variations select {
     min-width: 50%;
     padding: 8px;
 }
 
-.rmenu-quick-view-add-to-cart .quantity {
+.rmenupro-quick-view-add-to-cart .quantity {
     display: inline-block;
     margin-right: 10px;
 }
 
-.rmenu-quick-view-add-to-cart .single_add_to_cart_button {
+.rmenupro-quick-view-add-to-cart .single_add_to_cart_button {
     margin-top: 10px;
 }
 
 /* Product meta */
-.rmenu-quick-view-right .product_meta {
+.rmenupro-quick-view-right .product_meta {
     padding-top: 15px;
     border-top: 1px solid #eee;
     margin-top: 15px;
     font-size: 0.9em;
 }
 
-.rmenu-quick-view-right .product_meta > span {
+.rmenupro-quick-view-right .product_meta > span {
     display: block;
     margin-bottom: 5px;
 }
 
 /* View details button */
-.rmenu-quick-view-right .button.view-details {
+.rmenupro-quick-view-right .button.view-details {
     display: inline-block;
     margin-top: 15px;
 }
 
 /* Attributes */
-.rmenu-quick-view-attributes {
+.rmenupro-quick-view-attributes {
     margin-top: 15px;
     padding-top: 15px;
     border-top: 1px solid #eee;
 }
 
 /* Animation effects */
-.rmenu-quick-view-modal-container.active.fade-in .rmenu-quick-view-modal {
-    animation: rmenu-fade-in 0.3s;
+.rmenupro-quick-view-modal-container.active.fade-in .rmenupro-quick-view-modal {
+    animation: rmenupro-fade-in 0.3s;
 }
 
-.rmenu-quick-view-modal-container.active.slide-in .rmenu-quick-view-modal {
-    animation: rmenu-slide-in 0.3s;
+.rmenupro-quick-view-modal-container.active.slide-in .rmenupro-quick-view-modal {
+    animation: rmenupro-slide-in 0.3s;
 }
 
-.rmenu-quick-view-modal-container.active.zoom-in .rmenu-quick-view-modal {
-    animation: rmenu-zoom-in 0.3s;
+.rmenupro-quick-view-modal-container.active.zoom-in .rmenupro-quick-view-modal {
+    animation: rmenupro-zoom-in 0.3s;
 }
 
-@keyframes rmenu-fade-in {
+@keyframes rmenupro-fade-in {
     0% {
         opacity: 0;
     }
@@ -409,7 +409,7 @@
     }
 }
 
-@keyframes rmenu-slide-in {
+@keyframes rmenupro-slide-in {
     0% {
         opacity: 0;
         transform: translate(-50%, -60%);
@@ -420,7 +420,7 @@
     }
 }
 
-@keyframes rmenu-zoom-in {
+@keyframes rmenupro-zoom-in {
     0% {
         opacity: 0;
         transform: translate(-50%, -50%) scale(0.8);
@@ -433,90 +433,90 @@
 
 /* Mobile optimizations */
 @media (max-width: 768px) {
-    .rmenu-quick-view-product {
+    .rmenupro-quick-view-product {
         flex-direction: column;
     }
-    a.rmenu-quick-view-image img {
+    a.rmenupro-quick-view-image img {
         height: auto !important;
     }
     
-    .rmenu-quick-view-left,
-    .rmenu-quick-view-right {
+    .rmenupro-quick-view-left,
+    .rmenupro-quick-view-right {
         width: 100%;
     }
-    .rmenu-quick-view-right {
+    .rmenupro-quick-view-right {
         padding: 10px;
     }
-    .rmenu-quick-view-left {
+    .rmenupro-quick-view-left {
         padding-right: 0;
     }
     
-    .rmenu-quick-view-modal {
+    .rmenupro-quick-view-modal {
         width: 95%;
     }
     
-    .rmenu-quick-view-product-wrap {
+    .rmenupro-quick-view-product-wrap {
         padding: 15px;
     }
     
-    .rmenu-quick-view-nav {
+    .rmenupro-quick-view-nav {
         display: none;
     }
     
-    .rmenu-quick-view-right .product_title {
+    .rmenupro-quick-view-right .product_title {
         font-size: 20px;
     }
 }
 
 /* Modal sizes */
-.rmenu-quick-view-modal.modal-size-small {
+.rmenupro-quick-view-modal.modal-size-small {
     max-width: 600px;
 }
 
-.rmenu-quick-view-modal.modal-size-medium {
+.rmenupro-quick-view-modal.modal-size-medium {
     max-width: 800px;
 }
 
-.rmenu-quick-view-modal.modal-size-large {
+.rmenupro-quick-view-modal.modal-size-large {
     max-width: 1000px;
 }
 
-.rmenu-quick-view-modal.modal-size-full {
+.rmenupro-quick-view-modal.modal-size-full {
     max-width: 90%;
 }
 
 /* Fix for variable product forms */
-.rmenu-quick-view-modal form.variations_form .woocommerce-variation-add-to-cart {
+.rmenupro-quick-view-modal form.variations_form .woocommerce-variation-add-to-cart {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
 }
 
-.rmenu-quick-view-modal .woocommerce-variation-price {
+.rmenupro-quick-view-modal .woocommerce-variation-price {
     margin-bottom: 10px;
 }
 
 /* Fix z-index issues with select dropdowns */
-.rmenu-quick-view-content .select2-container {
+.rmenupro-quick-view-content .select2-container {
     z-index: 999999;
 }
 
 /* Reset button style */
-.rmenu-quick-view-content .reset_variations {
+.rmenupro-quick-view-content .reset_variations {
     display: inline-block;
     margin-top: 5px;
     font-size: 0.9em;
 }
-a.rmenu-quick-view-image img {
+a.rmenupro-quick-view-image img {
     height: 426px;
     display: block !important;
     object-fit: cover;
 }
-.rmenu-add-to-cart-form {
+.rmenupro-add-to-cart-form {
     display: flex;
     gap: 10px;
 }
-a.rmenu-quick-view-btn.button.display-icon {
+a.rmenupro-quick-view-btn.button.display-icon {
     display: flex;
     color: #fff;
 }

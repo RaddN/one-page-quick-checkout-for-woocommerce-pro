@@ -2,7 +2,7 @@
 if (! defined('ABSPATH')) exit; // Exit if accessed directly
 
 // shortcode to display one page checkout [plugincy_one_page_checkout product_ids="" category="" tags="" attribute="" terms="" template=""]
-function onepaquc_one_page_checkout_shortcode($atts)
+function onepaqucpro_one_page_checkout_shortcode($atts)
 {
     $atts = shortcode_atts(array(
         'product_ids' => '',
@@ -64,16 +64,16 @@ function onepaquc_one_page_checkout_shortcode($atts)
     }
 
     if (empty($product_ids)) {
-        return '<div class="rmenu-one-page-checkout"><p>' . esc_html__('Please provide product IDs, category, tags, or attribute terms.', 'one-page-quick-checkout-for-woocommerce') . '</p></div>';
+        return '<div class="rmenupro-one-page-checkout"><p>' . esc_html__('Please provide product IDs, category, tags, or attribute terms.', 'one-page-quick-checkout-for-woocommerce-pro') . '</p></div>';
     }
 
-    if (class_exists('WooCommerce') && WC()->cart && get_option("onpage_checkout_widget_cart_empty", "1") === "1") {
+    if (class_exists('WooCommerce') && WC()->cart && get_option("onepaqucpro_checkout_widget_cart_empty", "1") === "1") {
         WC()->cart->empty_cart();
     }
 
     foreach ($product_ids as $product_id) {
         $product_id = intval($product_id);
-        if ($product_id > 0 && class_exists('WooCommerce') && WC()->cart && get_option("onpage_checkout_widget_cart_add", "1") === "1") {
+        if ($product_id > 0 && class_exists('WooCommerce') && WC()->cart && get_option("onepaqucpro_checkout_widget_cart_add", "1") === "1") {
             $product = wc_get_product($product_id);
             if ($product && $product->is_type('variable')) {
                 $available_variations = $product->get_available_variations();
@@ -93,7 +93,7 @@ function onepaquc_one_page_checkout_shortcode($atts)
         }
     }
 ?>
-    <div class="rmenu-one-page-checkout" id="checkout-popup">
+    <div class="rmenupro-one-page-checkout" id="checkout-popup">
         <?php
         // Include the checkout template based on the selected template
         if ($atts['template'] === 'product-table') {
@@ -117,4 +117,4 @@ function onepaquc_one_page_checkout_shortcode($atts)
 
     return ob_get_clean();
 }
-add_shortcode('plugincy_one_page_checkout', 'onepaquc_one_page_checkout_shortcode', 99999);
+add_shortcode('plugincy_one_page_checkout', 'onepaqucpro_one_page_checkout_shortcode', 99999);

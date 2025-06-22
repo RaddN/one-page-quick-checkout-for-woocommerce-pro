@@ -3,37 +3,37 @@ if (! defined('ABSPATH')) exit; // Exit if accessed directly
 
 
 // Admin Menu
-add_action('admin_menu', 'onepaquc_cart_menu');
+add_action('admin_menu', 'onepaqucpro_cart_menu');
 
 
-function onepaquc_cart_menu()
+function onepaqucpro_cart_menu()
 {
 
     add_menu_page(
         'Onpage Checkout',
         'Onpage Checkout',
         'manage_options',
-        'onepaquc_cart',
-        'onepaquc_cart_dashboard',
+        'onepaqucpro_cart',
+        'onepaqucpro_cart_dashboard',
         'dashicons-cart', // Shopping cart icon
         '55.50'
     );
     add_submenu_page(
-        'onepaquc_cart',
+        'onepaqucpro_cart',
         'Documentation',
         'Documentation',
         'manage_options',
-        'onepaquc_cart_documentation',
-        'onepaquc_cart_documentation'
+        'onepaqucpro_cart_documentation',
+        'onepaqucpro_cart_documentation'
     );
-    if (get_option('onepaquc_validity_days') !== "0") {
-        // add_submenu_page('bd-affiliate-marketing', 'Manage Posts', 'Manage Posts', 'manage_options', 'bd-manage-posts', 'onepaquc_marketing_manage_posts');
-        // add_submenu_page('bd-affiliate-marketing', 'Send Notification', 'Send Notification', 'manage_options', 'bd-send-notification', 'onepaquc_marketing_send_notification');
+    if (get_option('onepaqucpro_validity_days') !== "0") {
+        // add_submenu_page('bd-affiliate-marketing', 'Manage Posts', 'Manage Posts', 'manage_options', 'bd-manage-posts', 'onepaqucpro_marketing_manage_posts');
+        // add_submenu_page('bd-affiliate-marketing', 'Send Notification', 'Send Notification', 'manage_options', 'bd-send-notification', 'onepaqucpro_marketing_send_notification');
     }
 }
 
 // Display the form for Side Cart and PopUp settings
-function onepaquc_cart_text_change_form($textvariable)
+function onepaqucpro_cart_text_change_form($textvariable)
 {
 
 
@@ -63,9 +63,9 @@ function onepaquc_cart_text_change_form($textvariable)
 }
 
 // Dashboard page
-function onepaquc_cart_dashboard()
+function onepaqucpro_cart_dashboard()
 {
-    global $onepaquc_checkoutformfields;
+    global $onepaqucpro_checkoutformfields;
     ?>
 
     <div class="welcome-banner">
@@ -89,14 +89,14 @@ function onepaquc_cart_dashboard()
         </div>
 
         <div class="button-row">
-            <a href="/wp-admin/admin.php?page=onepaquc_cart_documentation" class="button">View Documentation</a>
+            <a target="_blank" href="https://plugincy.com/documentations/one-page-quick-checkout-for-woocommerce/" class="button">View Documentation</a>
             <a href="https://plugincy.com/support" target="_blank" class="button button-secondary">Get Support</a>
         </div>
     </div>
 
     <h1 style="padding-top: 3rem;">Dashboard</h1>
     <?php
-    // if (get_option('onepaquc_validity_days') === "0" || !get_option('onepaquc_api_key')) {
+    // if (get_option('onepaqucpro_validity_days') === "0" || !get_option('onepaqucpro_api_key')) {
     //     echo "<p style='color:red;'>To use the plugin please active your API key first.</p>";
     // } else { 
     ?>
@@ -142,23 +142,27 @@ function onepaquc_cart_dashboard()
                 return luminance < 0.5;
             }
 
-            function checkColors(checkoutColor, checkoutTextColor) {
+            function checkColors(checkoutColor, checkoutTextColor, is_warn_show = true) {
                 const bgColor = checkoutColor.value;
                 const textColor = checkoutTextColor.value;
 
+                if (!is_warn_show) {
+                    return;
+                }
+
                 if (isColorDark(bgColor) && isColorDark(textColor)) {
                     showDirectCheckoutWarning(
-                        checkoutColor.closest('.rmenu-settings-row'),
+                        checkoutColor.closest('.rmenupro-settings-row'),
                         'Warning: Both background and text colors are dark. This may affect readability.'
                     );
                 } else if (!isColorDark(bgColor) && !isColorDark(textColor)) {
                     showDirectCheckoutWarning(
-                        checkoutTextColor.closest('.rmenu-settings-row'),
+                        checkoutTextColor.closest('.rmenupro-settings-row'),
                         'Warning: Both background and text colors are light. This may affect readability.'
                     );
                 } else {
-                    removeDirectCheckoutWarning(checkoutColor.closest('.rmenu-settings-row'));
-                    removeDirectCheckoutWarning(checkoutTextColor.closest('.rmenu-settings-row'));
+                    removeDirectCheckoutWarning(checkoutColor.closest('.rmenupro-settings-row'));
+                    removeDirectCheckoutWarning(checkoutTextColor.closest('.rmenupro-settings-row'));
                 }
             }
         </script>
@@ -169,15 +173,15 @@ function onepaquc_cart_dashboard()
         </div>
         <div class="tab-content active" id="tab-100">
             <?php
-            $license_manager = new onepaquc_License_Manager();
+            $license_manager = new onepaqucpro_License_Manager();
             $license_manager->render_license_form();
             ?>
         </div>
         <form method="post" action="options.php">
             <!-- Add nonce field for security -->
-            <?php wp_nonce_field('onepaquc_cart_settings'); ?>
-            <?php settings_fields('onepaquc_cart_settings'); ?>
-            <?php if (onepaquc_premium_feature()) { ?>
+            <?php wp_nonce_field('onepaqucpro_cart_settings'); ?>
+            <?php settings_fields('onepaqucpro_cart_settings'); ?>
+            <?php if (onepaqucpro_premium_feature()) { ?>
                 <input type="hidden" name="checkout_form_setup" id="checkout_setup" value="<?php echo esc_attr(get_option("checkout_form_setup", '')); ?>">
             <?php } ?>
             <div class="tab-content" id="tab-2">
@@ -236,7 +240,7 @@ function onepaquc_cart_dashboard()
                         <th scope="row">Enable One Page Checkout</th>
                         <td>
                             <label class="switch">
-                                <input type="checkbox" name="onpage_checkout_enable" value="1" <?php checked(1, get_option("onpage_checkout_enable", 1), true); ?> />
+                                <input type="checkbox" name="onepaqucpro_checkout_enable" value="1" <?php checked(1, get_option("onepaqucpro_checkout_enable", 1), true); ?> />
                                 <span class="slider round"></span>
                             </label>
                             <span class="tooltip">
@@ -250,12 +254,12 @@ function onepaquc_cart_dashboard()
                         <td>
                             <?php
                             // Get the saved value or default to 9 if not set or empty
-                            $onpage_checkout_position = get_option("onpage_checkout_position", '');
-                            if ($onpage_checkout_position === '' || $onpage_checkout_position === false) {
-                                $onpage_checkout_position = 9;
+                            $onepaqucpro_checkout_position = get_option("onepaqucpro_checkout_position", '');
+                            if ($onepaqucpro_checkout_position === '' || $onepaqucpro_checkout_position === false) {
+                                $onepaqucpro_checkout_position = 9;
                             }
                             ?>
-                            <input type="number" name="onpage_checkout_position" value="<?php echo esc_attr($onpage_checkout_position); ?>" />
+                            <input type="number" name="onepaqucpro_checkout_position" value="<?php echo esc_attr($onepaqucpro_checkout_position); ?>" />
                             <span class="tooltip">
                                 <span class="question-mark">?</span>
                                 <span class="tooltip-text">Set the priority of the one-page checkout form hook (lower numbers = earlier appearance). default is 9</span>
@@ -266,7 +270,7 @@ function onepaquc_cart_dashboard()
                         <th scope="row">Empty Cart On page load</th>
                         <td>
                             <label class="switch">
-                                <input type="checkbox" name="onpage_checkout_cart_empty" value="1" <?php checked(1, get_option("onpage_checkout_cart_empty"), true); ?> />
+                                <input type="checkbox" name="onepaqucpro_checkout_cart_empty" value="1" <?php checked(1, get_option("onepaqucpro_checkout_cart_empty"), true); ?> />
                                 <span class="slider round"></span>
                             </label>
                             <span class="tooltip">
@@ -279,7 +283,7 @@ function onepaquc_cart_dashboard()
                         <th scope="row">Add to Cart On page load</th>
                         <td>
                             <label class="switch">
-                                <input type="checkbox" name="onpage_checkout_cart_add" value="1" <?php checked(1, get_option("onpage_checkout_cart_add"), true); ?> />
+                                <input type="checkbox" name="onepaqucpro_checkout_cart_add" value="1" <?php checked(1, get_option("onepaqucpro_checkout_cart_add"), true); ?> />
                                 <span class="slider round"></span>
                             </label>
                             <span class="tooltip">
@@ -292,7 +296,7 @@ function onepaquc_cart_dashboard()
                         <th scope="row">Hide Add to cart</th>
                         <td>
                             <label class="switch">
-                                <input type="checkbox" name="onpage_checkout_hide_cart_button" value="1" <?php checked(1, get_option("onpage_checkout_hide_cart_button"), true); ?> />
+                                <input type="checkbox" name="onepaqucpro_checkout_hide_cart_button" value="1" <?php checked(1, get_option("onepaqucpro_checkout_hide_cart_button"), true); ?> />
                                 <span class="slider round"></span>
                             </label>
                             <span class="tooltip">
@@ -305,7 +309,7 @@ function onepaquc_cart_dashboard()
                         <th scope="row">Enable for All Products</th>
                         <td>
                             <label class="switch">
-                                <input type="checkbox" name="onpage_checkout_enable_all" value="1" <?php checked(1, get_option("onpage_checkout_enable_all"), true); ?> />
+                                <input type="checkbox" name="onepaqucpro_checkout_enable_all" value="1" <?php checked(1, get_option("onepaqucpro_checkout_enable_all"), true); ?> />
                                 <span class="slider round"></span>
                             </label>
                             <span class="tooltip">
@@ -316,11 +320,11 @@ function onepaquc_cart_dashboard()
                     </tr>
                     <tr valign="top">
                         <th scope="row">Checkout Layout</th>
-                        <td class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>">
-                            <select name="<?php echo !onepaquc_premium_feature() ? 'pro_checkout_layout' : 'onpage_checkout_layout'; ?>" <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> >
-                                <option <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> value="<?php echo !onepaquc_premium_feature() ? 'pro_two_column' : 'two_column'; ?>" <?php selected(get_option('onpage_checkout_layout', 'two_column'), 'two_column'); ?>>Two Columns (Product & Checkout)</option>
-                                <option <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> value="<?php echo !onepaquc_premium_feature() ? 'pro_one_column' : 'one_column'; ?>" <?php selected(get_option('onpage_checkout_layout', 'two_column'), 'one_column'); ?>>One Column (Stacked)</option>
-                                <option <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> value="<?php echo !onepaquc_premium_feature() ? 'pro_product_first' : 'product_first'; ?>" <?php selected(get_option('onpage_checkout_layout', 'two_column'), 'product_first'); ?>>Product First, Then Checkout</option>
+                        <td class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+                            <select name="<?php echo !onepaqucpro_premium_feature() ? 'pro_checkout_layout' : 'onepaqucpro_checkout_layout'; ?>" <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> >
+                                <option <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> value="<?php echo !onepaqucpro_premium_feature() ? 'pro_two_column' : 'two_column'; ?>" <?php selected(get_option('onepaqucpro_checkout_layout', 'two_column'), 'two_column'); ?>>Two Columns (Product & Checkout)</option>
+                                <option <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> value="<?php echo !onepaqucpro_premium_feature() ? 'pro_one_column' : 'one_column'; ?>" <?php selected(get_option('onepaqucpro_checkout_layout', 'two_column'), 'one_column'); ?>>One Column (Stacked)</option>
+                                <option <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> value="<?php echo !onepaqucpro_premium_feature() ? 'pro_product_first' : 'product_first'; ?>" <?php selected(get_option('onepaqucpro_checkout_layout', 'two_column'), 'product_first'); ?>>Product First, Then Checkout</option>
                             </select>
                             <span class="tooltip">
                                 <span class="question-mark">?</span>
@@ -332,10 +336,10 @@ function onepaquc_cart_dashboard()
                 <script>
                     document.addEventListener('DOMContentLoaded', function() {
                         // if the "Enable One Page Checkout" checkbox is checked, enable the "Checkout Layout" select
-                        const enableCheckout = document.querySelector('div#tab-2 input[name="onpage_checkout_enable"]');
+                        const enableCheckout = document.querySelector('div#tab-2 input[name="onepaqucpro_checkout_enable"]');
 
                         const allinputFields = Array.from(document.querySelectorAll('div#tab-2 table:nth-of-type(1) input, div#tab-2 table:nth-of-type(1) select')).filter(
-                            el => !(el.name === "onpage_checkout_enable")
+                            el => !(el.name === "onepaqucpro_checkout_enable")
                         );
                         allinputFields.forEach(field => {
                             field.disabled = !enableCheckout.checked;
@@ -358,7 +362,7 @@ function onepaquc_cart_dashboard()
                         <th scope="row">Empty Cart On page load</th>
                         <td>
                             <label class="switch">
-                                <input type="checkbox" name="onpage_checkout_widget_cart_empty" value="1" <?php checked(1, get_option("onpage_checkout_widget_cart_empty", "1"), true); ?> />
+                                <input type="checkbox" name="onepaqucpro_checkout_widget_cart_empty" value="1" <?php checked(1, get_option("onepaqucpro_checkout_widget_cart_empty", "1"), true); ?> />
                                 <span class="slider round"></span>
                             </label>
                             <span class="tooltip">
@@ -371,7 +375,7 @@ function onepaquc_cart_dashboard()
                         <th scope="row">Add to Cart On page load</th>
                         <td>
                             <label class="switch">
-                                <input type="checkbox" name="onpage_checkout_widget_cart_add" value="1" <?php checked(1, get_option("onpage_checkout_widget_cart_add", "1"), true); ?> />
+                                <input type="checkbox" name="onepaqucpro_checkout_widget_cart_add" value="1" <?php checked(1, get_option("onepaqucpro_checkout_widget_cart_add", "1"), true); ?> />
                                 <span class="slider round"></span>
                             </label>
                             <span class="tooltip">
@@ -387,47 +391,47 @@ function onepaquc_cart_dashboard()
                     <h2>Checkout Form Text</h2> <button id="reset-defaults" class="button button-primary" style="background:red;">Reset Default</button>
                 </div>
                 <?php
-                onepaquc_cart_text_change_form($onepaquc_checkoutformfields);
+                onepaqucpro_cart_text_change_form($onepaqucpro_checkoutformfields);
 
                 ?>
             </div>
             <div class="tab-content" id="tab-4">
-                <div class="rmenu-settings-header">
+                <div class="rmenupro-settings-header">
                     <h2>WooCommerce Direct Checkout</h2>
-                    <p class="rmenu-settings-description">Configure how the quick checkout functionality works with your WooCommerce store.</p>
+                    <p class="rmenupro-settings-description">Configure how the quick checkout functionality works with your WooCommerce store.</p>
                 </div>
 
-                <div class="rmenu-settings-tabs">
-                    <ul class="rmenu-settings-tab-list" style="color: #135e96;display: flex; gap: 10px; cursor: pointer;text-decoration: underline;">
-                        <li class="rmenu-settings-tab-item active" data-tab="direct-general-settings">General Settings</li>
-                        <li class="rmenu-settings-tab-item" data-tab="direct-button-behavior">Button Behavior</li>
-                        <li class="rmenu-settings-tab-item" data-tab="direct-advanced">Advanced</li>
+                <div class="rmenupro-settings-tabs">
+                    <ul class="rmenupro-settings-tab-list" style="color: #135e96;display: flex; gap: 10px; cursor: pointer;text-decoration: underline;">
+                        <li class="rmenupro-settings-tab-item active" data-tab="direct-general-settings">General Settings</li>
+                        <li class="rmenupro-settings-tab-item" data-tab="direct-button-behavior">Button Behavior</li>
+                        <li class="rmenupro-settings-tab-item" data-tab="direct-advanced">Advanced</li>
                     </ul>
                 </div>
 
                 <div class="tab-content" id="direct-general-settings" style="padding: 0;">
-                    <div class="rmenu-settings-section">
-                        <div class="rmenu-settings-section-header">
+                    <div class="rmenupro-settings-section">
+                        <div class="rmenupro-settings-section-header">
                             <h3><span class="dashicons dashicons-admin-generic"></span> General Settings</h3>
                         </div>
 
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field" id="rmenu-direct-checkout-enable-field">
-                                <label class="rmenu-settings-label">Enable Direct Checkout</label>
-                                <div class="rmenu-settings-control">
-                                    <label class="rmenu-toggle-switch">
-                                        <input type="checkbox" name="rmenu_add_direct_checkout_button" value="1" <?php checked(1, get_option("rmenu_add_direct_checkout_button", 0), true); ?> />
-                                        <span class="rmenu-toggle-slider"></span>
+                        <div class="rmenupro-settings-row">
+                            <div class="rmenupro-settings-field" id="rmenupro-direct-checkout-enable-field">
+                                <label class="rmenupro-settings-label">Enable Direct Checkout</label>
+                                <div class="rmenupro-settings-control">
+                                    <label class="rmenupro-toggle-switch">
+                                        <input type="checkbox" name="rmenupro_add_direct_checkout_button" value="1" <?php checked(1, get_option("rmenupro_add_direct_checkout_button", 0), true); ?> />
+                                        <span class="rmenupro-toggle-slider"></span>
                                     </label>
-                                    <p class="rmenu-field-description">Enable or disable the direct checkout functionality across your WooCommerce store.</p>
+                                    <p class="rmenupro-field-description">Enable or disable the direct checkout functionality across your WooCommerce store.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Button Text</label>
-                                <div class="rmenu-settings-control">
+                        <div class="rmenupro-settings-row">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Button Text</label>
+                                <div class="rmenupro-settings-control">
                                     <?php
                                     $direct_checkout_text = get_option('txt-direct-checkout', '');
                                     if (empty($direct_checkout_text)) {
@@ -435,134 +439,134 @@ function onepaquc_cart_dashboard()
                                     }
                                     ?>
                                     <input type="text" name="txt-direct-checkout" value="<?php echo esc_attr($direct_checkout_text); ?>" class="regular-text" />
-                                    <p class="rmenu-field-description">Customize the text displayed on the direct checkout button.</p>
+                                    <p class="rmenupro-field-description">Customize the text displayed on the direct checkout button.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Button Position</label>
-                                <div class="rmenu-settings-control">
-                                    <select name="rmenu_wc_direct_checkout_position" class="rmenu-select">
-                                        <option value="after_add_to_cart" <?php selected(get_option('rmenu_wc_direct_checkout_position', 'after_add_to_cart'), 'after_add_to_cart'); ?>>After Add to Cart Button</option>
-                                        <option value="before_add_to_cart" <?php selected(get_option('rmenu_wc_direct_checkout_position', 'after_add_to_cart'), 'before_add_to_cart'); ?>>Before Add to Cart Button</option>
-                                        <option value="replace_add_to_cart" <?php selected(get_option('rmenu_wc_direct_checkout_position', 'after_add_to_cart'), 'replace_add_to_cart'); ?>>Replace Add to Cart Button</option>
+                        <div class="rmenupro-settings-row">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Button Position</label>
+                                <div class="rmenupro-settings-control">
+                                    <select name="rmenupro_wc_direct_checkout_position" class="rmenupro-select">
+                                        <option value="after_add_to_cart" <?php selected(get_option('rmenupro_wc_direct_checkout_position', 'after_add_to_cart'), 'after_add_to_cart'); ?>>After Add to Cart Button</option>
+                                        <option value="before_add_to_cart" <?php selected(get_option('rmenupro_wc_direct_checkout_position', 'after_add_to_cart'), 'before_add_to_cart'); ?>>Before Add to Cart Button</option>
+                                        <option value="replace_add_to_cart" <?php selected(get_option('rmenupro_wc_direct_checkout_position', 'after_add_to_cart'), 'replace_add_to_cart'); ?>>Replace Add to Cart Button</option>
                                     </select>
-                                    <p class="rmenu-field-description">Choose where to display the direct checkout button on product pages.</p>
+                                    <p class="rmenupro-field-description">Choose where to display the direct checkout button on product pages.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="rmenu-settings-section" id="rmenu-direct-button-display-section">
-                        <div class="rmenu-settings-section-header">
+                    <div class="rmenupro-settings-section" id="rmenupro-direct-button-display-section">
+                        <div class="rmenupro-settings-section-header">
                             <h3><span class="dashicons dashicons-visibility"></span> Display Settings</h3>
                         </div>
 
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Product Types</label>
-                                <?php $product_types_option = get_option('rmenu_show_quick_checkout_by_types', []); ?>
-                                <div class="rmenu-settings-control rmenu-checkbox-group">
-                                    <label class="rmenu-checkbox-container">
-                                        <input type="checkbox" name="rmenu_show_quick_checkout_by_types[]" value="simple" <?php checked(in_array('simple', $product_types_option)); ?> />
-                                        <span class="rmenu-checkbox-label">Simple Products</span>
+                        <div class="rmenupro-settings-row">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Product Types</label>
+                                <?php $product_types_option = get_option('rmenupro_show_quick_checkout_by_types', []); ?>
+                                <div class="rmenupro-settings-control rmenupro-checkbox-group">
+                                    <label class="rmenupro-checkbox-container">
+                                        <input type="checkbox" name="rmenupro_show_quick_checkout_by_types[]" value="simple" <?php checked(in_array('simple', $product_types_option)); ?> />
+                                        <span class="rmenupro-checkbox-label">Simple Products</span>
                                     </label>
 
-                                    <label class="rmenu-checkbox-container">
-                                        <input type="checkbox" name="rmenu_show_quick_checkout_by_types[]" value="variable" <?php checked(in_array('variable', $product_types_option)); ?> />
-                                        <span class="rmenu-checkbox-label">Variable Products</span>
+                                    <label class="rmenupro-checkbox-container">
+                                        <input type="checkbox" name="rmenupro_show_quick_checkout_by_types[]" value="variable" <?php checked(in_array('variable', $product_types_option)); ?> />
+                                        <span class="rmenupro-checkbox-label">Variable Products</span>
                                     </label>
 
-                                    <label class="rmenu-checkbox-container <?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>">
-                                        <input <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaquc_premium_feature() ? 'pro_show_quick_checkout_by_types[]' : 'rmenu_show_quick_checkout_by_types[]'; ?>" value="coming_grouped" <?php checked(in_array('grouped', $product_types_option)); ?> />
-                                        <span class="rmenu-checkbox-label">Grouped Products (Coming Soon)</span>
+                                    <label class="rmenupro-checkbox-container <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+                                        <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_show_quick_checkout_by_types[]' : 'rmenupro_show_quick_checkout_by_types[]'; ?>" value="coming_grouped" <?php checked(in_array('grouped', $product_types_option)); ?> />
+                                        <span class="rmenupro-checkbox-label">Grouped Products (Coming Soon)</span>
                                     </label>
 
-                                    <label class="rmenu-checkbox-container">
-                                        <input type="checkbox" name="rmenu_show_quick_checkout_by_types[]" value="external" <?php checked(in_array('external', $product_types_option)); ?> />
-                                        <span class="rmenu-checkbox-label">External/Affiliate Products</span>
+                                    <label class="rmenupro-checkbox-container">
+                                        <input type="checkbox" name="rmenupro_show_quick_checkout_by_types[]" value="external" <?php checked(in_array('external', $product_types_option)); ?> />
+                                        <span class="rmenupro-checkbox-label">External/Affiliate Products</span>
                                     </label>
 
-                                    <p class="rmenu-field-description">Select which WooCommerce product types should display the direct checkout button.</p>
+                                    <p class="rmenupro-field-description">Select which WooCommerce product types should display the direct checkout button.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field">
-                                <?php $product_types_option = get_option('rmenu_show_quick_checkout_by_page', []); ?>
-                                <div class="rmenu-settings-control rmenu-checkbox-group">
-                                    <div class="rmenu-checkbox-column">
+                        <div class="rmenupro-settings-row">
+                            <div class="rmenupro-settings-field">
+                                <?php $product_types_option = get_option('rmenupro_show_quick_checkout_by_page', []); ?>
+                                <div class="rmenupro-settings-control rmenupro-checkbox-group">
+                                    <div class="rmenupro-checkbox-column">
                                         <h4>Product Pages</h4>
-                                        <label class="rmenu-checkbox-container">
-                                            <input type="checkbox" name="rmenu_show_quick_checkout_by_page[]" value="single" <?php checked(in_array('single', $product_types_option)); ?> />
-                                            <span class="rmenu-checkbox-label">Single Product Pages</span>
+                                        <label class="rmenupro-checkbox-container">
+                                            <input type="checkbox" name="rmenupro_show_quick_checkout_by_page[]" value="single" <?php checked(in_array('single', $product_types_option)); ?> />
+                                            <span class="rmenupro-checkbox-label">Single Product Pages</span>
                                         </label>
 
-                                        <label class="rmenu-checkbox-container">
-                                            <input type="checkbox" name="rmenu_show_quick_checkout_by_page[]" value="related" <?php checked(in_array('related', $product_types_option)); ?> />
-                                            <span class="rmenu-checkbox-label">Related Products</span>
+                                        <label class="rmenupro-checkbox-container">
+                                            <input type="checkbox" name="rmenupro_show_quick_checkout_by_page[]" value="related" <?php checked(in_array('related', $product_types_option)); ?> />
+                                            <span class="rmenupro-checkbox-label">Related Products</span>
                                         </label>
 
-                                        <label class="rmenu-checkbox-container">
-                                            <input type="checkbox" name="rmenu_show_quick_checkout_by_page[]" value="upsells" <?php checked(in_array('upsells', $product_types_option)); ?> />
-                                            <span class="rmenu-checkbox-label">Upsells</span>
+                                        <label class="rmenupro-checkbox-container">
+                                            <input type="checkbox" name="rmenupro_show_quick_checkout_by_page[]" value="upsells" <?php checked(in_array('upsells', $product_types_option)); ?> />
+                                            <span class="rmenupro-checkbox-label">Upsells</span>
                                         </label>
 
-                                        <label class="rmenu-checkbox-container">
-                                            <input type="checkbox" name="rmenu_show_quick_checkout_by_page[]" value="cross-sells" <?php checked(in_array('cross-sells', $product_types_option)); ?> />
-                                            <span class="rmenu-checkbox-label">Cross-sells (Coming Soon)</span>
+                                        <label class="rmenupro-checkbox-container">
+                                            <input type="checkbox" name="rmenupro_show_quick_checkout_by_page[]" value="cross-sells" <?php checked(in_array('cross-sells', $product_types_option)); ?> />
+                                            <span class="rmenupro-checkbox-label">Cross-sells (Coming Soon)</span>
                                         </label>
                                     </div>
 
-                                    <div class="rmenu-checkbox-column">
+                                    <div class="rmenupro-checkbox-column">
                                         <h4>Archive Pages</h4>
-                                        <label class="rmenu-checkbox-container">
-                                            <input type="checkbox" name="rmenu_show_quick_checkout_by_page[]" value="shop-page" <?php checked(in_array('shop-page', $product_types_option)); ?> />
-                                            <span class="rmenu-checkbox-label">Main Shop Page</span>
+                                        <label class="rmenupro-checkbox-container">
+                                            <input type="checkbox" name="rmenupro_show_quick_checkout_by_page[]" value="shop-page" <?php checked(in_array('shop-page', $product_types_option)); ?> />
+                                            <span class="rmenupro-checkbox-label">Main Shop Page</span>
                                         </label>
 
-                                        <label class="rmenu-checkbox-container">
-                                            <input type="checkbox" name="rmenu_show_quick_checkout_by_page[]" value="category-archives" <?php checked(in_array('category-archives', $product_types_option)); ?> />
-                                            <span class="rmenu-checkbox-label">Product Category Archives</span>
+                                        <label class="rmenupro-checkbox-container">
+                                            <input type="checkbox" name="rmenupro_show_quick_checkout_by_page[]" value="category-archives" <?php checked(in_array('category-archives', $product_types_option)); ?> />
+                                            <span class="rmenupro-checkbox-label">Product Category Archives</span>
                                         </label>
 
-                                        <label class="rmenu-checkbox-container">
-                                            <input type="checkbox" name="rmenu_show_quick_checkout_by_page[]" value="tag-archives" <?php checked(in_array('tag-archives', $product_types_option)); ?> />
-                                            <span class="rmenu-checkbox-label">Product Tag Archives</span>
+                                        <label class="rmenupro-checkbox-container">
+                                            <input type="checkbox" name="rmenupro_show_quick_checkout_by_page[]" value="tag-archives" <?php checked(in_array('tag-archives', $product_types_option)); ?> />
+                                            <span class="rmenupro-checkbox-label">Product Tag Archives</span>
                                         </label>
                                     </div>
 
-                                    <div class="rmenu-checkbox-column">
+                                    <div class="rmenupro-checkbox-column">
                                         <h4>Other Pages</h4>
-                                        <label class="rmenu-checkbox-container">
-                                            <input type="checkbox" name="rmenu_show_quick_checkout_by_page[]" value="featured-products" <?php checked(in_array('featured-products', $product_types_option)); ?> />
-                                            <span class="rmenu-checkbox-label">Featured Products</span>
+                                        <label class="rmenupro-checkbox-container">
+                                            <input type="checkbox" name="rmenupro_show_quick_checkout_by_page[]" value="featured-products" <?php checked(in_array('featured-products', $product_types_option)); ?> />
+                                            <span class="rmenupro-checkbox-label">Featured Products</span>
                                         </label>
 
-                                        <label class="rmenu-checkbox-container">
-                                            <input type="checkbox" name="rmenu_show_quick_checkout_by_page[]" value="on-sale" <?php checked(in_array('on-sale', $product_types_option)); ?> />
-                                            <span class="rmenu-checkbox-label">On-Sale Products</span>
+                                        <label class="rmenupro-checkbox-container">
+                                            <input type="checkbox" name="rmenupro_show_quick_checkout_by_page[]" value="on-sale" <?php checked(in_array('on-sale', $product_types_option)); ?> />
+                                            <span class="rmenupro-checkbox-label">On-Sale Products</span>
                                         </label>
 
-                                        <label class="rmenu-checkbox-container">
-                                            <input type="checkbox" name="rmenu_show_quick_checkout_by_page[]" value="recent" <?php checked(in_array('recent', $product_types_option)); ?> />
-                                            <span class="rmenu-checkbox-label">Recent Products</span>
+                                        <label class="rmenupro-checkbox-container">
+                                            <input type="checkbox" name="rmenupro_show_quick_checkout_by_page[]" value="recent" <?php checked(in_array('recent', $product_types_option)); ?> />
+                                            <span class="rmenupro-checkbox-label">Recent Products</span>
                                         </label>
                                     </div>
 
-                                    <div class="rmenu-checkbox-column">
+                                    <div class="rmenupro-checkbox-column">
                                         <h4>Widgets & Shortcodes</h4>
-                                        <label class="rmenu-checkbox-container">
-                                            <input type="checkbox" name="rmenu_show_quick_checkout_by_page[]" value="widgets" <?php checked(in_array('widgets', $product_types_option)); ?> />
-                                            <span class="rmenu-checkbox-label">Widgets</span>
+                                        <label class="rmenupro-checkbox-container">
+                                            <input type="checkbox" name="rmenupro_show_quick_checkout_by_page[]" value="widgets" <?php checked(in_array('widgets', $product_types_option)); ?> />
+                                            <span class="rmenupro-checkbox-label">Widgets</span>
                                         </label>
 
-                                        <label class="rmenu-checkbox-container">
-                                            <input type="checkbox" name="rmenu_show_quick_checkout_by_page[]" value="shortcodes" <?php checked(in_array('shortcodes', $product_types_option)); ?> />
-                                            <span class="rmenu-checkbox-label">Shortcodes</span>
+                                        <label class="rmenupro-checkbox-container">
+                                            <input type="checkbox" name="rmenupro_show_quick_checkout_by_page[]" value="shortcodes" <?php checked(in_array('shortcodes', $product_types_option)); ?> />
+                                            <span class="rmenupro-checkbox-label">Shortcodes</span>
                                         </label>
                                     </div>
                                 </div>
@@ -570,39 +574,39 @@ function onepaquc_cart_dashboard()
                         </div>
                     </div>
 
-                    <div class="rmenu-settings-section direct-button-style-section">
-                        <div class="rmenu-settings-section-header">
+                    <div class="rmenupro-settings-section direct-button-style-section">
+                        <div class="rmenupro-settings-section-header">
                             <h3><span class="dashicons dashicons-admin-appearance"></span> Button Style</h3>
                         </div>
 
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Button Style</label>
-                                <div class="rmenu-settings-control">
-                                    <select name="rmenu_wc_checkout_style" class="rmenu-select" id="rmenu-style-select">
-                                        <option value="default" <?php selected(get_option('rmenu_wc_checkout_style', 'default'), 'default'); ?>>Default WooCommerce Style</option>
-                                        <option value="alt" <?php selected(get_option('rmenu_wc_checkout_style', 'default'), 'alt'); ?>>Alternative Style</option>
-                                        <option value="custom" <?php selected(get_option('rmenu_wc_checkout_style', 'default'), 'custom'); ?>>Custom Style</option>
+                        <div class="rmenupro-settings-row">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Button Style</label>
+                                <div class="rmenupro-settings-control">
+                                    <select name="rmenupro_wc_checkout_style" class="rmenupro-select" id="rmenupro-style-select">
+                                        <option value="default" <?php selected(get_option('rmenupro_wc_checkout_style', 'default'), 'default'); ?>>Default WooCommerce Style</option>
+                                        <option value="alt" <?php selected(get_option('rmenupro_wc_checkout_style', 'default'), 'alt'); ?>>Alternative Style</option>
+                                        <option value="custom" <?php selected(get_option('rmenupro_wc_checkout_style', 'default'), 'custom'); ?>>Custom Style</option>
                                     </select>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row rmenu-settings-row-columns">
-                            <div class="rmenu-settings-column">
-                                <div class="rmenu-settings-field">
-                                    <label class="rmenu-settings-label">Button Color</label>
-                                    <div class="rmenu-settings-control">
-                                        <input type="color" name="rmenu_wc_checkout_color" value="<?php echo esc_attr(get_option('rmenu_wc_checkout_color', '#96588a')); ?>" class="rmenu-color-picker" />
+                        <div class="rmenupro-settings-row rmenupro-settings-row-columns">
+                            <div class="rmenupro-settings-column">
+                                <div class="rmenupro-settings-field">
+                                    <label class="rmenupro-settings-label">Button Color</label>
+                                    <div class="rmenupro-settings-control">
+                                        <input type="color" name="rmenupro_wc_checkout_color" value="<?php echo esc_attr(get_option('rmenupro_wc_checkout_color', '#96588a')); ?>" class="rmenupro-color-picker" />
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="rmenu-settings-column">
-                                <div class="rmenu-settings-field">
-                                    <label class="rmenu-settings-label">Text Color</label>
-                                    <div class="rmenu-settings-control">
-                                        <input type="color" name="rmenu_wc_checkout_text_color" value="<?php echo esc_attr(get_option('rmenu_wc_checkout_text_color', '#ffffff')); ?>" class="rmenu-color-picker" />
+                            <div class="rmenupro-settings-column">
+                                <div class="rmenupro-settings-field">
+                                    <label class="rmenupro-settings-label">Text Color</label>
+                                    <div class="rmenupro-settings-control">
+                                        <input type="color" name="rmenupro_wc_checkout_text_color" value="<?php echo esc_attr(get_option('rmenupro_wc_checkout_text_color', '#ffffff')); ?>" class="rmenupro-color-picker" />
                                     </div>
                                 </div>
                             </div>
@@ -610,40 +614,40 @@ function onepaquc_cart_dashboard()
 
 
 
-                        <div class="rmenu-settings-row rmenu-custom-css-row" id="rmenu-custom-css-row" style="<?php echo (get_option('rmenu_wc_checkout_style', 'default') == 'custom') ? 'display:block;' : 'display:none;'; ?>">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Custom CSS</label>
-                                <div class="rmenu-settings-control">
-                                    <textarea name="rmenu_wc_checkout_custom_css" class="rmenu-textarea-code" rows="6"><?php echo esc_textarea(get_option('rmenu_wc_checkout_custom_css', '')); ?></textarea>
-                                    <p class="rmenu-field-description">Add custom CSS for advanced button styling. Use the class <code>.rmenu-direct-checkout-btn</code> to target the button.</p>
+                        <div class="rmenupro-settings-row rmenupro-custom-css-row" id="rmenupro-custom-css-row" style="<?php echo (get_option('rmenupro_wc_checkout_style', 'default') == 'custom') ? 'display:block;' : 'display:none;'; ?>">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Custom CSS</label>
+                                <div class="rmenupro-settings-control">
+                                    <textarea name="rmenupro_wc_checkout_custom_css" class="rmenupro-textarea-code" rows="6"><?php echo esc_textarea(get_option('rmenupro_wc_checkout_custom_css', '')); ?></textarea>
+                                    <p class="rmenupro-field-description">Add custom CSS for advanced button styling. Use the class <code>.rmenupro-direct-checkout-btn</code> to target the button.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row rmenu-settings-row-columns">
-                            <div class="rmenu-settings-column">
-                                <div class="rmenu-settings-field">
-                                    <label class="rmenu-settings-label">Button Icon</label>
-                                    <div class="rmenu-settings-control">
-                                        <select name="rmenu_wc_checkout_icon" class="rmenu-select">
-                                            <option value="none" <?php selected(get_option('rmenu_wc_checkout_icon', 'none'), 'none'); ?>>No Icon</option>
-                                            <option value="cart" <?php selected(get_option('rmenu_wc_checkout_icon', 'none'), 'cart'); ?>>Cart Icon</option>
-                                            <option value="checkout" <?php selected(get_option('rmenu_wc_checkout_icon', 'none'), 'checkout'); ?>>Checkout Icon</option>
-                                            <option value="arrow" <?php selected(get_option('rmenu_wc_checkout_icon', 'none'), 'arrow'); ?>>Arrow Icon</option>
+                        <div class="rmenupro-settings-row rmenupro-settings-row-columns">
+                            <div class="rmenupro-settings-column">
+                                <div class="rmenupro-settings-field">
+                                    <label class="rmenupro-settings-label">Button Icon</label>
+                                    <div class="rmenupro-settings-control">
+                                        <select name="rmenupro_wc_checkout_icon" class="rmenupro-select">
+                                            <option value="none" <?php selected(get_option('rmenupro_wc_checkout_icon', 'none'), 'none'); ?>>No Icon</option>
+                                            <option value="cart" <?php selected(get_option('rmenupro_wc_checkout_icon', 'none'), 'cart'); ?>>Cart Icon</option>
+                                            <option value="checkout" <?php selected(get_option('rmenupro_wc_checkout_icon', 'none'), 'checkout'); ?>>Checkout Icon</option>
+                                            <option value="arrow" <?php selected(get_option('rmenupro_wc_checkout_icon', 'none'), 'arrow'); ?>>Arrow Icon</option>
                                         </select>
-                                        <p class="rmenu-field-description">Choose an optional icon to display with the direct checkout button text.</p>
+                                        <p class="rmenupro-field-description">Choose an optional icon to display with the direct checkout button text.</p>
                                     </div>
                                 </div>
                             </div>
-                            <div class="rmenu-settings-column">
-                                <div class="rmenu-settings-field">
-                                    <label class="rmenu-settings-label">Icon Position</label>
-                                    <div class="rmenu-settings-control">
-                                        <select name="rmenu_wc_checkout_icon_position" class="rmenu-select">
-                                            <option value="left" <?php selected(get_option('rmenu_wc_checkout_icon_position', 'left'), 'left'); ?>>Left</option>
-                                            <option value="right" <?php selected(get_option('rmenu_wc_checkout_icon_position', 'left'), 'right'); ?>>Right</option>
-                                            <option value="top" <?php selected(get_option('rmenu_wc_checkout_icon_position', 'left'), 'top'); ?>>Top</option>
-                                            <option value="bottom" <?php selected(get_option('rmenu_wc_checkout_icon_position', 'left'), 'bottom'); ?>>Bottom</option>
+                            <div class="rmenupro-settings-column">
+                                <div class="rmenupro-settings-field">
+                                    <label class="rmenupro-settings-label">Icon Position</label>
+                                    <div class="rmenupro-settings-control">
+                                        <select name="rmenupro_wc_checkout_icon_position" class="rmenupro-select">
+                                            <option value="left" <?php selected(get_option('rmenupro_wc_checkout_icon_position', 'left'), 'left'); ?>>Left</option>
+                                            <option value="right" <?php selected(get_option('rmenupro_wc_checkout_icon_position', 'left'), 'right'); ?>>Right</option>
+                                            <option value="top" <?php selected(get_option('rmenupro_wc_checkout_icon_position', 'left'), 'top'); ?>>Top</option>
+                                            <option value="bottom" <?php selected(get_option('rmenupro_wc_checkout_icon_position', 'left'), 'bottom'); ?>>Bottom</option>
                                         </select>
                                     </div>
                                 </div>
@@ -653,14 +657,14 @@ function onepaquc_cart_dashboard()
                     <script>
                         document.addEventListener('DOMContentLoaded', function() {
                             // if the "Enable One Page Checkout" checkbox is checked, enable the "Checkout Layout" select
-                            const button_style = document.querySelector('div#tab-4 select[name="rmenu_wc_checkout_style"]');
+                            const button_style = document.querySelector('div#tab-4 select[name="rmenupro_wc_checkout_style"]');
 
-                            // Select all children except the first two in the .button-style-section & except div#rmenu-atc-custom-width-row
-                            const buttonStyleSection = document.querySelector('.rmenu-settings-section.direct-button-style-section');
+                            // Select all children except the first two in the .button-style-section & except div#rmenupro-atc-custom-width-row
+                            const buttonStyleSection = document.querySelector('.rmenupro-settings-section.direct-button-style-section');
                             const allFields = Array.from(buttonStyleSection ? buttonStyleSection.children : []).slice(2);
-                            // if rmenu_wc_checkout_icon is 'none', disable the icon position field
-                            const iconSelect = document.querySelector('select[name="rmenu_wc_checkout_icon"]');
-                            const iconPositionField = document.querySelector('select[name="rmenu_wc_checkout_icon_position"]');
+                            // if rmenupro_wc_checkout_icon is 'none', disable the icon position field
+                            const iconSelect = document.querySelector('select[name="rmenupro_wc_checkout_icon"]');
+                            const iconPositionField = document.querySelector('select[name="rmenupro_wc_checkout_icon_position"]');
                             if (iconSelect && iconPositionField) {
                                 iconSelect.addEventListener('change', function() {
                                     if (this.value === 'none') {
@@ -679,7 +683,7 @@ function onepaquc_cart_dashboard()
                                 button_style.addEventListener('change', function() {
                                     if (this.value !== 'default') {
                                         allFields.forEach(field => field.style.display = 'flex');
-                                        document.querySelector('#rmenu-custom-css-row').style.display = (this.value === 'custom') ? 'block' : 'none';
+                                        document.querySelector('#rmenupro-custom-css-row').style.display = (this.value === 'custom') ? 'block' : 'none';
                                     } else {
                                         allFields.forEach(field => field.style.display = 'none');
                                     }
@@ -690,19 +694,19 @@ function onepaquc_cart_dashboard()
 
                             }
 
-                            // if rmenu_wc_checkout_color (which is bg color) & rmenu_wc_checkout_text_color (which is text color) both are dark or light, show a warning message
-                            const checkoutColor = document.querySelector('input[name="rmenu_wc_checkout_color"]');
-                            const checkoutTextColor = document.querySelector('input[name="rmenu_wc_checkout_text_color"]');
+                            // if rmenupro_wc_checkout_color (which is bg color) & rmenupro_wc_checkout_text_color (which is text color) both are dark or light, show a warning message
+                            const checkoutColor = document.querySelector('input[name="rmenupro_wc_checkout_color"]');
+                            const checkoutTextColor = document.querySelector('input[name="rmenupro_wc_checkout_text_color"]');
                             if (checkoutColor && checkoutTextColor) {
                                 checkoutColor.addEventListener('change', function() {
-                                    checkColors(checkoutColor, checkoutTextColor);
+                                    checkColors(checkoutColor, checkoutTextColor, button_style && button_style.value !== 'default');
                                 });
                                 checkoutTextColor.addEventListener('change', function() {
-                                    checkColors(checkoutColor, checkoutTextColor);
+                                    checkColors(checkoutColor, checkoutTextColor, button_style && button_style.value !== 'default');
                                 });
 
                                 // Initial check on page load
-                                checkColors(checkoutColor, checkoutTextColor);
+                                checkColors(checkoutColor, checkoutTextColor, button_style && button_style.value !== 'default');
                             }
 
                         });
@@ -710,83 +714,83 @@ function onepaquc_cart_dashboard()
 
                 </div>
 
-                <div class="rmenu-settings-section tab-content" id="direct-button-behavior" style="padding: 0;">
-                    <div class="rmenu-settings-section-header">
+                <div class="rmenupro-settings-section tab-content" id="direct-button-behavior" style="padding: 0;">
+                    <div class="rmenupro-settings-section-header">
                         <h3><span class="dashicons dashicons-cart"></span> Quick Checkout Behavior</h3>
                     </div>
 
-                    <div class="rmenu-settings-row">
-                        <div class="rmenu-settings-field">
-                            <label class="rmenu-settings-label">Checkout Method</label>
-                            <div class="rmenu-settings-control">
-                                <select name="rmenu_wc_checkout_method" class="rmenu-select" id="rmenu-checkout-method">
-                                    <option value="direct_checkout" <?php selected(get_option('rmenu_wc_checkout_method', 'popup_checkout'), 'direct_checkout'); ?>>Redirect to Checkout</option>
-                                    <option value="ajax_add" <?php selected(get_option('rmenu_wc_checkout_method', 'popup_checkout'), 'ajax_add'); ?>>AJAX Add to Cart</option>
-                                    <!-- rmenu_disable_cart_page is it's on disable below option & show cart page is disabled -->
+                    <div class="rmenupro-settings-row">
+                        <div class="rmenupro-settings-field">
+                            <label class="rmenupro-settings-label">Checkout Method</label>
+                            <div class="rmenupro-settings-control">
+                                <select name="rmenupro_wc_checkout_method" class="rmenupro-select" id="rmenupro-checkout-method">
+                                    <option value="direct_checkout" <?php selected(get_option('rmenupro_wc_checkout_method', 'popup_checkout'), 'direct_checkout'); ?>>Redirect to Checkout</option>
+                                    <option value="ajax_add" <?php selected(get_option('rmenupro_wc_checkout_method', 'popup_checkout'), 'ajax_add'); ?>>AJAX Add to Cart</option>
+                                    <!-- rmenupro_disable_cart_page is it's on disable below option & show cart page is disabled -->
                                     <?php
-                                    $disable_cart_page = get_option('rmenu_disable_cart_page', '0');
+                                    $disable_cart_page = get_option('rmenupro_disable_cart_page', '0');
                                     ?>
                                     <?php if (!$disable_cart_page) : ?>
-                                        <option value="cart_redirect" <?php selected(get_option('rmenu_wc_checkout_method', 'popup_checkout'), 'cart_redirect'); ?>>Redirect to Cart Page</option>
+                                        <option value="cart_redirect" <?php selected(get_option('rmenupro_wc_checkout_method', 'popup_checkout'), 'cart_redirect'); ?>>Redirect to Cart Page</option>
                                     <?php else : ?>
-                                        <option value="cart_redirect" disabled <?php selected(get_option('rmenu_wc_checkout_method', 'popup_checkout'), 'cart_redirect'); ?>>Redirect to Cart Page (Disabled)</option>
+                                        <option value="cart_redirect" disabled <?php selected(get_option('rmenupro_wc_checkout_method', 'popup_checkout'), 'cart_redirect'); ?>>Redirect to Cart Page (Disabled)</option>
                                     <?php endif; ?>
-                                    <option value="popup_checkout" <?php selected(get_option('rmenu_wc_checkout_method', 'popup_checkout'), 'popup_checkout'); ?>>Popup Checkout</option>
-                                    <option value="advanced" <?php selected(get_option('rmenu_wc_checkout_method', 'popup_checkout'), 'advanced'); ?>>Advanced Checkout</option>
-                                    <option value="side_cart" <?php selected(get_option('rmenu_wc_checkout_method', 'popup_checkout'), 'side_cart'); ?>>Side Cart Slide-in</option>
+                                    <option value="popup_checkout" <?php selected(get_option('rmenupro_wc_checkout_method', 'popup_checkout'), 'popup_checkout'); ?>>Popup Checkout</option>
+                                    <option disabled value="advanced" <?php selected(get_option('rmenupro_wc_checkout_method', 'popup_checkout'), 'advanced'); ?>>Advanced Checkout (Coming Soon)</option>
+                                    <option value="side_cart" <?php selected(get_option('rmenupro_wc_checkout_method', 'popup_checkout'), 'side_cart'); ?>>Side Cart Slide-in</option>
                                 </select>
-                                <p class="rmenu-field-description">Choose how the quick checkout process should behave when a customer clicks the button.</p>
+                                <p class="rmenupro-field-description">Choose how the quick checkout process should behave when a customer clicks the button.</p>
                             </div>
                         </div>
                     </div>
 
-                    <div class="rmenu-settings-row">
-                        <div class="rmenu-settings-field">
-                            <label class="rmenu-settings-label">Clear Cart Before Adding</label>
-                            <div class="rmenu-settings-control">
-                                <label class="rmenu-toggle-switch">
-                                    <input type="checkbox" name="rmenu_wc_clear_cart" value="1" <?php checked(1, get_option("rmenu_wc_clear_cart", 0), true); ?> />
-                                    <span class="rmenu-toggle-slider"></span>
+                    <div class="rmenupro-settings-row">
+                        <div class="rmenupro-settings-field">
+                            <label class="rmenupro-settings-label">Clear Cart Before Adding</label>
+                            <div class="rmenupro-settings-control">
+                                <label class="rmenupro-toggle-switch">
+                                    <input type="checkbox" name="rmenupro_wc_clear_cart" value="1" <?php checked(1, get_option("rmenupro_wc_clear_cart", 0), true); ?> />
+                                    <span class="rmenupro-toggle-slider"></span>
                                 </label>
-                                <p class="rmenu-field-description">When enabled, the cart will be emptied before adding the new product. This creates a single-product checkout experience.</p>
+                                <p class="rmenupro-field-description">When enabled, the cart will be emptied before adding the new product. This creates a single-product checkout experience.</p>
                             </div>
                         </div>
                     </div>
-                    <div class="rmenu-settings-row <?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>">
-                        <div class="rmenu-settings-field">
-                            <label class="rmenu-settings-label">Single Checkout without Clear Cart (Coming Soon)</label>
-                            <div class="rmenu-settings-control">
-                                <label class="rmenu-toggle-switch">
-                                    <input <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaquc_premium_feature() ? 'pro_wc_single_checkout' : 'rmenu_wc_single_checkout'; ?>" value="1" <?php checked(1, get_option("rmenu_wc_single_checkout", 0), true); ?> />
-                                    <span class="rmenu-toggle-slider"></span>
+                    <div class="rmenupro-settings-row <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+                        <div class="rmenupro-settings-field">
+                            <label class="rmenupro-settings-label">Single Checkout without Clear Cart (Coming Soon)</label>
+                            <div class="rmenupro-settings-control">
+                                <label class="rmenupro-toggle-switch">
+                                    <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_wc_single_checkout' : 'rmenupro_wc_single_checkout'; ?>" value="1" <?php checked(1, get_option("rmenupro_wc_single_checkout", 0), true); ?> />
+                                    <span class="rmenupro-toggle-slider"></span>
                                 </label>
-                                <p class="rmenu-field-description">When enabled, the cart will not be emptied before adding the new product.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="rmenu-settings-row <?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>">
-                        <div class="rmenu-settings-field">
-                            <label class="rmenu-settings-label">One-Click Purchase (Coming Soon)</label>
-                            <div class="rmenu-settings-control">
-                                <label class="rmenu-toggle-switch">
-                                    <input <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaquc_premium_feature() ? 'pro_wc_one_click_purchase' : 'rmenu_wc_one_click_purchase'; ?>" value="1" <?php checked(1, get_option("rmenu_wc_one_click_purchase", 0), true); ?> />
-                                    <span class="rmenu-toggle-slider"></span>
-                                </label>
-                                <p class="rmenu-field-description">When enabled, returning customers can bypass the checkout form and use their last saved payment method. Requires WooCommerce Payments or compatible gateway.</p>
+                                <p class="rmenupro-field-description">When enabled, the cart will not be emptied before adding the new product.</p>
                             </div>
                         </div>
                     </div>
 
-                    <div class="rmenu-settings-row">
-                        <div class="rmenu-settings-field">
-                            <label class="rmenu-settings-label">Show Confirmation Dialog</label>
-                            <div class="rmenu-settings-control">
-                                <label class="rmenu-toggle-switch">
-                                    <input type="checkbox" name="rmenu_wc_add_confirmation" value="1" <?php checked(1, get_option("rmenu_wc_add_confirmation", 0), true); ?> />
-                                    <span class="rmenu-toggle-slider"></span>
+                    <div class="rmenupro-settings-row <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+                        <div class="rmenupro-settings-field">
+                            <label class="rmenupro-settings-label">One-Click Purchase (Coming Soon)</label>
+                            <div class="rmenupro-settings-control">
+                                <label class="rmenupro-toggle-switch">
+                                    <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_wc_one_click_purchase' : 'rmenupro_wc_one_click_purchase'; ?>" value="1" <?php checked(1, get_option("rmenupro_wc_one_click_purchase", 0), true); ?> />
+                                    <span class="rmenupro-toggle-slider"></span>
                                 </label>
-                                <p class="rmenu-field-description">When enabled, customers will see a confirmation dialog before proceeding to checkout.</p>
+                                <p class="rmenupro-field-description">When enabled, returning customers can bypass the checkout form and use their last saved payment method. Requires WooCommerce Payments or compatible gateway.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="rmenupro-settings-row">
+                        <div class="rmenupro-settings-field">
+                            <label class="rmenupro-settings-label">Show Confirmation Dialog</label>
+                            <div class="rmenupro-settings-control">
+                                <label class="rmenupro-toggle-switch">
+                                    <input type="checkbox" name="rmenupro_wc_add_confirmation" value="1" <?php checked(1, get_option("rmenupro_wc_add_confirmation", 0), true); ?> />
+                                    <span class="rmenupro-toggle-slider"></span>
+                                </label>
+                                <p class="rmenupro-field-description">When enabled, customers will see a confirmation dialog before proceeding to checkout.</p>
                             </div>
                         </div>
                     </div>
@@ -794,65 +798,65 @@ function onepaquc_cart_dashboard()
                 </div>
 
                 <div class="tab-content" id="direct-advanced" style="padding: 0;">
-                    <div class="rmenu-settings-section">
-                        <div class="rmenu-settings-section-header">
+                    <div class="rmenupro-settings-section">
+                        <div class="rmenupro-settings-section-header">
                             <h3><span class="dashicons dashicons-category"></span>Quick Checkout in Variable Product</h3>
                         </div>
 
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Show Variation Selection in Archive pages</label>
-                                <div class="rmenu-settings-control">
-                                    <label class="rmenu-toggle-switch">
-                                        <input type="checkbox" name="rmenu_variation_show_archive" value="1" <?php checked(1, get_option("rmenu_variation_show_archive", 1), true); ?> />
-                                        <span class="rmenu-toggle-slider"></span>
+                        <div class="rmenupro-settings-row">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Show Variation Selection in Archive pages</label>
+                                <div class="rmenupro-settings-control">
+                                    <label class="rmenupro-toggle-switch">
+                                        <input type="checkbox" name="rmenupro_variation_show_archive" value="1" <?php checked(1, get_option("rmenupro_variation_show_archive", 1), true); ?> />
+                                        <span class="rmenupro-toggle-slider"></span>
                                     </label>
-                                    <p class="rmenu-field-description">When enabled, the variation selection will be shown on archive pages.</p>
+                                    <p class="rmenupro-field-description">When enabled, the variation selection will be shown on archive pages.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Hide Select Option Button</label>
-                                <div class="rmenu-settings-control">
-                                    <label class="rmenu-toggle-switch">
-                                        <input type="checkbox" name="rmenu_wc_hide_select_option" value="1" <?php checked(1, get_option("rmenu_wc_hide_select_option", 1), true); ?> />
-                                        <span class="rmenu-toggle-slider"></span>
+                        <div class="rmenupro-settings-row">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Hide Select Option Button</label>
+                                <div class="rmenupro-settings-control">
+                                    <label class="rmenupro-toggle-switch">
+                                        <input type="checkbox" name="rmenupro_wc_hide_select_option" value="1" <?php checked(1, get_option("rmenupro_wc_hide_select_option", 1), true); ?> />
+                                        <span class="rmenupro-toggle-slider"></span>
                                     </label>
-                                    <p class="rmenu-field-description">When enabled, the select option button will be hidden on variable product pages.</p>
+                                    <p class="rmenupro-field-description">When enabled, the select option button will be hidden on variable product pages.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="rmenu-settings-section">
-                        <div class="rmenu-settings-section-header">
+                    <div class="rmenupro-settings-section">
+                        <div class="rmenupro-settings-section-header">
                             <h3><span class="dashicons dashicons-admin-tools"></span> Advanced Options</h3>
                         </div>
 
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Mobile Optimization</label>
-                                <div class="rmenu-settings-control">
-                                    <label class="rmenu-toggle-switch">
-                                        <input type="checkbox" name="rmenu_wc_checkout_mobile_optimize" value="1" <?php checked(1, get_option("rmenu_wc_checkout_mobile_optimize", 1), true); ?> />
-                                        <span class="rmenu-toggle-slider"></span>
+                        <div class="rmenupro-settings-row">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Mobile Optimization</label>
+                                <div class="rmenupro-settings-control">
+                                    <label class="rmenupro-toggle-switch">
+                                        <input type="checkbox" name="rmenupro_wc_checkout_mobile_optimize" value="1" <?php checked(1, get_option("rmenupro_wc_checkout_mobile_optimize", 1), true); ?> />
+                                        <span class="rmenupro-toggle-slider"></span>
                                     </label>
-                                    <p class="rmenu-field-description">When enabled, the direct checkout button will be optimized for mobile devices.</p>
+                                    <p class="rmenupro-field-description">When enabled, the direct checkout button will be optimized for mobile devices.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Enable for Guest Checkout</label>
-                                <div class="rmenu-settings-control">
-                                    <label class="rmenu-toggle-switch">
-                                        <input type="checkbox" name="rmenu_wc_checkout_guest_enabled" value="1" <?php checked(1, get_option("rmenu_wc_checkout_guest_enabled", 1), true); ?> />
-                                        <span class="rmenu-toggle-slider"></span>
+                        <div class="rmenupro-settings-row">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Enable for Guest Checkout</label>
+                                <div class="rmenupro-settings-control">
+                                    <label class="rmenupro-toggle-switch">
+                                        <input type="checkbox" name="rmenupro_wc_checkout_guest_enabled" value="1" <?php checked(1, get_option("rmenupro_wc_checkout_guest_enabled", 1), true); ?> />
+                                        <span class="rmenupro-toggle-slider"></span>
                                     </label>
-                                    <p class="rmenu-field-description">When enabled, the direct checkout button will be available for guest users. When disabled, only logged-in users will see the button.</p>
+                                    <p class="rmenupro-field-description">When enabled, the direct checkout button will be available for guest users. When disabled, only logged-in users will see the button.</p>
                                 </div>
                             </div>
                         </div>
@@ -861,25 +865,25 @@ function onepaquc_cart_dashboard()
                 </div>
 
                 <style>
-                    .rmenu-settings-header {
+                    .rmenupro-settings-header {
                         margin-bottom: 30px;
                     }
 
-                    .rmenu-settings-header h2 {
+                    .rmenupro-settings-header h2 {
                         font-size: 24px;
                         font-weight: 600;
                         margin: 0 0 10px 0;
                         padding: 0;
                     }
 
-                    .rmenu-settings-description {
+                    .rmenupro-settings-description {
                         font-size: 14px;
                         color: #646970;
                         margin: 0;
                         padding: 0;
                     }
 
-                    .rmenu-settings-section {
+                    .rmenupro-settings-section {
                         background: #fff;
                         border: 1px solid #c3c4c7;
                         border-radius: 4px;
@@ -889,20 +893,20 @@ function onepaquc_cart_dashboard()
                         position: relative;
                     }
 
-                    .rmenu-settings-section-header {
+                    .rmenupro-settings-section-header {
                         border-bottom: 1px solid #c3c4c7;
                         padding: 12px 15px;
                         background: #f0f0f1;
                     }
 
-                    .rmenu-settings-section-header h3 {
+                    .rmenupro-settings-section-header h3 {
                         margin: 0;
                         font-size: 14px;
                         font-weight: 600;
                         line-height: 1.4;
                     }
 
-                    .rmenu-settings-section-header h3 .dashicons {
+                    .rmenupro-settings-section-header h3 .dashicons {
                         font-size: 16px;
                         height: 16px;
                         width: 16px;
@@ -910,7 +914,7 @@ function onepaquc_cart_dashboard()
                         color: #646970;
                     }
 
-                    .rmenu-settings-row {
+                    .rmenupro-settings-row {
                         padding: 15px;
                         border-bottom: 1px solid #f0f0f1;
                         position: relative;
@@ -918,63 +922,63 @@ function onepaquc_cart_dashboard()
                         flex-wrap: wrap;
                     }
 
-                    .rmenu-settings-row:last-child {
+                    .rmenupro-settings-row:last-child {
                         border-bottom: none;
                     }
 
-                    .rmenu-settings-row-columns {
+                    .rmenupro-settings-row-columns {
                         display: flex;
                         flex-wrap: wrap;
                         gap: 20px;
                     }
 
-                    .rmenu-settings-column {
+                    .rmenupro-settings-column {
                         flex: 1;
                         min-width: 200px;
                     }
 
-                    .rmenu-settings-field {
+                    .rmenupro-settings-field {
                         width: 100%;
                         display: flex;
                         flex-direction: column;
                     }
 
-                    .rmenu-settings-label {
+                    .rmenupro-settings-label {
                         font-weight: 600;
                         margin-bottom: 8px;
                         font-size: 14px;
                     }
 
-                    .rmenu-settings-control {
+                    .rmenupro-settings-control {
                         flex: 1;
                     }
 
-                    .rmenu-field-description {
+                    .rmenupro-field-description {
                         color: #646970;
                         font-size: 13px;
                         margin: 5px 0 0;
                         font-style: italic;
                     }
 
-                    .rmenu-checkbox-group {
+                    .rmenupro-checkbox-group {
                         display: flex;
                         flex-wrap: wrap;
                         gap: 20px;
                     }
 
-                    .rmenu-checkbox-column {
+                    .rmenupro-checkbox-column {
                         flex: 1;
                         min-width: 200px;
                     }
 
-                    .rmenu-checkbox-column h4 {
+                    .rmenupro-checkbox-column h4 {
                         margin: 0 0 10px 0;
                         padding: 0;
                         font-size: 14px;
                         color: #3c434a;
                     }
 
-                    .rmenu-checkbox-container {
+                    .rmenupro-checkbox-container {
                         display: block;
                         position: relative;
                         padding: 5px 0;
@@ -982,25 +986,25 @@ function onepaquc_cart_dashboard()
                         user-select: none;
                     }
 
-                    .rmenu-checkbox-label {
+                    .rmenupro-checkbox-label {
                         margin-left: 5px;
                         font-size: 13px;
                     }
 
-                    .rmenu-toggle-switch {
+                    .rmenupro-toggle-switch {
                         position: relative;
                         display: inline-block;
                         width: 40px;
                         height: 22px;
                     }
 
-                    .rmenu-toggle-switch input {
+                    .rmenupro-toggle-switch input {
                         opacity: 0;
                         width: 0;
                         height: 0;
                     }
 
-                    .rmenu-toggle-slider {
+                    .rmenupro-toggle-slider {
                         position: absolute;
                         cursor: pointer;
                         top: 0;
@@ -1012,7 +1016,7 @@ function onepaquc_cart_dashboard()
                         border-radius: 34px;
                     }
 
-                    .rmenu-toggle-slider:before {
+                    .rmenupro-toggle-slider:before {
                         position: absolute;
                         content: "";
                         height: 18px;
@@ -1024,24 +1028,24 @@ function onepaquc_cart_dashboard()
                         border-radius: 50%;
                     }
 
-                    input:checked+.rmenu-toggle-slider {
+                    input:checked+.rmenupro-toggle-slider {
                         background-color: #2271b1;
                     }
 
-                    input:focus+.rmenu-toggle-slider {
+                    input:focus+.rmenupro-toggle-slider {
                         box-shadow: 0 0 1px #2271b1;
                     }
 
-                    input:checked+.rmenu-toggle-slider:before {
+                    input:checked+.rmenupro-toggle-slider:before {
                         transform: translateX(18px);
                     }
 
-                    .rmenu-select {
+                    .rmenupro-select {
                         min-width: 200px;
                         max-width: 100%;
                     }
 
-                    .rmenu-color-picker {
+                    .rmenupro-color-picker {
                         padding: 0;
                         border: 1px solid #8c8f94;
                         border-radius: 4px;
@@ -1049,7 +1053,7 @@ function onepaquc_cart_dashboard()
                         width: 60px;
                     }
 
-                    .rmenu-textarea-code {
+                    .rmenupro-textarea-code {
                         min-height: 100px;
                         width: 100%;
                         font-family: monospace;
@@ -1058,25 +1062,25 @@ function onepaquc_cart_dashboard()
 
                 <script type="text/javascript">
                     jQuery(document).ready(function($) {
-                        $('#rmenu-style-select').on('change', function() {
+                        $('#rmenupro-style-select').on('change', function() {
                             if ($(this).val() === 'custom') {
-                                $('#rmenu-custom-css-row').show();
+                                $('#rmenupro-custom-css-row').show();
                             } else {
-                                $('#rmenu-custom-css-row').hide();
+                                $('#rmenupro-custom-css-row').hide();
                             }
                         });
                     });
                 </script>
                 <script>
                     function showDirectCheckoutWarning(highlightSection, message) {
-                        let popup = document.getElementById('rmenu-enable-atc-popup');
+                        let popup = document.getElementById('rmenupro-enable-atc-popup');
                         if (highlightSection) {
                             highlightSection.style.border = '2px solid #dc3545';
                             highlightSection.style.padding = '10px';
                         }
                         if (!popup) {
                             popup = document.createElement('div');
-                            popup.id = 'rmenu-enable-atc-popup';
+                            popup.id = 'rmenupro-enable-atc-popup';
                             popup.innerHTML = `
                                     <div style="
                                         display: flex;
@@ -1097,11 +1101,11 @@ function onepaquc_cart_dashboard()
                                         <span>
                                             <b>${message}</b>
                                         </span>
-                                        <span id="rmenu-enable-atc-popup-close" style="margin-left:12px;cursor:pointer;font-size:18px;">&times;</span>
+                                        <span id="rmenupro-enable-atc-popup-close" style="margin-left:12px;cursor:pointer;font-size:18px;">&times;</span>
                                     </div>
                                 `;
                             document.body.appendChild(popup);
-                            document.getElementById('rmenu-enable-atc-popup-close').onclick = function() {
+                            document.getElementById('rmenupro-enable-atc-popup-close').onclick = function() {
                                 popup.remove();
                             };
                             // Only remove the popup if it's not being hovered
@@ -1123,21 +1127,21 @@ function onepaquc_cart_dashboard()
                             highlightSection.style.border = '';
                             highlightSection.style.padding = '';
                         }
-                        const existingPopup = document.getElementById('rmenu-enable-atc-popup');
+                        const existingPopup = document.getElementById('rmenupro-enable-atc-popup');
                         if (existingPopup) {
                             existingPopup.remove();
                         }
                     }
                     document.addEventListener('DOMContentLoaded', function() {
                         // Tab click handler for direct checkout settings tabs
-                        const tabItems = document.querySelectorAll('#tab-4 .rmenu-settings-tab-item');
+                        const tabItems = document.querySelectorAll('#tab-4 .rmenupro-settings-tab-item');
                         const tabContents = document.querySelectorAll('#tab-4 .tab-content');
-                        const enableDirectCheckout = document.querySelector('input[name="rmenu_add_direct_checkout_button"]');
-                        const typeCheckboxes = document.querySelectorAll('input[name="rmenu_show_quick_checkout_by_types[]"]');
-                        const highlightSection = document.getElementById('rmenu-direct-button-display-section');
-                        const highlight_enableSection = document.getElementById('rmenu-direct-checkout-enable-field');
-                        // rmenu_show_quick_checkout_by_page[]
-                        const pageCheckboxes = document.querySelectorAll('input[name="rmenu_show_quick_checkout_by_page[]"]');
+                        const enableDirectCheckout = document.querySelector('input[name="rmenupro_add_direct_checkout_button"]');
+                        const typeCheckboxes = document.querySelectorAll('input[name="rmenupro_show_quick_checkout_by_types[]"]');
+                        const highlightSection = document.getElementById('rmenupro-direct-button-display-section');
+                        const highlight_enableSection = document.getElementById('rmenupro-direct-checkout-enable-field');
+                        // rmenupro_show_quick_checkout_by_page[]
+                        const pageCheckboxes = document.querySelectorAll('input[name="rmenupro_show_quick_checkout_by_page[]"]');
 
                         enableDirectCheckout.addEventListener('change', function() {
                             if (enableDirectCheckout.checked) {
@@ -1203,7 +1207,7 @@ function onepaquc_cart_dashboard()
                                     );
                                 } else {
                                     // Hide any existing popup
-                                    const existingPopup = document.getElementById('rmenu-enable-atc-popup');
+                                    const existingPopup = document.getElementById('rmenupro-enable-atc-popup');
                                     if (existingPopup) {
                                         existingPopup.remove();
                                     }
@@ -1235,10 +1239,10 @@ function onepaquc_cart_dashboard()
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
                     // if the "Enable One Page Checkout" checkbox is checked, enable the "Checkout Layout" select
-                    const enableCheckout = document.querySelector('div#tab-4 input[name="rmenu_add_direct_checkout_button"]');
+                    const enableCheckout = document.querySelector('div#tab-4 input[name="rmenupro_add_direct_checkout_button"]');
 
                     const allinputFields = Array.from(document.querySelectorAll('div#tab-4 input, div#tab-4 select')).filter(
-                        el => !(el.name === "rmenu_add_direct_checkout_button")
+                        el => !(el.name === "rmenupro_add_direct_checkout_button")
                     );
                     allinputFields.forEach(field => {
                         field.disabled = !enableCheckout.checked;
@@ -1257,7 +1261,7 @@ function onepaquc_cart_dashboard()
                         <th scope="row">Product Quantity Controller</th>
                         <td>
                             <label class="switch">
-                                <input type="checkbox" name="rmenu_quantity_control" value="1" <?php checked(1, get_option("rmenu_quantity_control", "1"), true); ?> />
+                                <input type="checkbox" name="rmenupro_quantity_control" value="1" <?php checked(1, get_option("rmenupro_quantity_control", "1"), true); ?> />
                                 <span class="slider round"></span>
                             </label>
                             <span class="tooltip">
@@ -1266,11 +1270,11 @@ function onepaquc_cart_dashboard()
                             </span>
                         </td>
                     </tr>
-                    <tr valign="top" class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>">
+                    <tr valign="top" class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
                         <th scope="row">Remove product Button</th>
                         <td>
                             <label class="switch">
-                                <input <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaquc_premium_feature() ? 'pro_remove_product' : 'rmenu_remove_product'; ?>" value="1" <?php checked(1, get_option("rmenu_remove_product", "1"), true); ?> />
+                                <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_remove_product' : 'rmenupro_remove_product'; ?>" value="1" <?php checked(1, get_option("rmenupro_remove_product", "1"), true); ?> />
                                 <span class="slider round"></span>
                             </label>
                             <span class="tooltip">
@@ -1283,7 +1287,7 @@ function onepaquc_cart_dashboard()
                         <th scope="row">Add Image Before Product</th>
                         <td>
                             <label class="switch">
-                                <input type="checkbox" name="rmenu_add_img_before_product" value="1" <?php checked(1, get_option("rmenu_add_img_before_product", "1"), true); ?> />
+                                <input type="checkbox" name="rmenupro_add_img_before_product" value="1" <?php checked(1, get_option("rmenupro_add_img_before_product", "1"), true); ?> />
                                 <span class="slider round"></span>
                             </label>
                             <span class="tooltip">
@@ -1296,7 +1300,7 @@ function onepaquc_cart_dashboard()
                         <th scope="row">at least one product in cart</th>
                         <td>
                             <label class="switch">
-                                <input type="checkbox" name="rmenu_at_one_product_cart" value="1" <?php checked(1, get_option("rmenu_at_one_product_cart", "1"), true); ?> />
+                                <input type="checkbox" name="rmenupro_at_one_product_cart" value="1" <?php checked(1, get_option("rmenupro_at_one_product_cart", "1"), true); ?> />
                                 <span class="slider round"></span>
                             </label>
                             <span class="tooltip">
@@ -1309,7 +1313,7 @@ function onepaquc_cart_dashboard()
                         <th scope="row">Disable Cart Page</th>
                         <td>
                             <label class="switch">
-                                <input type="checkbox" name="rmenu_disable_cart_page" value="1" <?php checked(1, get_option("rmenu_disable_cart_page", "1"), true); ?> />
+                                <input type="checkbox" name="rmenupro_disable_cart_page" value="1" <?php checked(1, get_option("rmenupro_disable_cart_page", "1"), true); ?> />
                                 <span class="slider round"></span>
                             </label>
                             <span class="tooltip">
@@ -1318,11 +1322,11 @@ function onepaquc_cart_dashboard()
                             </span>
                         </td>
                     </tr>
-                    <tr valign="top" class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>">
+                    <tr valign="top" class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
                         <th scope="row">Express Checkout options (Coming Soon)</th>
                         <td>
                             <label class="switch">
-                                <input <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaquc_premium_feature() ? 'pro_express_checkout' : 'rmenu_express_checkout'; ?>" value="1" <?php checked(1, get_option("rmenu_express_checkout", 0), true); ?> />
+                                <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_express_checkout' : 'rmenupro_express_checkout'; ?>" value="1" <?php checked(1, get_option("rmenupro_express_checkout", 0), true); ?> />
                                 <span class="slider round"></span>
                             </label>
                             <span class="tooltip">
@@ -1331,11 +1335,11 @@ function onepaquc_cart_dashboard()
                             </span>
                         </td>
                     </tr>
-                    <tr valign="top" class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>">
+                    <tr valign="top" class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
                         <th scope="row">Address Auto-Complete (Coming Soon)</th>
                         <td>
                             <label class="switch">
-                                <input <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaquc_premium_feature() ? 'pro_address_auto_complete' : 'rmenu_address_auto_complete'; ?>" value="1" <?php checked(1, get_option("rmenu_address_auto_complete", 0), true); ?> />
+                                <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_address_auto_complete' : 'rmenupro_address_auto_complete'; ?>" value="1" <?php checked(1, get_option("rmenupro_address_auto_complete", 0), true); ?> />
                                 <span class="slider round"></span>
                             </label>
                             <span class="tooltip">
@@ -1344,11 +1348,11 @@ function onepaquc_cart_dashboard()
                             </span>
                         </td>
                     </tr>
-                    <tr valign="top" class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>">
+                    <tr valign="top" class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
                         <th scope="row">Multi-step checkout (Coming Soon)</th>
                         <td>
                             <label class="switch">
-                                <input <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaquc_premium_feature() ? 'pro_multi_step_checkout' : 'rmenu_multi_step_checkout'; ?>" value="1" <?php checked(1, get_option("rmenu_multi_step_checkout", 0), true); ?> />
+                                <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_multi_step_checkout' : 'rmenupro_multi_step_checkout'; ?>" value="1" <?php checked(1, get_option("rmenupro_multi_step_checkout", 0), true); ?> />
                                 <span class="slider round"></span>
                             </label>
                             <span class="tooltip">
@@ -1357,11 +1361,11 @@ function onepaquc_cart_dashboard()
                             </span>
                         </td>
                     </tr>
-                    <tr valign="top" class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>">
-                        <th scope="row">Force login before checkout (Coming Soon)</th>
+                    <tr valign="top" class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+                        <th scope="row">Force login before checkout</th>
                         <td>
                             <label class="switch">
-                                <input <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaquc_premium_feature() ? 'pro_force_login' : 'rmenu_force_login'; ?>" value="1" <?php checked(1, get_option("rmenu_force_login", 0), true); ?> />
+                                <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_force_login' : 'rmenupro_force_login'; ?>" value="1" <?php checked(1, get_option("rmenupro_force_login", 0), true); ?> />
                                 <span class="slider round"></span>
                             </label>
                             <span class="tooltip">
@@ -1374,7 +1378,7 @@ function onepaquc_cart_dashboard()
                         <th scope="row">Link product name in checkout page</th>
                         <td>
                             <label class="switch">
-                                <input type="checkbox" name="rmenu_link_product" value="1" <?php checked(1, get_option("rmenu_link_product", "1"), true); ?> />
+                                <input type="checkbox" name="rmenupro_link_product" value="1" <?php checked(1, get_option("rmenupro_link_product", "1"), true); ?> />
                                 <span class="slider round"></span>
                             </label>
                             <span class="tooltip">
@@ -1383,11 +1387,11 @@ function onepaquc_cart_dashboard()
                             </span>
                         </td>
                     </tr>
-                    <tr valign="top" class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>">
+                    <tr valign="top" class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
                         <th scope="row">Enable captcha on checkout page (Coming Soon)</th>
                         <td>
                             <label class="switch">
-                                <input <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaquc_premium_feature() ? 'pro_enable_captcha' : 'rmenu_enable_captcha'; ?>" value="1" <?php checked(1, get_option("rmenu_enable_captcha", 0), true); ?> />
+                                <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_enable_captcha' : 'rmenupro_enable_captcha'; ?>" value="1" <?php checked(1, get_option("rmenupro_enable_captcha", 0), true); ?> />
                                 <span class="slider round"></span>
                             </label>
                             <span class="tooltip">
@@ -1399,163 +1403,163 @@ function onepaquc_cart_dashboard()
                 </table>
             </div>
             <div class="tab-content" id="tab-6">
-                <?php onepaquc_trust_badges_settings_content(); ?>
+                <?php onepaqucpro_trust_badges_settings_content(); ?>
             </div>
             <div class="tab-content" id="tab-7">
-                <div class="rmenu-settings-header">
+                <div class="rmenupro-settings-header">
                     <h2>WooCommerce Quick View</h2>
-                    <p class="rmenu-settings-description">Configure how customers can quickly preview products without visiting the product page.</p>
+                    <p class="rmenupro-settings-description">Configure how customers can quickly preview products without visiting the product page.</p>
                 </div>
-                <div class="rmenu-settings-tabs">
-                    <ul class="rmenu-settings-tab-list" style="color: #135e96;display: flex; gap: 10px; cursor: pointer;text-decoration: underline;">
-                        <li class="rmenu-settings-tab-item active" data-tab="quick-general-settings">General Settings</li>
-                        <li class="rmenu-settings-tab-item" data-tab="quick-popup">Popup Manage</li>
-                        <li class="rmenu-settings-tab-item" data-tab="quick-display">Display</li>
-                        <li class="rmenu-settings-tab-item" data-tab="quick-advanced">Advanced</li>
+                <div class="rmenupro-settings-tabs">
+                    <ul class="rmenupro-settings-tab-list" style="color: #135e96;display: flex; gap: 10px; cursor: pointer;text-decoration: underline;">
+                        <li class="rmenupro-settings-tab-item active" data-tab="quick-general-settings">General Settings</li>
+                        <li class="rmenupro-settings-tab-item" data-tab="quick-popup">Popup Manage</li>
+                        <li class="rmenupro-settings-tab-item" data-tab="quick-display">Display</li>
+                        <li class="rmenupro-settings-tab-item" data-tab="quick-advanced">Advanced</li>
                     </ul>
                 </div>
                 <div class="tab-content" id="quick-general-settings" style="padding: 0;">
-                    <div class="rmenu-settings-section">
-                        <div class="rmenu-settings-section-header">
+                    <div class="rmenupro-settings-section">
+                        <div class="rmenupro-settings-section-header">
                             <h3><span class="dashicons dashicons-admin-generic"></span> General Settings</h3>
                         </div>
 
-                        <div class="rmenu-settings-row" id="rmenu-quick-view-enable-field">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Enable Quick View</label>
-                                <div class="rmenu-settings-control">
-                                    <label class="rmenu-toggle-switch">
-                                        <input type="checkbox" name="rmenu_enable_quick_view" value="1" <?php checked(1, get_option("rmenu_enable_quick_view", 0), true); ?> />
-                                        <span class="rmenu-toggle-slider"></span>
+                        <div class="rmenupro-settings-row" id="rmenupro-quick-view-enable-field">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Enable Quick View</label>
+                                <div class="rmenupro-settings-control">
+                                    <label class="rmenupro-toggle-switch">
+                                        <input type="checkbox" name="rmenupro_enable_quick_view" value="1" <?php checked(1, get_option("rmenupro_enable_quick_view", 0), true); ?> />
+                                        <span class="rmenupro-toggle-slider"></span>
                                     </label>
-                                    <p class="rmenu-field-description">Enable or disable the quick view functionality across your WooCommerce store.</p>
+                                    <p class="rmenupro-field-description">Enable or disable the quick view functionality across your WooCommerce store.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Button Text</label>
-                                <div class="rmenu-settings-control">
+                        <div class="rmenupro-settings-row">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Button Text</label>
+                                <div class="rmenupro-settings-control">
                                     <?php
-                                    $quick_view_button_text = get_option('rmenu_quick_view_button_text', '');
+                                    $quick_view_button_text = get_option('rmenupro_quick_view_button_text', '');
                                     if (empty($quick_view_button_text)) {
                                         $quick_view_button_text = 'Quick View';
                                     }
                                     ?>
-                                    <input type="text" name="rmenu_quick_view_button_text" value="<?php echo esc_attr($quick_view_button_text); ?>" class="regular-text" />
-                                    <p class="rmenu-field-description">Customize the text displayed on the quick view button.</p>
+                                    <input type="text" name="rmenupro_quick_view_button_text" value="<?php echo esc_attr($quick_view_button_text); ?>" class="regular-text" />
+                                    <p class="rmenupro-field-description">Customize the text displayed on the quick view button.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Button Position</label>
-                                <div class="rmenu-settings-control">
-                                    <select name="rmenu_quick_view_button_position" class="rmenu-select">
-                                        <option value="after_image" <?php selected(get_option('rmenu_quick_view_button_position', 'after_image'), 'after_image'); ?>>After Product Image</option>
-                                        <option value="before_title" <?php selected(get_option('rmenu_quick_view_button_position', 'after_image'), 'before_title'); ?>>Before Product Title (Coming Soon)</option>
-                                        <option value="after_title" <?php selected(get_option('rmenu_quick_view_button_position', 'after_image'), 'after_title'); ?>>After Product Title (Coming Soon)</option>
-                                        <option value="before_price" <?php selected(get_option('rmenu_quick_view_button_position', 'after_image'), 'before_price'); ?>>Before Product Price (Coming Soon)</option>
-                                        <option value="after_price" <?php selected(get_option('rmenu_quick_view_button_position', 'after_image'), 'after_price'); ?>>After Product Price (Coming Soon)</option>
-                                        <option value="before_add_to_cart" <?php selected(get_option('rmenu_quick_view_button_position', 'after_image'), 'before_add_to_cart'); ?>>Before Add to Cart Button (Coming Soon)</option>
-                                        <option value="after_add_to_cart" <?php selected(get_option('rmenu_quick_view_button_position', 'after_image'), 'after_add_to_cart'); ?>>After Add to Cart Button</option>
-                                        <option value="image_overlay" <?php selected(get_option('rmenu_quick_view_button_position', 'after_image'), 'image_overlay'); ?>>Overlay on Product Image</option>
+                        <div class="rmenupro-settings-row">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Button Position</label>
+                                <div class="rmenupro-settings-control">
+                                    <select name="rmenupro_quick_view_button_position" class="rmenupro-select">
+                                        <option value="after_image" <?php selected(get_option('rmenupro_quick_view_button_position', 'after_image'), 'after_image'); ?>>After Product Image</option>
+                                        <option value="before_title" <?php selected(get_option('rmenupro_quick_view_button_position', 'after_image'), 'before_title'); ?>>Before Product Title (Coming Soon)</option>
+                                        <option value="after_title" <?php selected(get_option('rmenupro_quick_view_button_position', 'after_image'), 'after_title'); ?>>After Product Title (Coming Soon)</option>
+                                        <option value="before_price" <?php selected(get_option('rmenupro_quick_view_button_position', 'after_image'), 'before_price'); ?>>Before Product Price (Coming Soon)</option>
+                                        <option value="after_price" <?php selected(get_option('rmenupro_quick_view_button_position', 'after_image'), 'after_price'); ?>>After Product Price (Coming Soon)</option>
+                                        <option value="before_add_to_cart" <?php selected(get_option('rmenupro_quick_view_button_position', 'after_image'), 'before_add_to_cart'); ?>>Before Add to Cart Button (Coming Soon)</option>
+                                        <option value="after_add_to_cart" <?php selected(get_option('rmenupro_quick_view_button_position', 'after_image'), 'after_add_to_cart'); ?>>After Add to Cart Button</option>
+                                        <option value="image_overlay" <?php selected(get_option('rmenupro_quick_view_button_position', 'after_image'), 'image_overlay'); ?>>Overlay on Product Image</option>
                                     </select>
-                                    <p class="rmenu-field-description">Choose where to display the quick view button on product listings.</p>
+                                    <p class="rmenupro-field-description">Choose where to display the quick view button on product listings.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Display Type</label>
-                                <div class="rmenu-settings-control">
-                                    <select name="rmenu_quick_view_display_type" class="rmenu-select">
-                                        <option value="button" <?php selected(get_option('rmenu_quick_view_display_type', 'button'), 'button'); ?>>Button</option>
-                                        <option value="icon" <?php selected(get_option('rmenu_quick_view_display_type', 'button'), 'icon'); ?>>Icon Only</option>
-                                        <option value="text_icon" <?php selected(get_option('rmenu_quick_view_display_type', 'button'), 'text_icon'); ?>>Text with Icon</option>
-                                        <option value="hover_icon" <?php selected(get_option('rmenu_quick_view_display_type', 'button'), 'hover_icon'); ?>>Hover Icon</option>
+                        <div class="rmenupro-settings-row">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Display Type</label>
+                                <div class="rmenupro-settings-control">
+                                    <select name="rmenupro_quick_view_display_type" class="rmenupro-select">
+                                        <option value="button" <?php selected(get_option('rmenupro_quick_view_display_type', 'button'), 'button'); ?>>Button</option>
+                                        <option value="icon" <?php selected(get_option('rmenupro_quick_view_display_type', 'button'), 'icon'); ?>>Icon Only</option>
+                                        <option value="text_icon" <?php selected(get_option('rmenupro_quick_view_display_type', 'button'), 'text_icon'); ?>>Text with Icon</option>
+                                        <option value="hover_icon" <?php selected(get_option('rmenupro_quick_view_display_type', 'button'), 'hover_icon'); ?>>Hover Icon</option>
                                     </select>
-                                    <p class="rmenu-field-description">Choose how the quick view trigger should appear to customers.</p>
+                                    <p class="rmenupro-field-description">Choose how the quick view trigger should appear to customers.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="rmenu-settings-section quick-view-button-style" id="rmenu-quick-view-button-style-section">
-                        <div class="rmenu-settings-section-header">
+                    <div class="rmenupro-settings-section quick-view-button-style" id="rmenupro-quick-view-button-style-section">
+                        <div class="rmenupro-settings-section-header">
                             <h3><span class="dashicons dashicons-admin-appearance"></span> Button Style</h3>
                         </div>
 
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Button Style</label>
-                                <div class="rmenu-settings-control">
-                                    <select name="rmenu_quick_view_button_style" class="rmenu-select" id="rmenu-qv-style-select">
-                                        <option value="default" <?php selected(get_option('rmenu_quick_view_button_style', 'default'), 'default'); ?>>Default WooCommerce Style</option>
-                                        <option value="alt" <?php selected(get_option('rmenu_quick_view_button_style', 'default'), 'alt'); ?>>Alternative Style</option>
-                                        <option value="custom" <?php selected(get_option('rmenu_quick_view_button_style', 'default'), 'custom'); ?>>Custom Style</option>
+                        <div class="rmenupro-settings-row">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Button Style</label>
+                                <div class="rmenupro-settings-control">
+                                    <select name="rmenupro_quick_view_button_style" class="rmenupro-select" id="rmenupro-qv-style-select">
+                                        <option value="default" <?php selected(get_option('rmenupro_quick_view_button_style', 'default'), 'default'); ?>>Default WooCommerce Style</option>
+                                        <option value="alt" <?php selected(get_option('rmenupro_quick_view_button_style', 'default'), 'alt'); ?>>Alternative Style</option>
+                                        <option value="custom" <?php selected(get_option('rmenupro_quick_view_button_style', 'default'), 'custom'); ?>>Custom Style</option>
                                     </select>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row rmenu-settings-row-columns">
-                            <div class="rmenu-settings-column">
-                                <div class="rmenu-settings-field">
-                                    <label class="rmenu-settings-label">Button Color</label>
-                                    <div class="rmenu-settings-control">
-                                        <input type="color" name="rmenu_quick_view_button_color" value="<?php echo esc_attr(get_option('rmenu_quick_view_button_color', '#96588a')); ?>" class="rmenu-color-picker" />
+                        <div class="rmenupro-settings-row rmenupro-settings-row-columns">
+                            <div class="rmenupro-settings-column">
+                                <div class="rmenupro-settings-field">
+                                    <label class="rmenupro-settings-label">Button Color</label>
+                                    <div class="rmenupro-settings-control">
+                                        <input type="color" name="rmenupro_quick_view_button_color" value="<?php echo esc_attr(get_option('rmenupro_quick_view_button_color', '#96588a')); ?>" class="rmenupro-color-picker" />
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="rmenu-settings-column">
-                                <div class="rmenu-settings-field">
-                                    <label class="rmenu-settings-label">Text Color</label>
-                                    <div class="rmenu-settings-control">
-                                        <input type="color" name="rmenu_quick_view_text_color" value="<?php echo esc_attr(get_option('rmenu_quick_view_text_color', '#ffffff')); ?>" class="rmenu-color-picker" />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="rmenu-settings-row rmenu-settings-row-columns">
-                            <div class="rmenu-settings-column">
-                                <div class="rmenu-settings-field">
-                                    <label class="rmenu-settings-label">Button Icon</label>
-                                    <div class="rmenu-settings-control">
-                                        <select name="rmenu_quick_view_button_icon" class="rmenu-select">
-                                            <option value="none" <?php selected(get_option('rmenu_quick_view_button_icon', 'eye'), 'none'); ?>>No Icon</option>
-                                            <option value="eye" <?php selected(get_option('rmenu_quick_view_button_icon', 'eye'), 'eye'); ?>>Eye Icon</option>
-                                            <option value="search" <?php selected(get_option('rmenu_quick_view_button_icon', 'eye'), 'search'); ?>>Search Icon</option>
-                                            <option value="zoom" <?php selected(get_option('rmenu_quick_view_button_icon', 'eye'), 'zoom'); ?>>Zoom Icon</option>
-                                            <option value="preview" <?php selected(get_option('rmenu_quick_view_button_icon', 'eye'), 'preview'); ?>>Preview Icon</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="rmenu-settings-column">
-                                <div class="rmenu-settings-field">
-                                    <label class="rmenu-settings-label">Icon Position</label>
-                                    <div class="rmenu-settings-control">
-                                        <select name="rmenu_quick_view_icon_position" class="rmenu-select">
-                                            <option value="left" <?php selected(get_option('rmenu_quick_view_icon_position', 'left'), 'left'); ?>>Left</option>
-                                            <option value="right" <?php selected(get_option('rmenu_quick_view_icon_position', 'left'), 'right'); ?>>Right</option>
-                                        </select>
+                            <div class="rmenupro-settings-column">
+                                <div class="rmenupro-settings-field">
+                                    <label class="rmenupro-settings-label">Text Color</label>
+                                    <div class="rmenupro-settings-control">
+                                        <input type="color" name="rmenupro_quick_view_text_color" value="<?php echo esc_attr(get_option('rmenupro_quick_view_text_color', '#ffffff')); ?>" class="rmenupro-color-picker" />
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row rmenu-custom-css-row" id="rmenu-qv-custom-css-row" style="<?php echo (get_option('rmenu_quick_view_button_style', 'default') == 'custom') ? 'display:block;' : 'display:none;'; ?>">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Custom CSS</label>
-                                <div class="rmenu-settings-control">
-                                    <textarea name="rmenu_quick_view_custom_css" class="rmenu-textarea-code" rows="6"><?php echo esc_textarea(get_option('rmenu_quick_view_custom_css', '')); ?></textarea>
-                                    <p class="rmenu-field-description">Add custom CSS for advanced button styling. Use the class <code>.rmenu-quick-view-btn</code> to target the button and <code>.rmenu-quick-view-modal</code> to target the modal.</p>
+                        <div class="rmenupro-settings-row rmenupro-settings-row-columns">
+                            <div class="rmenupro-settings-column">
+                                <div class="rmenupro-settings-field">
+                                    <label class="rmenupro-settings-label">Button Icon</label>
+                                    <div class="rmenupro-settings-control">
+                                        <select name="rmenupro_quick_view_button_icon" class="rmenupro-select">
+                                            <option value="none" <?php selected(get_option('rmenupro_quick_view_button_icon', 'eye'), 'none'); ?>>No Icon</option>
+                                            <option value="eye" <?php selected(get_option('rmenupro_quick_view_button_icon', 'eye'), 'eye'); ?>>Eye Icon</option>
+                                            <option value="search" <?php selected(get_option('rmenupro_quick_view_button_icon', 'eye'), 'search'); ?>>Search Icon</option>
+                                            <option value="zoom" <?php selected(get_option('rmenupro_quick_view_button_icon', 'eye'), 'zoom'); ?>>Zoom Icon</option>
+                                            <option value="preview" <?php selected(get_option('rmenupro_quick_view_button_icon', 'eye'), 'preview'); ?>>Preview Icon</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="rmenupro-settings-column">
+                                <div class="rmenupro-settings-field">
+                                    <label class="rmenupro-settings-label">Icon Position</label>
+                                    <div class="rmenupro-settings-control">
+                                        <select name="rmenupro_quick_view_icon_position" class="rmenupro-select">
+                                            <option value="left" <?php selected(get_option('rmenupro_quick_view_icon_position', 'left'), 'left'); ?>>Left</option>
+                                            <option value="right" <?php selected(get_option('rmenupro_quick_view_icon_position', 'left'), 'right'); ?>>Right</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="rmenupro-settings-row rmenupro-custom-css-row" id="rmenupro-qv-custom-css-row" style="<?php echo (get_option('rmenupro_quick_view_button_style', 'default') == 'custom') ? 'display:block;' : 'display:none;'; ?>">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Custom CSS</label>
+                                <div class="rmenupro-settings-control">
+                                    <textarea name="rmenupro_quick_view_custom_css" class="rmenupro-textarea-code" rows="6"><?php echo esc_textarea(get_option('rmenupro_quick_view_custom_css', '')); ?></textarea>
+                                    <p class="rmenupro-field-description">Add custom CSS for advanced button styling. Use the class <code>.rmenupro-quick-view-btn</code> to target the button and <code>.rmenupro-quick-view-modal</code> to target the modal.</p>
                                 </div>
                             </div>
                         </div>
@@ -1563,10 +1567,10 @@ function onepaquc_cart_dashboard()
                     <script>
                         document.addEventListener('DOMContentLoaded', function() {
                             // if the "Enable One Page Checkout" checkbox is checked, enable the "Checkout Layout" select
-                            const button_style = document.querySelector('div#tab-7 select[name="rmenu_quick_view_button_style"]');
+                            const button_style = document.querySelector('div#tab-7 select[name="rmenupro_quick_view_button_style"]');
 
-                            // Select all children except the first two in the .button-style-section & except div#rmenu-atc-custom-width-row
-                            const buttonStyleSection = document.querySelector('.rmenu-settings-section.quick-view-button-style');
+                            // Select all children except the first two in the .button-style-section & except div#rmenupro-atc-custom-width-row
+                            const buttonStyleSection = document.querySelector('.rmenupro-settings-section.quick-view-button-style');
                             const allFields = Array.from(buttonStyleSection ? buttonStyleSection.children : []).slice(2);
 
                             // if button_style !== 'custom', none all fields except the first two
@@ -1584,269 +1588,269 @@ function onepaquc_cart_dashboard()
 
                             }
 
-                            // if rmenu_quick_view_button_color (which is bg color) & rmenu_quick_view_text_color (which is text color) both are dark or light, show a warning message
-                            const checkoutColor = document.querySelector('input[name="rmenu_quick_view_button_color"]');
-                            const checkoutTextColor = document.querySelector('input[name="rmenu_quick_view_text_color"]');
+                            // if rmenupro_quick_view_button_color (which is bg color) & rmenupro_quick_view_text_color (which is text color) both are dark or light, show a warning message
+                            const checkoutColor = document.querySelector('input[name="rmenupro_quick_view_button_color"]');
+                            const checkoutTextColor = document.querySelector('input[name="rmenupro_quick_view_text_color"]');
                             if (checkoutColor && checkoutTextColor) {
                                 checkoutColor.addEventListener('change', function() {
-                                    checkColors(checkoutColor, checkoutTextColor);
+                                    checkColors(checkoutColor, checkoutTextColor, button_style && button_style.value !== 'default');
                                 });
                                 checkoutTextColor.addEventListener('change', function() {
-                                    checkColors(checkoutColor, checkoutTextColor);
+                                    checkColors(checkoutColor, checkoutTextColor, button_style && button_style.value !== 'default');
                                 });
 
                                 // Initial check on page load
-                                checkColors(checkoutColor, checkoutTextColor);
+                                checkColors(checkoutColor, checkoutTextColor, button_style && button_style.value !== 'default');
                             }
                         });
                     </script>
                 </div>
-                <div class="rmenu-settings-section tab-content" id="quick-popup" style="padding: 0;">
-                    <div class="rmenu-settings-section-header">
+                <div class="rmenupro-settings-section tab-content" id="quick-popup" style="padding: 0;">
+                    <div class="rmenupro-settings-section-header">
                         <h3><span class="dashicons dashicons-visibility"></span> Quick View Content</h3>
                     </div>
 
-                    <div class="rmenu-settings-row">
-                        <div class="rmenu-settings-field" id="rmenu-quick-view-content-elements">
-                            <label class="rmenu-settings-label">Content Elements</label>
-                            <?php $content_elements_option = get_option('rmenu_quick_view_content_elements', ['image', 'title', 'rating', 'price', 'excerpt', 'add_to_cart', 'meta']); ?>
-                            <div class="rmenu-settings-control rmenu-checkbox-group">
-                                <div class="rmenu-checkbox-column">
-                                    <label class="rmenu-checkbox-container">
-                                        <input type="checkbox" name="rmenu_quick_view_content_elements[]" value="image" <?php checked(in_array('image', $content_elements_option)); ?> />
-                                        <span class="rmenu-checkbox-label">Product Image</span>
+                    <div class="rmenupro-settings-row">
+                        <div class="rmenupro-settings-field" id="rmenupro-quick-view-content-elements">
+                            <label class="rmenupro-settings-label">Content Elements</label>
+                            <?php $content_elements_option = get_option('rmenupro_quick_view_content_elements', ['image', 'title', 'rating', 'price', 'excerpt', 'add_to_cart', 'meta']); ?>
+                            <div class="rmenupro-settings-control rmenupro-checkbox-group">
+                                <div class="rmenupro-checkbox-column">
+                                    <label class="rmenupro-checkbox-container">
+                                        <input type="checkbox" name="rmenupro_quick_view_content_elements[]" value="image" <?php checked(in_array('image', $content_elements_option)); ?> />
+                                        <span class="rmenupro-checkbox-label">Product Image</span>
                                     </label>
 
-                                    <label class="rmenu-checkbox-container">
-                                        <input type="checkbox" name="rmenu_quick_view_content_elements[]" value="gallery" <?php checked(in_array('gallery', $content_elements_option)); ?> />
-                                        <span class="rmenu-checkbox-label">Product Gallery</span>
+                                    <label class="rmenupro-checkbox-container">
+                                        <input type="checkbox" name="rmenupro_quick_view_content_elements[]" value="gallery" <?php checked(in_array('gallery', $content_elements_option)); ?> />
+                                        <span class="rmenupro-checkbox-label">Product Gallery</span>
                                     </label>
 
-                                    <label class="rmenu-checkbox-container">
-                                        <input type="checkbox" name="rmenu_quick_view_content_elements[]" value="title" <?php checked(in_array('title', $content_elements_option)); ?> />
-                                        <span class="rmenu-checkbox-label">Product Title</span>
+                                    <label class="rmenupro-checkbox-container">
+                                        <input type="checkbox" name="rmenupro_quick_view_content_elements[]" value="title" <?php checked(in_array('title', $content_elements_option)); ?> />
+                                        <span class="rmenupro-checkbox-label">Product Title</span>
                                     </label>
 
-                                    <label class="rmenu-checkbox-container">
-                                        <input type="checkbox" name="rmenu_quick_view_content_elements[]" value="rating" <?php checked(in_array('rating', $content_elements_option)); ?> />
-                                        <span class="rmenu-checkbox-label">Product Rating</span>
-                                    </label>
-                                </div>
-
-                                <div class="rmenu-checkbox-column">
-                                    <label class="rmenu-checkbox-container">
-                                        <input type="checkbox" name="rmenu_quick_view_content_elements[]" value="price" <?php checked(in_array('price', $content_elements_option)); ?> />
-                                        <span class="rmenu-checkbox-label">Product Price</span>
-                                    </label>
-
-                                    <label class="rmenu-checkbox-container">
-                                        <input type="checkbox" name="rmenu_quick_view_content_elements[]" value="excerpt" <?php checked(in_array('excerpt', $content_elements_option)); ?> />
-                                        <span class="rmenu-checkbox-label">Short Description</span>
-                                    </label>
-
-                                    <label class="rmenu-checkbox-container">
-                                        <input type="checkbox" name="rmenu_quick_view_content_elements[]" value="add_to_cart" <?php checked(in_array('add_to_cart', $content_elements_option)); ?> />
-                                        <span class="rmenu-checkbox-label">Add to Cart Button</span>
-                                    </label>
-
-                                    <label class="rmenu-checkbox-container">
-                                        <input type="checkbox" name="rmenu_quick_view_content_elements[]" value="quantity" <?php checked(in_array('quantity', $content_elements_option)); ?> />
-                                        <span class="rmenu-checkbox-label">Quantity Selector</span>
+                                    <label class="rmenupro-checkbox-container">
+                                        <input type="checkbox" name="rmenupro_quick_view_content_elements[]" value="rating" <?php checked(in_array('rating', $content_elements_option)); ?> />
+                                        <span class="rmenupro-checkbox-label">Product Rating</span>
                                     </label>
                                 </div>
 
-                                <div class="rmenu-checkbox-column">
-                                    <label class="rmenu-checkbox-container">
-                                        <input type="checkbox" name="rmenu_quick_view_content_elements[]" value="meta" <?php checked(in_array('meta', $content_elements_option)); ?> />
-                                        <span class="rmenu-checkbox-label">Product Meta</span>
+                                <div class="rmenupro-checkbox-column">
+                                    <label class="rmenupro-checkbox-container">
+                                        <input type="checkbox" name="rmenupro_quick_view_content_elements[]" value="price" <?php checked(in_array('price', $content_elements_option)); ?> />
+                                        <span class="rmenupro-checkbox-label">Product Price</span>
                                     </label>
 
-                                    <label class="rmenu-checkbox-container <?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>">
-                                        <input <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaquc_premium_feature() ? 'pro_quick_view_content_elements[]' : 'rmenu_quick_view_content_elements[]'; ?>" value="sharing" <?php checked(in_array('sharing', $content_elements_option)); ?> />
-                                        <span class="rmenu-checkbox-label">Social Sharing</span>
+                                    <label class="rmenupro-checkbox-container">
+                                        <input type="checkbox" name="rmenupro_quick_view_content_elements[]" value="excerpt" <?php checked(in_array('excerpt', $content_elements_option)); ?> />
+                                        <span class="rmenupro-checkbox-label">Short Description</span>
                                     </label>
 
-                                    <label class="rmenu-checkbox-container">
-                                        <input type="checkbox" name="rmenu_quick_view_content_elements[]" value="view_details" <?php checked(in_array('view_details', $content_elements_option)); ?> />
-                                        <span class="rmenu-checkbox-label">View Details Link</span>
+                                    <label class="rmenupro-checkbox-container">
+                                        <input type="checkbox" name="rmenupro_quick_view_content_elements[]" value="add_to_cart" <?php checked(in_array('add_to_cart', $content_elements_option)); ?> />
+                                        <span class="rmenupro-checkbox-label">Add to Cart Button</span>
                                     </label>
 
-                                    <label class="rmenu-checkbox-container <?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>">
-                                        <input <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaquc_premium_feature() ? 'pro_quick_view_content_elements[]' : 'rmenu_quick_view_content_elements[]'; ?>" value="attributes" <?php checked(in_array('attributes', $content_elements_option)); ?> />
-                                        <span class="rmenu-checkbox-label">Product Attributes (Coming Soon)</span>
+                                    <label class="rmenupro-checkbox-container">
+                                        <input type="checkbox" name="rmenupro_quick_view_content_elements[]" value="quantity" <?php checked(in_array('quantity', $content_elements_option)); ?> />
+                                        <span class="rmenupro-checkbox-label">Quantity Selector</span>
+                                    </label>
+                                </div>
+
+                                <div class="rmenupro-checkbox-column">
+                                    <label class="rmenupro-checkbox-container">
+                                        <input type="checkbox" name="rmenupro_quick_view_content_elements[]" value="meta" <?php checked(in_array('meta', $content_elements_option)); ?> />
+                                        <span class="rmenupro-checkbox-label">Product Meta</span>
+                                    </label>
+
+                                    <label class="rmenupro-checkbox-container <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+                                        <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_quick_view_content_elements[]' : 'rmenupro_quick_view_content_elements[]'; ?>" value="sharing" <?php checked(in_array('sharing', $content_elements_option)); ?> />
+                                        <span class="rmenupro-checkbox-label">Social Sharing</span>
+                                    </label>
+
+                                    <label class="rmenupro-checkbox-container">
+                                        <input type="checkbox" name="rmenupro_quick_view_content_elements[]" value="view_details" <?php checked(in_array('view_details', $content_elements_option)); ?> />
+                                        <span class="rmenupro-checkbox-label">View Details Link</span>
+                                    </label>
+
+                                    <label class="rmenupro-checkbox-container <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+                                        <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_quick_view_content_elements[]' : 'rmenupro_quick_view_content_elements[]'; ?>" value="attributes" <?php checked(in_array('attributes', $content_elements_option)); ?> />
+                                        <span class="rmenupro-checkbox-label">Product Attributes (Coming Soon)</span>
                                     </label>
                                 </div>
                             </div>
-                            <p class="rmenu-field-description">Select which product elements should be displayed in the quick view popup.</p>
+                            <p class="rmenupro-field-description">Select which product elements should be displayed in the quick view popup.</p>
                         </div>
                     </div>
 
-                    <div class="rmenu-settings-row <?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>">
-                        <div class="rmenu-settings-field">
-                            <label class="rmenu-settings-label">Modal Size</label>
-                            <div class="rmenu-settings-control">
-                                <select <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> name="<?php echo !onepaquc_premium_feature() ? 'pro_quick_view_modal_size' : 'rmenu_quick_view_modal_size'; ?> " class="rmenu-select">
-                                    <option <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> value="small" <?php selected(get_option('rmenu_quick_view_modal_size', 'medium'), 'small'); ?>>Small</option>
-                                    <option <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> value="medium" <?php selected(get_option('rmenu_quick_view_modal_size', 'medium'), 'medium'); ?>>Medium</option>
-                                    <option <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> value="large" <?php selected(get_option('rmenu_quick_view_modal_size', 'medium'), 'large'); ?>>Large</option>
-                                    <option <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> value="full" <?php selected(get_option('rmenu_quick_view_modal_size', 'medium'), 'full'); ?>>Full Width</option>
-                                    <option <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> value="custom" <?php selected(get_option('rmenu_quick_view_modal_size', 'medium'), 'custom'); ?>>Custom</option>
+                    <div class="rmenupro-settings-row <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+                        <div class="rmenupro-settings-field">
+                            <label class="rmenupro-settings-label">Modal Size</label>
+                            <div class="rmenupro-settings-control">
+                                <select <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> name="<?php echo !onepaqucpro_premium_feature() ? 'pro_quick_view_modal_size' : 'rmenupro_quick_view_modal_size'; ?>" class="rmenupro-select">
+                                    <option <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> value="small" <?php selected(get_option('rmenupro_quick_view_modal_size', 'medium'), 'small'); ?>>Small</option>
+                                    <option <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> value="medium" <?php selected(get_option('rmenupro_quick_view_modal_size', 'medium'), 'medium'); ?>>Medium</option>
+                                    <option <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> value="large" <?php selected(get_option('rmenupro_quick_view_modal_size', 'medium'), 'large'); ?>>Large</option>
+                                    <option <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> value="full" <?php selected(get_option('rmenupro_quick_view_modal_size', 'medium'), 'full'); ?>>Full Width</option>
+                                    <option <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> value="custom" <?php selected(get_option('rmenupro_quick_view_modal_size', 'medium'), 'custom'); ?>>Custom</option>
                                 </select>
-                                <p class="rmenu-field-description">Choose the size of the quick view modal popup.</p>
+                                <p class="rmenupro-field-description">Choose the size of the quick view modal popup.</p>
                             </div>
                         </div>
                     </div>
 
-                    <div class="rmenu-settings-row rmenu-settings-row-columns rmenu-custom-size-row <?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>" id="rmenu-custom-size-row" style="<?php echo (get_option('rmenu_quick_view_modal_size', 'medium') == 'custom') ? 'display:flex;' : 'display:none;'; ?>">
-                        <div class="rmenu-settings-column">
-                            <div class="rmenu-settings-field <?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>">
-                                <label class="rmenu-settings-label">Custom Width</label>
-                                <div class="rmenu-settings-control">
-                                    <input <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> type="text" name="<?php echo !onepaquc_premium_feature() ? 'pro_quick_view_custom_width' : 'rmenu_quick_view_custom_width'; ?>" value="<?php echo esc_attr(get_option('rmenu_quick_view_custom_width', '800')); ?>" class="regular-text" />
-                                    <p class="rmenu-field-description">Custom width in pixels (e.g., 800).</p>
+                    <div class="rmenupro-settings-row rmenupro-settings-row-columns rmenupro-custom-size-row <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>" id="rmenupro-custom-size-row" style="<?php echo (get_option('rmenupro_quick_view_modal_size', 'medium') == 'custom') ? 'display:flex;' : 'display:none;'; ?>">
+                        <div class="rmenupro-settings-column">
+                            <div class="rmenupro-settings-field <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+                                <label class="rmenupro-settings-label">Custom Width</label>
+                                <div class="rmenupro-settings-control">
+                                    <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="text" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_quick_view_custom_width' : 'rmenupro_quick_view_custom_width'; ?>" value="<?php echo esc_attr(get_option('rmenupro_quick_view_custom_width', '800')); ?>" class="regular-text" />
+                                    <p class="rmenupro-field-description">Custom width in pixels (e.g., 800).</p>
                                 </div>
                             </div>
                         </div>
-                        <div class="rmenu-settings-column <?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Custom Height</label>
-                                <div class="rmenu-settings-control">
-                                    <input <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> type="text" name="<?php echo !onepaquc_premium_feature() ? 'pro_quick_view_custom_height' : 'rmenu_quick_view_custom_height'; ?>" value="<?php echo esc_attr(get_option('rmenu_quick_view_custom_height', '600')); ?>" class="regular-text" />
-                                    <p class="rmenu-field-description">Custom height in pixels (e.g., 600) or 'auto'.</p>
+                        <div class="rmenupro-settings-column <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Custom Height</label>
+                                <div class="rmenupro-settings-control">
+                                    <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="text" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_quick_view_custom_height' : 'rmenupro_quick_view_custom_height'; ?>" value="<?php echo esc_attr(get_option('rmenupro_quick_view_custom_height', '600')); ?>" class="regular-text" />
+                                    <p class="rmenupro-field-description">Custom height in pixels (e.g., 600) or 'auto'.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="rmenu-settings-row <?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>">
-                        <div class="rmenu-settings-field">
-                            <label class="rmenu-settings-label">Loading Effect</label>
-                            <div class="rmenu-settings-control">
-                                <select <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> name="<?php echo !onepaquc_premium_feature() ? 'pro_quick_view_loading_effect' : 'rmenu_quick_view_loading_effect'; ?>" class="rmenu-select">
-                                    <option <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> value="fade" <?php selected(get_option('rmenu_quick_view_loading_effect', 'fade'), 'fade'); ?>>Fade</option>
-                                    <option <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> value="slide" <?php selected(get_option('rmenu_quick_view_loading_effect', 'fade'), 'slide'); ?>>Slide</option>
-                                    <option <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> value="zoom" <?php selected(get_option('rmenu_quick_view_loading_effect', 'fade'), 'zoom'); ?>>Zoom</option>
-                                    <option <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> value="none" <?php selected(get_option('rmenu_quick_view_loading_effect', 'fade'), 'none'); ?>>None</option>
+                    <div class="rmenupro-settings-row <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+                        <div class="rmenupro-settings-field">
+                            <label class="rmenupro-settings-label">Loading Effect</label>
+                            <div class="rmenupro-settings-control">
+                                <select <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> name="<?php echo !onepaqucpro_premium_feature() ? 'pro_quick_view_loading_effect' : 'rmenupro_quick_view_loading_effect'; ?>" class="rmenupro-select">
+                                    <option <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> value="fade" <?php selected(get_option('rmenupro_quick_view_loading_effect', 'fade'), 'fade'); ?>>Fade</option>
+                                    <option <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> value="slide" <?php selected(get_option('rmenupro_quick_view_loading_effect', 'fade'), 'slide'); ?>>Slide</option>
+                                    <option <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> value="zoom" <?php selected(get_option('rmenupro_quick_view_loading_effect', 'fade'), 'zoom'); ?>>Zoom</option>
+                                    <option <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> value="none" <?php selected(get_option('rmenupro_quick_view_loading_effect', 'fade'), 'none'); ?>>None</option>
                                 </select>
-                                <p class="rmenu-field-description">Choose the animation effect when opening the quick view modal.</p>
+                                <p class="rmenupro-field-description">Choose the animation effect when opening the quick view modal.</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="tab-content" id="quick-display" style="padding: 0;">
-                    <div class="rmenu-settings-section" id="rmenu-quick-view-display-settings">
-                        <div class="rmenu-settings-section-header">
+                    <div class="rmenupro-settings-section" id="rmenupro-quick-view-display-settings">
+                        <div class="rmenupro-settings-section-header">
                             <h3><span class="dashicons dashicons-layout"></span> Display Settings</h3>
                         </div>
 
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Product Types</label>
-                                <?php $product_types_option = get_option('rmenu_show_quick_view_by_types', ['simple', 'variable']); ?>
-                                <div class="rmenu-settings-control rmenu-checkbox-group">
-                                    <label class="rmenu-checkbox-container">
-                                        <input type="checkbox" name="rmenu_show_quick_view_by_types[]" value="simple" <?php checked(in_array('simple', $product_types_option)); ?> />
-                                        <span class="rmenu-checkbox-label">Simple Products</span>
+                        <div class="rmenupro-settings-row">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Product Types</label>
+                                <?php $product_types_option = get_option('rmenupro_show_quick_view_by_types', ['simple', 'variable']); ?>
+                                <div class="rmenupro-settings-control rmenupro-checkbox-group">
+                                    <label class="rmenupro-checkbox-container">
+                                        <input type="checkbox" name="rmenupro_show_quick_view_by_types[]" value="simple" <?php checked(in_array('simple', $product_types_option)); ?> />
+                                        <span class="rmenupro-checkbox-label">Simple Products</span>
                                     </label>
 
-                                    <label class="rmenu-checkbox-container">
-                                        <input type="checkbox" name="rmenu_show_quick_view_by_types[]" value="variable" <?php checked(in_array('variable', $product_types_option)); ?> />
-                                        <span class="rmenu-checkbox-label">Variable Products</span>
+                                    <label class="rmenupro-checkbox-container">
+                                        <input type="checkbox" name="rmenupro_show_quick_view_by_types[]" value="variable" <?php checked(in_array('variable', $product_types_option)); ?> />
+                                        <span class="rmenupro-checkbox-label">Variable Products</span>
                                     </label>
 
-                                    <label class="rmenu-checkbox-container">
-                                        <input type="checkbox" name="rmenu_show_quick_view_by_types[]" value="grouped" <?php checked(in_array('grouped', $product_types_option)); ?> />
-                                        <span class="rmenu-checkbox-label">Grouped Products</span>
+                                    <label class="rmenupro-checkbox-container">
+                                        <input type="checkbox" name="rmenupro_show_quick_view_by_types[]" value="grouped" <?php checked(in_array('grouped', $product_types_option)); ?> />
+                                        <span class="rmenupro-checkbox-label">Grouped Products</span>
                                     </label>
 
-                                    <label class="rmenu-checkbox-container">
-                                        <input type="checkbox" name="rmenu_show_quick_view_by_types[]" value="external" <?php checked(in_array('external', $product_types_option)); ?> />
-                                        <span class="rmenu-checkbox-label">External/Affiliate Products</span>
+                                    <label class="rmenupro-checkbox-container">
+                                        <input type="checkbox" name="rmenupro_show_quick_view_by_types[]" value="external" <?php checked(in_array('external', $product_types_option)); ?> />
+                                        <span class="rmenupro-checkbox-label">External/Affiliate Products</span>
                                     </label>
                                 </div>
-                                <p class="rmenu-field-description">Select which WooCommerce product types should display the quick view button.</p>
+                                <p class="rmenupro-field-description">Select which WooCommerce product types should display the quick view button.</p>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field">
-                                <?php $product_pages_option = get_option('rmenu_show_quick_view_by_page', ['shop-page', 'category-archives', 'search']); ?>
-                                <div class="rmenu-settings-control rmenu-checkbox-group">
-                                    <div class="rmenu-checkbox-column">
+                        <div class="rmenupro-settings-row">
+                            <div class="rmenupro-settings-field">
+                                <?php $product_pages_option = get_option('rmenupro_show_quick_view_by_page', ['shop-page', 'category-archives', 'search']); ?>
+                                <div class="rmenupro-settings-control rmenupro-checkbox-group">
+                                    <div class="rmenupro-checkbox-column">
                                         <h4>Archive Pages</h4>
-                                        <label class="rmenu-checkbox-container">
-                                            <input type="checkbox" name="rmenu_show_quick_view_by_page[]" value="shop-page" <?php checked(in_array('shop-page', $product_pages_option)); ?> />
-                                            <span class="rmenu-checkbox-label">Main Shop Page</span>
+                                        <label class="rmenupro-checkbox-container">
+                                            <input type="checkbox" name="rmenupro_show_quick_view_by_page[]" value="shop-page" <?php checked(in_array('shop-page', $product_pages_option)); ?> />
+                                            <span class="rmenupro-checkbox-label">Main Shop Page</span>
                                         </label>
 
-                                        <label class="rmenu-checkbox-container">
-                                            <input type="checkbox" name="rmenu_show_quick_view_by_page[]" value="category-archives" <?php checked(in_array('category-archives', $product_pages_option)); ?> />
-                                            <span class="rmenu-checkbox-label">Product Category Archives</span>
+                                        <label class="rmenupro-checkbox-container">
+                                            <input type="checkbox" name="rmenupro_show_quick_view_by_page[]" value="category-archives" <?php checked(in_array('category-archives', $product_pages_option)); ?> />
+                                            <span class="rmenupro-checkbox-label">Product Category Archives</span>
                                         </label>
 
-                                        <label class="rmenu-checkbox-container">
-                                            <input type="checkbox" name="rmenu_show_quick_view_by_page[]" value="tag-archives" <?php checked(in_array('tag-archives', $product_pages_option)); ?> />
-                                            <span class="rmenu-checkbox-label">Product Tag Archives</span>
+                                        <label class="rmenupro-checkbox-container">
+                                            <input type="checkbox" name="rmenupro_show_quick_view_by_page[]" value="tag-archives" <?php checked(in_array('tag-archives', $product_pages_option)); ?> />
+                                            <span class="rmenupro-checkbox-label">Product Tag Archives</span>
                                         </label>
                                     </div>
 
-                                    <div class="rmenu-checkbox-column">
+                                    <div class="rmenupro-checkbox-column">
                                         <h4>Other Pages</h4>
-                                        <label class="rmenu-checkbox-container">
-                                            <input type="checkbox" name="rmenu_show_quick_view_by_page[]" value="search" <?php checked(in_array('search', $product_pages_option)); ?> />
-                                            <span class="rmenu-checkbox-label">Search Results</span>
+                                        <label class="rmenupro-checkbox-container">
+                                            <input type="checkbox" name="rmenupro_show_quick_view_by_page[]" value="search" <?php checked(in_array('search', $product_pages_option)); ?> />
+                                            <span class="rmenupro-checkbox-label">Search Results</span>
                                         </label>
 
-                                        <label class="rmenu-checkbox-container">
-                                            <input type="checkbox" name="rmenu_show_quick_view_by_page[]" value="featured-products" <?php checked(in_array('featured-products', $product_pages_option)); ?> />
-                                            <span class="rmenu-checkbox-label">Featured Products</span>
+                                        <label class="rmenupro-checkbox-container">
+                                            <input type="checkbox" name="rmenupro_show_quick_view_by_page[]" value="featured-products" <?php checked(in_array('featured-products', $product_pages_option)); ?> />
+                                            <span class="rmenupro-checkbox-label">Featured Products</span>
                                         </label>
 
-                                        <label class="rmenu-checkbox-container">
-                                            <input type="checkbox" name="rmenu_show_quick_view_by_page[]" value="on-sale" <?php checked(in_array('on-sale', $product_pages_option)); ?> />
-                                            <span class="rmenu-checkbox-label">On-Sale Products</span>
+                                        <label class="rmenupro-checkbox-container">
+                                            <input type="checkbox" name="rmenupro_show_quick_view_by_page[]" value="on-sale" <?php checked(in_array('on-sale', $product_pages_option)); ?> />
+                                            <span class="rmenupro-checkbox-label">On-Sale Products</span>
                                         </label>
 
-                                        <label class="rmenu-checkbox-container">
-                                            <input type="checkbox" name="rmenu_show_quick_view_by_page[]" value="recent" <?php checked(in_array('recent', $product_pages_option)); ?> />
-                                            <span class="rmenu-checkbox-label">Recent Products</span>
+                                        <label class="rmenupro-checkbox-container">
+                                            <input type="checkbox" name="rmenupro_show_quick_view_by_page[]" value="recent" <?php checked(in_array('recent', $product_pages_option)); ?> />
+                                            <span class="rmenupro-checkbox-label">Recent Products</span>
                                         </label>
                                     </div>
 
-                                    <div class="rmenu-checkbox-column">
+                                    <div class="rmenupro-checkbox-column">
                                         <h4>Widgets & Shortcodes</h4>
-                                        <label class="rmenu-checkbox-container">
-                                            <input type="checkbox" name="rmenu_show_quick_view_by_page[]" value="widgets" <?php checked(in_array('widgets', $product_pages_option)); ?> />
-                                            <span class="rmenu-checkbox-label">Widgets</span>
+                                        <label class="rmenupro-checkbox-container">
+                                            <input type="checkbox" name="rmenupro_show_quick_view_by_page[]" value="widgets" <?php checked(in_array('widgets', $product_pages_option)); ?> />
+                                            <span class="rmenupro-checkbox-label">Widgets</span>
                                         </label>
 
-                                        <label class="rmenu-checkbox-container">
-                                            <input type="checkbox" name="rmenu_show_quick_view_by_page[]" value="shortcodes" <?php checked(in_array('shortcodes', $product_pages_option)); ?> />
-                                            <span class="rmenu-checkbox-label">Shortcodes</span>
+                                        <label class="rmenupro-checkbox-container">
+                                            <input type="checkbox" name="rmenupro_show_quick_view_by_page[]" value="shortcodes" <?php checked(in_array('shortcodes', $product_pages_option)); ?> />
+                                            <span class="rmenupro-checkbox-label">Shortcodes</span>
                                         </label>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="rmenu-settings-section">
-                        <div class="rmenu-settings-section-header">
+                    <div class="rmenupro-settings-section">
+                        <div class="rmenupro-settings-section-header">
                             <h3><span class="dashicons dashicons-translation"></span> Translations</h3>
                         </div>
 
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">"View Details" Text</label>
-                                <div class="rmenu-settings-control">
+                        <div class="rmenupro-settings-row">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">"View Details" Text</label>
+                                <div class="rmenupro-settings-control">
                                     <?php
-                                    $details_text = get_option('rmenu_quick_view_details_text', '');
+                                    $details_text = get_option('rmenupro_quick_view_details_text', '');
                                     if (empty($details_text)) {
                                         $details_text = 'View Full Details';
                                     }
                                     ?>
-                                    <input type="text" name="rmenu_quick_view_details_text" value="<?php echo esc_attr($details_text); ?>" class="regular-text" />
-                                    <p class="rmenu-field-description">Customize the text for the "View Full Details" link in the quick view popup.</p>
+                                    <input type="text" name="rmenupro_quick_view_details_text" value="<?php echo esc_attr($details_text); ?>" class="regular-text" />
+                                    <p class="rmenupro-field-description">Customize the text for the "View Full Details" link in the quick view popup.</p>
                                 </div>
                             </div>
                         </div>
@@ -1854,150 +1858,150 @@ function onepaquc_cart_dashboard()
                 </div>
 
                 <div class="tab-content" id="quick-advanced" style="padding: 0;">
-                    <div class="rmenu-settings-section">
-                        <div class="rmenu-settings-section-header">
+                    <div class="rmenupro-settings-section">
+                        <div class="rmenupro-settings-section-header">
                             <h3><span class="dashicons dashicons-admin-tools"></span> Advanced Options</h3>
                         </div>
 
-                        <div class="rmenu-settings-row <?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Mobile Optimization (Coming Soon)</label>
-                                <div class="rmenu-settings-control">
-                                    <label class="rmenu-toggle-switch">
-                                        <input <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaquc_premium_feature() ? 'pro_quick_view_mobile_optimize' : 'rmenu_quick_view_mobile_optimize'; ?>" value="1" <?php checked(1, get_option("rmenu_quick_view_mobile_optimize", 1), true); ?> />
-                                        <span class="rmenu-toggle-slider"></span>
+                        <div class="rmenupro-settings-row <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Mobile Optimization (Coming Soon)</label>
+                                <div class="rmenupro-settings-control">
+                                    <label class="rmenupro-toggle-switch">
+                                        <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_quick_view_mobile_optimize' : 'rmenupro_quick_view_mobile_optimize'; ?>" value="1" <?php checked(1, get_option("rmenupro_quick_view_mobile_optimize", 1), true); ?> />
+                                        <span class="rmenupro-toggle-slider"></span>
                                     </label>
-                                    <p class="rmenu-field-description">When enabled, the quick view functionality will be optimized for mobile devices.</p>
+                                    <p class="rmenupro-field-description">When enabled, the quick view functionality will be optimized for mobile devices.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row <?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Close on Add to Cart (Coming Soon)</label>
-                                <div class="rmenu-settings-control">
-                                    <label class="rmenu-toggle-switch">
-                                        <input type="checkbox" name="<?php echo !onepaquc_premium_feature() ? 'pro_quick_view_close_on_add' : 'rmenu_quick_view_close_on_add'; ?>" value="1" <?php checked(1, get_option("rmenu_quick_view_close_on_add", 0), true); ?> />
-                                        <span class="rmenu-toggle-slider"></span>
+                        <div class="rmenupro-settings-row <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Close on Add to Cart (Coming Soon)</label>
+                                <div class="rmenupro-settings-control">
+                                    <label class="rmenupro-toggle-switch">
+                                        <input type="checkbox" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_quick_view_close_on_add' : 'rmenupro_quick_view_close_on_add'; ?>" value="1" <?php checked(1, get_option("rmenupro_quick_view_close_on_add", 0), true); ?> />
+                                        <span class="rmenupro-toggle-slider"></span>
                                     </label>
-                                    <p class="rmenu-field-description">When enabled, the quick view popup will automatically close after adding a product to cart.</p>
+                                    <p class="rmenupro-field-description">When enabled, the quick view popup will automatically close after adding a product to cart.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Keyboard Navigation</label>
-                                <div class="rmenu-settings-control">
-                                    <label class="rmenu-toggle-switch">
-                                        <input type="checkbox" name="rmenu_quick_view_keyboard_nav" value="1" <?php checked(1, get_option("rmenu_quick_view_keyboard_nav", 1), true); ?> />
-                                        <span class="rmenu-toggle-slider"></span>
+                        <div class="rmenupro-settings-row">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Keyboard Navigation</label>
+                                <div class="rmenupro-settings-control">
+                                    <label class="rmenupro-toggle-switch">
+                                        <input type="checkbox" name="rmenupro_quick_view_keyboard_nav" value="1" <?php checked(1, get_option("rmenupro_quick_view_keyboard_nav", 1), true); ?> />
+                                        <span class="rmenupro-toggle-slider"></span>
                                     </label>
-                                    <p class="rmenu-field-description">When enabled, customers can use keyboard arrows to navigate between products in quick view and ESC to close.</p>
+                                    <p class="rmenupro-field-description">When enabled, customers can use keyboard arrows to navigate between products in quick view and ESC to close.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="rmenu-settings-section">
-                        <div class="rmenu-settings-section-header">
+                    <div class="rmenupro-settings-section">
+                        <div class="rmenupro-settings-section-header">
                             <h3><span class="dashicons dashicons-analytics"></span> Analytics Integration</h3>
                         </div>
 
-                        <div class="rmenu-settings-row <?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Track Quick View Events</label>
-                                <div class="rmenu-settings-control">
-                                    <label class="rmenu-toggle-switch">
-                                        <input <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaquc_premium_feature() ? 'pro_quick_view_track_events' : 'rmenu_quick_view_track_events'; ?>" value="1" <?php checked(1, get_option("rmenu_quick_view_track_events", 0), true); ?> />
-                                        <span class="rmenu-toggle-slider"></span>
+                        <div class="rmenupro-settings-row <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Track Quick View Events</label>
+                                <div class="rmenupro-settings-control">
+                                    <label class="rmenupro-toggle-switch">
+                                        <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_quick_view_track_events' : 'rmenupro_quick_view_track_events'; ?>" value="1" <?php checked(1, get_option("rmenupro_quick_view_track_events", 0), true); ?> />
+                                        <span class="rmenupro-toggle-slider"></span>
                                     </label>
-                                    <p class="rmenu-field-description">Track when customers use quick view in Google Analytics or other analytics tools.</p>
+                                    <p class="rmenupro-field-description">Track when customers use quick view in Google Analytics or other analytics tools.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row <?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Event Category</label>
-                                <div class="rmenu-settings-control">
-                                    <input type="text" name="<?php echo !onepaquc_premium_feature() ? 'pro_quick_view_event_category' : 'rmenu_quick_view_event_category'; ?>" value="<?php echo esc_attr(get_option('rmenu_quick_view_event_category', 'one-page-quick-checkout-for-woocommerce')); ?>" class="regular-text" />
-                                    <p class="rmenu-field-description">The event category name used for analytics tracking.</p>
+                        <div class="rmenupro-settings-row <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Event Category</label>
+                                <div class="rmenupro-settings-control">
+                                    <input type="text" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_quick_view_event_category' : 'rmenupro_quick_view_event_category'; ?>" value="<?php echo esc_attr(get_option('rmenupro_quick_view_event_category', 'one-page-quick-checkout-for-woocommerce-pro')); ?>" class="regular-text" />
+                                    <p class="rmenupro-field-description">The event category name used for analytics tracking.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row <?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Event Action</label>
-                                <div class="rmenu-settings-control">
-                                    <input type="text" name="<?php echo !onepaquc_premium_feature() ? 'pro_quick_view_event_action' : 'rmenu_quick_view_event_action'; ?>" value="<?php echo esc_attr(get_option('rmenu_quick_view_event_action', 'Quick View')); ?>" class="regular-text" />
-                                    <p class="rmenu-field-description">The event action name used for analytics tracking.</p>
+                        <div class="rmenupro-settings-row <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Event Action</label>
+                                <div class="rmenupro-settings-control">
+                                    <input type="text" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_quick_view_event_action' : 'rmenupro_quick_view_event_action'; ?>" value="<?php echo esc_attr(get_option('rmenupro_quick_view_event_action', 'Quick View')); ?>" class="regular-text" />
+                                    <p class="rmenupro-field-description">The event action name used for analytics tracking.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="rmenu-settings-section">
-                        <div class="rmenu-settings-section-header">
+                    <div class="rmenupro-settings-section">
+                        <div class="rmenupro-settings-section-header">
                             <h3><span class="dashicons dashicons-admin-generic"></span> Compatibility Settings</h3>
                         </div>
 
-                        <div class="rmenu-settings-row <?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Load Scripts On</label>
-                                <div class="rmenu-settings-control">
-                                    <select <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> name="<?php echo !onepaquc_premium_feature() ? 'pro_quick_view_load_scripts' : 'rmenu_quick_view_load_scripts'; ?>" class="rmenu-select">
-                                        <option value="all" <?php selected(get_option('rmenu_quick_view_load_scripts', 'wc-only'), 'all'); ?>>All Pages</option>
-                                        <option value="wc-only" <?php selected(get_option('rmenu_quick_view_load_scripts', 'wc-only'), 'wc-only'); ?>>WooCommerce Pages Only</option>
-                                        <option value="specific" <?php selected(get_option('rmenu_quick_view_load_scripts', 'wc-only'), 'specific'); ?>>Specific Pages Only</option>
+                        <div class="rmenupro-settings-row <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Load Scripts On</label>
+                                <div class="rmenupro-settings-control">
+                                    <select <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> name="<?php echo !onepaqucpro_premium_feature() ? 'pro_quick_view_load_scripts' : 'rmenupro_quick_view_load_scripts'; ?>" class="rmenupro-select">
+                                        <option value="all" <?php selected(get_option('rmenupro_quick_view_load_scripts', 'wc-only'), 'all'); ?>>All Pages</option>
+                                        <option value="wc-only" <?php selected(get_option('rmenupro_quick_view_load_scripts', 'wc-only'), 'wc-only'); ?>>WooCommerce Pages Only</option>
+                                        <option value="specific" <?php selected(get_option('rmenupro_quick_view_load_scripts', 'wc-only'), 'specific'); ?>>Specific Pages Only</option>
                                     </select>
-                                    <p class="rmenu-field-description">Control where quick view scripts are loaded to improve compatibility and performance.</p>
+                                    <p class="rmenupro-field-description">Control where quick view scripts are loaded to improve compatibility and performance.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row <?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>" id="rmenu-specific-pages-row" style="<?php echo (get_option('rmenu_quick_view_load_scripts', 'wc-only') == 'specific') ? 'display:block;' : 'display:none;'; ?>">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Specific Pages IDs</label>
-                                <div class="rmenu-settings-control">
-                                    <input <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> type="text" name="<?php echo !onepaquc_premium_feature() ? 'pro_quick_view_specific_pages' : 'rmenu_quick_view_specific_pages'; ?>" value="<?php echo esc_attr(get_option('rmenu_quick_view_specific_pages', '')); ?>" class="regular-text" />
-                                    <p class="rmenu-field-description">Enter page IDs separated by commas (e.g., 10, 15, 21).</p>
+                        <div class="rmenupro-settings-row <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>" id="rmenupro-specific-pages-row" style="<?php echo (get_option('rmenupro_quick_view_load_scripts', 'wc-only') == 'specific') ? 'display:block;' : 'display:none;'; ?>">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Specific Pages IDs</label>
+                                <div class="rmenupro-settings-control">
+                                    <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="text" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_quick_view_specific_pages' : 'rmenupro_quick_view_specific_pages'; ?>" value="<?php echo esc_attr(get_option('rmenupro_quick_view_specific_pages', '')); ?>" class="regular-text" />
+                                    <p class="rmenupro-field-description">Enter page IDs separated by commas (e.g., 10, 15, 21).</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Theme Compatibility Mode</label>
-                                <div class="rmenu-settings-control">
-                                    <label class="rmenu-toggle-switch">
-                                        <input type="checkbox" name="rmenu_quick_view_theme_compat" value="1" <?php checked(1, get_option("rmenu_quick_view_theme_compat", 0), true); ?> />
-                                        <span class="rmenu-toggle-slider"></span>
+                        <div class="rmenupro-settings-row">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Theme Compatibility Mode</label>
+                                <div class="rmenupro-settings-control">
+                                    <label class="rmenupro-toggle-switch">
+                                        <input type="checkbox" name="rmenupro_quick_view_theme_compat" value="1" <?php checked(1, get_option("rmenupro_quick_view_theme_compat", 0), true); ?> />
+                                        <span class="rmenupro-toggle-slider"></span>
                                     </label>
-                                    <p class="rmenu-field-description">Enable this if you experience display issues with your theme.</p>
+                                    <p class="rmenupro-field-description">Enable this if you experience display issues with your theme.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="rmenu-settings-section">
-                        <div class="rmenu-settings-section-header">
+                    <div class="rmenupro-settings-section">
+                        <div class="rmenupro-settings-section-header">
                             <h3><span class="dashicons dashicons-info"></span> Documentation & Support (Coming Soon)</h3>
                         </div>
 
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field">
-                                <div class="rmenu-settings-info-box">
+                        <div class="rmenupro-settings-row">
+                            <div class="rmenupro-settings-field">
+                                <div class="rmenupro-settings-info-box">
                                     <h4>Quick View Documentation</h4>
                                     <p>For detailed instructions on customizing the Quick View feature, please visit our documentation:</p>
-                                    <a href="#" class="button button-secondary">View Documentation</a>
+                                    <a target="_blank" href="https://plugincy.com/documentations/one-page-quick-checkout-for-woocommerce/quick-view/woocommerce-quick-view-general-settings/" class="button button-secondary">View Documentation</a>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row <?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>">
-                            <div class="rmenu-settings-field">
-                                <div class="rmenu-settings-info-box">
+                        <div class="rmenupro-settings-row <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+                            <div class="rmenupro-settings-field">
+                                <div class="rmenupro-settings-info-box">
                                     <h4>Shortcode Reference (Coming Soon)</h4>
                                     <p>You can use the following shortcode to display the Quick View button anywhere on your site:</p>
                                     <code>[plugincy_quick_view product_id="123" button_text="Quick Preview"]</code>
@@ -2010,29 +2014,29 @@ function onepaquc_cart_dashboard()
                 <script>
                     jQuery(document).ready(function($) {
                         // Show/hide custom size fields based on modal size selection
-                        $('#rmenu-qv-style-select').on('change', function() {
+                        $('#rmenupro-qv-style-select').on('change', function() {
                             if ($(this).val() === 'custom') {
-                                $('#rmenu-qv-custom-css-row').show();
+                                $('#rmenupro-qv-custom-css-row').show();
                             } else {
-                                $('#rmenu-qv-custom-css-row').hide();
+                                $('#rmenupro-qv-custom-css-row').hide();
                             }
                         });
 
                         // Show/hide specific pages field
-                        $('select[name="rmenu_quick_view_load_scripts"]').on('change', function() {
+                        $('select[name="rmenupro_quick_view_load_scripts"]').on('change', function() {
                             if ($(this).val() === 'specific') {
-                                $('#rmenu-specific-pages-row').show();
+                                $('#rmenupro-specific-pages-row').show();
                             } else {
-                                $('#rmenu-specific-pages-row').hide();
+                                $('#rmenupro-specific-pages-row').hide();
                             }
                         });
 
                         // Show/hide custom size fields based on modal size selection
-                        $('select[name="rmenu_quick_view_modal_size"]').on('change', function() {
+                        $('select[name="rmenupro_quick_view_modal_size"]').on('change', function() {
                             if ($(this).val() === 'custom') {
-                                $('#rmenu-custom-size-row').show();
+                                $('#rmenupro-custom-size-row').show();
                             } else {
-                                $('#rmenu-custom-size-row').hide();
+                                $('#rmenupro-custom-size-row').hide();
                             }
                         });
                     });
@@ -2040,14 +2044,14 @@ function onepaquc_cart_dashboard()
                 <script>
                     document.addEventListener('DOMContentLoaded', function() {
                         // Tab click handler for Add To Cart settings tabs
-                        const tabItems = document.querySelectorAll('#tab-7 .rmenu-settings-tab-item');
+                        const tabItems = document.querySelectorAll('#tab-7 .rmenupro-settings-tab-item');
                         const tabContents = document.querySelectorAll('#tab-7 > .tab-content');
-                        const enableCustomQuickView = document.querySelector('input[name="rmenu_enable_quick_view"]');
-                        const highlight_quick_view_enable_Section = document.querySelector('#rmenu-quick-view-enable-field');
-                        const highlight_popup_content_element_Section = document.querySelector('#rmenu-quick-view-content-elements');
-                        const highlight_quick_view_display_Section = document.querySelector('#rmenu-quick-view-display-settings');
-                        const productTypes = document.querySelectorAll('input[name="rmenu_show_quick_view_by_types[]"]');
-                        const productPages = document.querySelectorAll('input[name="rmenu_show_quick_view_by_page[]"]');
+                        const enableCustomQuickView = document.querySelector('input[name="rmenupro_enable_quick_view"]');
+                        const highlight_quick_view_enable_Section = document.querySelector('#rmenupro-quick-view-enable-field');
+                        const highlight_popup_content_element_Section = document.querySelector('#rmenupro-quick-view-content-elements');
+                        const highlight_quick_view_display_Section = document.querySelector('#rmenupro-quick-view-display-settings');
+                        const productTypes = document.querySelectorAll('input[name="rmenupro_show_quick_view_by_types[]"]');
+                        const productPages = document.querySelectorAll('input[name="rmenupro_show_quick_view_by_page[]"]');
 
                         tabItems.forEach(function(tab) {
                             tab.addEventListener('click', function() {
@@ -2080,8 +2084,8 @@ function onepaquc_cart_dashboard()
                         enableCustomQuickView.addEventListener('change', function() {
                             if (this.checked) {
                                 removeDirectCheckoutWarning(highlight_quick_view_enable_Section);
-                                // in rmenu_quick_view_content_elements[] if no checkbox is checked. show a warning
-                                const contentElements = document.querySelectorAll('input[name="rmenu_quick_view_content_elements[]"]');
+                                // in rmenupro_quick_view_content_elements[] if no checkbox is checked. show a warning
+                                const contentElements = document.querySelectorAll('input[name="rmenupro_quick_view_content_elements[]"]');
                                 let isAnyChecked = false;
                                 contentElements.forEach(function(element) {
                                     if (element.checked) {
@@ -2095,7 +2099,7 @@ function onepaquc_cart_dashboard()
                                     );
                                 }
 
-                                // if rmenu_show_quick_view_by_types[] & rmenu_show_quick_view_by_page[] are empty, show a warning
+                                // if rmenupro_show_quick_view_by_types[] & rmenupro_show_quick_view_by_page[] are empty, show a warning
                                 let isAnyTypeChecked = false;
                                 let isAnyPageChecked = false;
                                 productTypes.forEach(function(element) {
@@ -2169,8 +2173,8 @@ function onepaquc_cart_dashboard()
 
 
 
-                        // on changes in rmenu_quick_view_content_elements[] if no checkbox is checked. show a warning
-                        const contentElements = document.querySelectorAll('input[name="rmenu_quick_view_content_elements[]"]');
+                        // on changes in rmenupro_quick_view_content_elements[] if no checkbox is checked. show a warning
+                        const contentElements = document.querySelectorAll('input[name="rmenupro_quick_view_content_elements[]"]');
                         contentElements.forEach(function(element) {
                             element.addEventListener('change', function() {
                                 let isAnyChecked = false;
@@ -2187,7 +2191,7 @@ function onepaquc_cart_dashboard()
                                     );
                                 }
 
-                                // if rmenu_show_quick_view_by_types[] & rmenu_show_quick_view_by_page[] are empty, show a warning                                
+                                // if rmenupro_show_quick_view_by_types[] & rmenupro_show_quick_view_by_page[] are empty, show a warning                                
                                 let isAnyTypeChecked = false;
                                 let isAnyPageChecked = false;
                                 productTypes.forEach(function(element) {
@@ -2219,13 +2223,13 @@ function onepaquc_cart_dashboard()
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
                     // if the "Enable One Page Checkout" checkbox is checked, enable the "Checkout Layout" select
-                    const enableCheckout = document.querySelector('div#tab-7 input[name="rmenu_enable_quick_view"]');
-                    // if rmenu_quick_view_display_type is icon, disable the rmenu_quick_view_button_text
-                    const quickViewDisplayType = document.querySelector('div#tab-7 select[name="rmenu_quick_view_display_type"]');
-                    const quickViewButtonText = document.querySelector('div#tab-7 input[name="rmenu_quick_view_button_text"]');
-                    // if rmenu_quick_view_button_icon is none, show warning
-                    const quickViewButtonIcon = document.querySelector('div#tab-7 select[name="rmenu_quick_view_button_icon"]');
-                    const heighlight_quick_view_button_style = document.querySelector('#rmenu-quick-view-button-style-section');
+                    const enableCheckout = document.querySelector('div#tab-7 input[name="rmenupro_enable_quick_view"]');
+                    // if rmenupro_quick_view_display_type is icon, disable the rmenupro_quick_view_button_text
+                    const quickViewDisplayType = document.querySelector('div#tab-7 select[name="rmenupro_quick_view_display_type"]');
+                    const quickViewButtonText = document.querySelector('div#tab-7 input[name="rmenupro_quick_view_button_text"]');
+                    // if rmenupro_quick_view_button_icon is none, show warning
+                    const quickViewButtonIcon = document.querySelector('div#tab-7 select[name="rmenupro_quick_view_button_icon"]');
+                    const heighlight_quick_view_button_style = document.querySelector('#rmenupro-quick-view-button-style-section');
                     quickViewDisplayType.addEventListener('change', function() {
                         if (this.value === 'icon') {
                             quickViewButtonText.disabled = true;
@@ -2257,7 +2261,7 @@ function onepaquc_cart_dashboard()
                     });
 
                     const allinputFields = Array.from(document.querySelectorAll('div#tab-7 input, div#tab-7 select')).filter(
-                        el => !(el.name === "rmenu_enable_quick_view")
+                        el => !(el.name === "rmenupro_enable_quick_view")
                     );
                     allinputFields.forEach(field => {
                         field.disabled = !enableCheckout.checked;
@@ -2269,10 +2273,10 @@ function onepaquc_cart_dashboard()
                     });
 
                     // Show/hide custom CSS row based on selected style after page load
-                    const styleSelect = document.querySelector('select[name="rmenu_quick_view_button_style"]');
-                    const customCssRow = document.querySelector('textarea[name="rmenu_quick_view_custom_css"]').closest('.rmenu-settings-row');
-                    // if rmenu_quick_view_display_type is button, hide the rmenu_quick_view_button_icon & rmenu_quick_view_icon_position
-                    const quickViewButtonIconRow = quickViewButtonIcon.closest('.rmenu-settings-row');
+                    const styleSelect = document.querySelector('select[name="rmenupro_quick_view_button_style"]');
+                    const customCssRow = document.querySelector('textarea[name="rmenupro_quick_view_custom_css"]').closest('.rmenupro-settings-row');
+                    // if rmenupro_quick_view_display_type is button, hide the rmenupro_quick_view_button_icon & rmenupro_quick_view_icon_position
+                    const quickViewButtonIconRow = quickViewButtonIcon.closest('.rmenupro-settings-row');
                     const updateQuickViewDisplayType = () => {
                         if (quickViewDisplayType.value === 'button') {
                             quickViewButtonIconRow.style.display = 'none';
@@ -2301,219 +2305,219 @@ function onepaquc_cart_dashboard()
                 });
             </script>
             <div class="tab-content" id="tab-8">
-                <div class="rmenu-settings-header">
+                <div class="rmenupro-settings-header">
                     <h2>WooCommerce Add To Cart</h2>
-                    <p class="rmenu-settings-description">Customize the Add to Cart button appearance and behavior throughout your store.</p>
+                    <p class="rmenupro-settings-description">Customize the Add to Cart button appearance and behavior throughout your store.</p>
                 </div>
-                <div class="rmenu-settings-tabs">
-                    <ul class="rmenu-settings-tab-list" style="color: #135e96;display: flex; gap: 10px; cursor: pointer;text-decoration: underline;">
-                        <li class="rmenu-settings-tab-item active" data-tab="general-settings">General Settings</li>
-                        <li class="rmenu-settings-tab-item" data-tab="button-behavior">Button Behavior</li>
-                        <li class="rmenu-settings-tab-item" data-tab="advanced">Advanced</li>
+                <div class="rmenupro-settings-tabs">
+                    <ul class="rmenupro-settings-tab-list" style="color: #135e96;display: flex; gap: 10px; cursor: pointer;text-decoration: underline;">
+                        <li class="rmenupro-settings-tab-item active" data-tab="general-settings">General Settings</li>
+                        <li class="rmenupro-settings-tab-item" data-tab="button-behavior">Button Behavior</li>
+                        <li class="rmenupro-settings-tab-item" data-tab="advanced">Advanced</li>
                     </ul>
                 </div>
                 <div class="tab-content" id="general-settings" style="padding: 0;">
-                    <div class="rmenu-settings-section">
-                        <div class="rmenu-settings-section-header">
+                    <div class="rmenupro-settings-section">
+                        <div class="rmenupro-settings-section-header">
                             <h3><span class="dashicons dashicons-admin-generic"></span> General Settings</h3>
                         </div>
 
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field" id="rmenu-enable-custom-add-to-cart">
-                                <label class="rmenu-settings-label">Enable Custom Add to Cart</label>
-                                <div class="rmenu-settings-control">
-                                    <label class="rmenu-toggle-switch">
-                                        <input type="checkbox" name="rmenu_enable_custom_add_to_cart" value="1" <?php checked(1, get_option("rmenu_enable_custom_add_to_cart", 0), true); ?> />
-                                        <span class="rmenu-toggle-slider"></span>
+                        <div class="rmenupro-settings-row">
+                            <div class="rmenupro-settings-field" id="rmenupro-enable-custom-add-to-cart">
+                                <label class="rmenupro-settings-label">Enable Custom Add to Cart</label>
+                                <div class="rmenupro-settings-control">
+                                    <label class="rmenupro-toggle-switch">
+                                        <input type="checkbox" name="rmenupro_enable_custom_add_to_cart" value="1" <?php checked(1, get_option("rmenupro_enable_custom_add_to_cart", 0), true); ?> />
+                                        <span class="rmenupro-toggle-slider"></span>
                                     </label>
-                                    <p class="rmenu-field-description">Enable or disable custom Add to Cart styling and functionality.</p>
+                                    <p class="rmenupro-field-description">Enable or disable custom Add to Cart styling and functionality.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Button Text</label>
-                                <div class="rmenu-settings-control">
+                        <div class="rmenupro-settings-row">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Button Text</label>
+                                <div class="rmenupro-settings-control">
                                     <input type="text" name="txt-add-to-cart" value="<?php echo esc_attr(get_option('txt-add-to-cart', 'Add to Cart')); ?>" class="regular-text" />
-                                    <p class="rmenu-field-description">Customize the text displayed on the Add to Cart button for simple products.</p>
+                                    <p class="rmenupro-field-description">Customize the text displayed on the Add to Cart button for simple products.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Variable Product Button Text</label>
-                                <div class="rmenu-settings-control">
+                        <div class="rmenupro-settings-row">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Variable Product Button Text</label>
+                                <div class="rmenupro-settings-control">
                                     <input type="text" name="txt-select-options" value="<?php echo esc_attr(get_option('txt-select-options', 'Select Options')); ?>" class="regular-text" />
-                                    <p class="rmenu-field-description">Customize the text displayed on the Add to Cart button for variable products.</p>
+                                    <p class="rmenupro-field-description">Customize the text displayed on the Add to Cart button for variable products.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Read More Button Text</label>
-                                <div class="rmenu-settings-control">
+                        <div class="rmenupro-settings-row">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Read More Button Text</label>
+                                <div class="rmenupro-settings-control">
                                     <input type="text" name="txt-read-more" value="<?php echo esc_attr(get_option('txt-read-more', 'Select Options')); ?>" class="regular-text" />
-                                    <p class="rmenu-field-description">Customize the text displayed on the Add to Cart button for variable products.</p>
+                                    <p class="rmenupro-field-description">Customize the text displayed on the Add to Cart button for variable products.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Grouped Product Button Text</label>
-                                <div class="rmenu-settings-control">
-                                    <input type="text" name="rmenu_grouped_add_to_cart_text" value="<?php echo esc_attr(get_option('rmenu_grouped_add_to_cart_text', 'View Products')); ?>" class="regular-text" />
-                                    <p class="rmenu-field-description">Customize the text displayed on the Add to Cart button for grouped products.</p>
+                        <div class="rmenupro-settings-row">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Grouped Product Button Text</label>
+                                <div class="rmenupro-settings-control">
+                                    <input type="text" name="rmenupro_grouped_add_to_cart_text" value="<?php echo esc_attr(get_option('rmenupro_grouped_add_to_cart_text', 'View Products')); ?>" class="regular-text" />
+                                    <p class="rmenupro-field-description">Customize the text displayed on the Add to Cart button for grouped products.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="rmenu-settings-section button-style-section">
-                        <div class="rmenu-settings-section-header">
+                    <div class="rmenupro-settings-section button-style-section">
+                        <div class="rmenupro-settings-section-header">
                             <h3><span class="dashicons dashicons-admin-appearance"></span> Button Style</h3>
                         </div>
 
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Button Style</label>
-                                <div class="rmenu-settings-control">
-                                    <select name="rmenu_add_to_cart_style" class="rmenu-select" id="rmenu-atc-style-select">
-                                        <option value="default" <?php selected(get_option('rmenu_add_to_cart_style', 'default'), 'default'); ?>>Default WooCommerce Style</option>
-                                        <option value="modern" <?php selected(get_option('rmenu_add_to_cart_style', 'default'), 'modern'); ?>>Modern Style</option>
-                                        <option value="rounded" <?php selected(get_option('rmenu_add_to_cart_style', 'default'), 'rounded'); ?>>Rounded Style</option>
-                                        <option value="minimal" <?php selected(get_option('rmenu_add_to_cart_style', 'default'), 'minimal'); ?>>Minimal Style</option>
-                                        <option value="custom" <?php selected(get_option('rmenu_add_to_cart_style', 'default'), 'custom'); ?>>Custom Style</option>
+                        <div class="rmenupro-settings-row">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Button Style</label>
+                                <div class="rmenupro-settings-control">
+                                    <select name="rmenupro_add_to_cart_style" class="rmenupro-select" id="rmenupro-atc-style-select">
+                                        <option value="default" <?php selected(get_option('rmenupro_add_to_cart_style', 'default'), 'default'); ?>>Default WooCommerce Style</option>
+                                        <option value="modern" <?php selected(get_option('rmenupro_add_to_cart_style', 'default'), 'modern'); ?>>Modern Style</option>
+                                        <option value="rounded" <?php selected(get_option('rmenupro_add_to_cart_style', 'default'), 'rounded'); ?>>Rounded Style</option>
+                                        <option value="minimal" <?php selected(get_option('rmenupro_add_to_cart_style', 'default'), 'minimal'); ?>>Minimal Style</option>
+                                        <option value="custom" <?php selected(get_option('rmenupro_add_to_cart_style', 'default'), 'custom'); ?>>Custom Style</option>
                                     </select>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row rmenu-settings-row-columns">
-                            <div class="rmenu-settings-column">
-                                <div class="rmenu-settings-field">
-                                    <label class="rmenu-settings-label">Button Color</label>
-                                    <div class="rmenu-settings-control">
-                                        <input type="color" name="rmenu_add_to_cart_bg_color" value="<?php echo esc_attr(get_option('rmenu_add_to_cart_bg_color', '#96588a')); ?>" class="rmenu-color-picker" />
+                        <div class="rmenupro-settings-row rmenupro-settings-row-columns">
+                            <div class="rmenupro-settings-column">
+                                <div class="rmenupro-settings-field">
+                                    <label class="rmenupro-settings-label">Button Color</label>
+                                    <div class="rmenupro-settings-control">
+                                        <input type="color" name="rmenupro_add_to_cart_bg_color" value="<?php echo esc_attr(get_option('rmenupro_add_to_cart_bg_color', '#96588a')); ?>" class="rmenupro-color-picker" />
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="rmenu-settings-column">
-                                <div class="rmenu-settings-field">
-                                    <label class="rmenu-settings-label">Text Color</label>
-                                    <div class="rmenu-settings-control">
-                                        <input type="color" name="rmenu_add_to_cart_text_color" value="<?php echo esc_attr(get_option('rmenu_add_to_cart_text_color', '#ffffff')); ?>" class="rmenu-color-picker" />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="rmenu-settings-row rmenu-settings-row-columns">
-                            <div class="rmenu-settings-column">
-                                <div class="rmenu-settings-field">
-                                    <label class="rmenu-settings-label">Hover Background Color</label>
-                                    <div class="rmenu-settings-control">
-                                        <input type="color" name="rmenu_add_to_cart_hover_bg_color" value="<?php echo esc_attr(get_option('rmenu_add_to_cart_hover_bg_color', '#7f4579')); ?>" class="rmenu-color-picker" />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="rmenu-settings-column">
-                                <div class="rmenu-settings-field">
-                                    <label class="rmenu-settings-label">Hover Text Color</label>
-                                    <div class="rmenu-settings-control">
-                                        <input type="color" name="rmenu_add_to_cart_hover_text_color" value="<?php echo esc_attr(get_option('rmenu_add_to_cart_hover_text_color', '#ffffff')); ?>" class="rmenu-color-picker" />
+                            <div class="rmenupro-settings-column">
+                                <div class="rmenupro-settings-field">
+                                    <label class="rmenupro-settings-label">Text Color</label>
+                                    <div class="rmenupro-settings-control">
+                                        <input type="color" name="rmenupro_add_to_cart_text_color" value="<?php echo esc_attr(get_option('rmenupro_add_to_cart_text_color', '#ffffff')); ?>" class="rmenupro-color-picker" />
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row rmenu-settings-row-columns">
-                            <div class="rmenu-settings-column">
-                                <div class="rmenu-settings-field">
-                                    <label class="rmenu-settings-label">Border Radius</label>
-                                    <div class="rmenu-settings-control">
-                                        <input type="number" name="rmenu_add_to_cart_border_radius" value="<?php echo esc_attr(get_option('rmenu_add_to_cart_border_radius', '3')); ?>" class="small-text" min="0" max="50" step="1" />
-                                        <span class="rmenu-unit">px</span>
+                        <div class="rmenupro-settings-row rmenupro-settings-row-columns">
+                            <div class="rmenupro-settings-column">
+                                <div class="rmenupro-settings-field">
+                                    <label class="rmenupro-settings-label">Hover Background Color</label>
+                                    <div class="rmenupro-settings-control">
+                                        <input type="color" name="rmenupro_add_to_cart_hover_bg_color" value="<?php echo esc_attr(get_option('rmenupro_add_to_cart_hover_bg_color', '#7f4579')); ?>" class="rmenupro-color-picker" />
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="rmenu-settings-column">
-                                <div class="rmenu-settings-field">
-                                    <label class="rmenu-settings-label">Button Font Size</label>
-                                    <div class="rmenu-settings-control">
-                                        <input type="number" name="rmenu_add_to_cart_font_size" value="<?php echo esc_attr(get_option('rmenu_add_to_cart_font_size', '14')); ?>" class="small-text" min="10" max="24" step="1" />
-                                        <span class="rmenu-unit">px</span>
+                            <div class="rmenupro-settings-column">
+                                <div class="rmenupro-settings-field">
+                                    <label class="rmenupro-settings-label">Hover Text Color</label>
+                                    <div class="rmenupro-settings-control">
+                                        <input type="color" name="rmenupro_add_to_cart_hover_text_color" value="<?php echo esc_attr(get_option('rmenupro_add_to_cart_hover_text_color', '#ffffff')); ?>" class="rmenupro-color-picker" />
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Button Width</label>
-                                <div class="rmenu-settings-control">
-                                    <select name="rmenu_add_to_cart_width" class="rmenu-select">
-                                        <option value="auto" <?php selected(get_option('rmenu_add_to_cart_width', 'auto'), 'auto'); ?>>Auto</option>
-                                        <option value="full" <?php selected(get_option('rmenu_add_to_cart_width', 'auto'), 'full'); ?>>Full Width</option>
-                                        <option value="custom" <?php selected(get_option('rmenu_add_to_cart_width', 'auto'), 'custom'); ?>>Custom Width</option>
+                        <div class="rmenupro-settings-row rmenupro-settings-row-columns">
+                            <div class="rmenupro-settings-column">
+                                <div class="rmenupro-settings-field">
+                                    <label class="rmenupro-settings-label">Border Radius</label>
+                                    <div class="rmenupro-settings-control">
+                                        <input type="number" name="rmenupro_add_to_cart_border_radius" value="<?php echo esc_attr(get_option('rmenupro_add_to_cart_border_radius', '3')); ?>" class="small-text" min="0" max="50" step="1" />
+                                        <span class="rmenupro-unit">px</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="rmenupro-settings-column">
+                                <div class="rmenupro-settings-field">
+                                    <label class="rmenupro-settings-label">Button Font Size</label>
+                                    <div class="rmenupro-settings-control">
+                                        <input type="number" name="rmenupro_add_to_cart_font_size" value="<?php echo esc_attr(get_option('rmenupro_add_to_cart_font_size', '14')); ?>" class="small-text" min="10" max="24" step="1" />
+                                        <span class="rmenupro-unit">px</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="rmenupro-settings-row">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Button Width</label>
+                                <div class="rmenupro-settings-control">
+                                    <select name="rmenupro_add_to_cart_width" class="rmenupro-select">
+                                        <option value="auto" <?php selected(get_option('rmenupro_add_to_cart_width', 'auto'), 'auto'); ?>>Auto</option>
+                                        <option value="full" <?php selected(get_option('rmenupro_add_to_cart_width', 'auto'), 'full'); ?>>Full Width</option>
+                                        <option value="custom" <?php selected(get_option('rmenupro_add_to_cart_width', 'auto'), 'custom'); ?>>Custom Width</option>
                                     </select>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row" id="rmenu-atc-custom-width-row" style="<?php echo (get_option('rmenu_add_to_cart_width', 'auto') == 'custom') ? 'display:block;' : 'display:none;'; ?>">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Custom Width Value</label>
-                                <div class="rmenu-settings-control">
-                                    <input type="number" name="rmenu_add_to_cart_custom_width" value="<?php echo esc_attr(get_option('rmenu_add_to_cart_custom_width', '150')); ?>" class="small-text" min="50" max="500" step="1" />
-                                    <span class="rmenu-unit">px</span>
+                        <div class="rmenupro-settings-row" id="rmenupro-atc-custom-width-row" style="<?php echo (get_option('rmenupro_add_to_cart_width', 'auto') == 'custom') ? 'display:block;' : 'display:none;'; ?>">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Custom Width Value</label>
+                                <div class="rmenupro-settings-control">
+                                    <input type="number" name="rmenupro_add_to_cart_custom_width" value="<?php echo esc_attr(get_option('rmenupro_add_to_cart_custom_width', '150')); ?>" class="small-text" min="50" max="500" step="1" />
+                                    <span class="rmenupro-unit">px</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row rmenu-settings-row-columns">
-                            <div class="rmenu-settings-column">
-                                <div class="rmenu-settings-field">
-                                    <label class="rmenu-settings-label">Button Icon</label>
-                                    <div class="rmenu-settings-control">
-                                        <select name="rmenu_add_to_cart_icon" class="rmenu-select">
-                                            <option value="none" <?php selected(get_option('rmenu_add_to_cart_icon', 'none'), 'none'); ?>>No Icon</option>
-                                            <option value="cart" <?php selected(get_option('rmenu_add_to_cart_icon', 'none'), 'cart'); ?>>Cart Icon</option>
-                                            <option value="plus" <?php selected(get_option('rmenu_add_to_cart_icon', 'none'), 'plus'); ?>>Plus Icon</option>
-                                            <option value="bag" <?php selected(get_option('rmenu_add_to_cart_icon', 'none'), 'bag'); ?>>Shopping Bag Icon</option>
-                                            <option value="basket" <?php selected(get_option('rmenu_add_to_cart_icon', 'none'), 'basket'); ?>>Basket Icon</option>
+                        <div class="rmenupro-settings-row rmenupro-settings-row-columns">
+                            <div class="rmenupro-settings-column">
+                                <div class="rmenupro-settings-field">
+                                    <label class="rmenupro-settings-label">Button Icon</label>
+                                    <div class="rmenupro-settings-control">
+                                        <select name="rmenupro_add_to_cart_icon" class="rmenupro-select">
+                                            <option value="none" <?php selected(get_option('rmenupro_add_to_cart_icon', 'none'), 'none'); ?>>No Icon</option>
+                                            <option value="cart" <?php selected(get_option('rmenupro_add_to_cart_icon', 'none'), 'cart'); ?>>Cart Icon</option>
+                                            <option value="plus" <?php selected(get_option('rmenupro_add_to_cart_icon', 'none'), 'plus'); ?>>Plus Icon</option>
+                                            <option value="bag" <?php selected(get_option('rmenupro_add_to_cart_icon', 'none'), 'bag'); ?>>Shopping Bag Icon</option>
+                                            <option value="basket" <?php selected(get_option('rmenupro_add_to_cart_icon', 'none'), 'basket'); ?>>Basket Icon</option>
                                         </select>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="rmenu-settings-column" id="rmenu-atc-icon-position-row">
-                                <div class="rmenu-settings-field">
-                                    <label class="rmenu-settings-label">Icon Position</label>
-                                    <div class="rmenu-settings-control">
-                                        <select name="rmenu_add_to_cart_icon_position" class="rmenu-select">
-                                            <option value="left" <?php selected(get_option('rmenu_add_to_cart_icon_position', 'left'), 'left'); ?>>Left</option>
-                                            <option value="right" <?php selected(get_option('rmenu_add_to_cart_icon_position', 'left'), 'right'); ?>>Right</option>
-                                            <option value="top" <?php selected(get_option('rmenu_add_to_cart_icon_position', 'left'), 'top'); ?>>Top</option>
-                                            <option value="bottom" <?php selected(get_option('rmenu_add_to_cart_icon_position', 'left'), 'bottom'); ?>>Bottom</option>
+                            <div class="rmenupro-settings-column" id="rmenupro-atc-icon-position-row">
+                                <div class="rmenupro-settings-field">
+                                    <label class="rmenupro-settings-label">Icon Position</label>
+                                    <div class="rmenupro-settings-control">
+                                        <select name="rmenupro_add_to_cart_icon_position" class="rmenupro-select">
+                                            <option value="left" <?php selected(get_option('rmenupro_add_to_cart_icon_position', 'left'), 'left'); ?>>Left</option>
+                                            <option value="right" <?php selected(get_option('rmenupro_add_to_cart_icon_position', 'left'), 'right'); ?>>Right</option>
+                                            <option value="top" <?php selected(get_option('rmenupro_add_to_cart_icon_position', 'left'), 'top'); ?>>Top</option>
+                                            <option value="bottom" <?php selected(get_option('rmenupro_add_to_cart_icon_position', 'left'), 'bottom'); ?>>Bottom</option>
                                         </select>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row rmenu-custom-css-row" id="rmenu-atc-custom-css-row" style="<?php echo (get_option('rmenu_add_to_cart_style', 'default') == 'custom') ? 'display:block;' : 'display:none;'; ?>">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Custom CSS</label>
-                                <div class="rmenu-settings-control">
-                                    <textarea name="rmenu_add_to_cart_custom_css" class="rmenu-textarea-code" rows="6"><?php echo esc_textarea(get_option('rmenu_add_to_cart_custom_css', '')); ?></textarea>
-                                    <p class="rmenu-field-description">Add custom CSS for advanced button styling. Use the class <code>.rmenu-add-to-cart-btn</code> to target the button.</p>
+                        <div class="rmenupro-settings-row rmenupro-custom-css-row" id="rmenupro-atc-custom-css-row" style="<?php echo (get_option('rmenupro_add_to_cart_style', 'default') == 'custom') ? 'display:block;' : 'display:none;'; ?>">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Custom CSS</label>
+                                <div class="rmenupro-settings-control">
+                                    <textarea name="rmenupro_add_to_cart_custom_css" class="rmenupro-textarea-code" rows="6"><?php echo esc_textarea(get_option('rmenupro_add_to_cart_custom_css', '')); ?></textarea>
+                                    <p class="rmenupro-field-description">Add custom CSS for advanced button styling. Use the class <code>.rmenupro-add-to-cart-btn</code> to target the button.</p>
                                 </div>
                             </div>
                         </div>
@@ -2521,15 +2525,15 @@ function onepaquc_cart_dashboard()
                     <script>
                         document.addEventListener('DOMContentLoaded', function() {
                             // if the "Enable One Page Checkout" checkbox is checked, enable the "Checkout Layout" select
-                            const button_style = document.querySelector('div#tab-8 select[name="rmenu_add_to_cart_style"]');
+                            const button_style = document.querySelector('div#tab-8 select[name="rmenupro_add_to_cart_style"]');
 
-                            // Select all children except the first two in the .button-style-section & except div#rmenu-atc-custom-width-row
-                            const buttonStyleSection = document.querySelector('.rmenu-settings-section.button-style-section');
+                            // Select all children except the first two in the .button-style-section & except div#rmenupro-atc-custom-width-row
+                            const buttonStyleSection = document.querySelector('.rmenupro-settings-section.button-style-section');
                             const allFields = Array.from(buttonStyleSection ? buttonStyleSection.children : []).slice(2);
-                            const customWidthRow = document.getElementById('rmenu-atc-custom-width-row');
-                            // if rmenu_add_to_cart_icon is none, hide the rmenu-atc-icon-position-row
-                            const iconPositionRow = document.getElementById('rmenu-atc-icon-position-row');
-                            const iconSelect = document.querySelector('select[name="rmenu_add_to_cart_icon"]');
+                            const customWidthRow = document.getElementById('rmenupro-atc-custom-width-row');
+                            // if rmenupro_add_to_cart_icon is none, hide the rmenupro-atc-icon-position-row
+                            const iconPositionRow = document.getElementById('rmenupro-atc-icon-position-row');
+                            const iconSelect = document.querySelector('select[name="rmenupro_add_to_cart_icon"]');
 
                             if (iconSelect && iconPositionRow) {
                                 iconSelect.addEventListener('change', function() {
@@ -2555,9 +2559,9 @@ function onepaquc_cart_dashboard()
                                     if (this.value !== 'default') {
                                         allFields.forEach(field => field.style.display = 'flex');
                                         if (this.value !== 'custom') {
-                                            document.getElementById('rmenu-atc-custom-css-row').style.display = 'none';
+                                            document.getElementById('rmenupro-atc-custom-css-row').style.display = 'none';
                                         } else {
-                                            document.getElementById('rmenu-atc-custom-css-row').style.display = 'block';
+                                            document.getElementById('rmenupro-atc-custom-css-row').style.display = 'block';
                                         }
                                     } else {
                                         allFields.forEach(field => field.style.display = 'none');
@@ -2569,198 +2573,198 @@ function onepaquc_cart_dashboard()
 
                             }
 
-                            // if rmenu_add_to_cart_bg_color (which is bg color) & rmenu_add_to_cart_text_color (which is text color) both are dark or light, show a warning message
-                            const checkoutColor = document.querySelector('input[name="rmenu_add_to_cart_bg_color"]');
-                            const checkoutTextColor = document.querySelector('input[name="rmenu_add_to_cart_text_color"]');
+                            // if rmenupro_add_to_cart_bg_color (which is bg color) & rmenupro_add_to_cart_text_color (which is text color) both are dark or light, show a warning message
+                            const checkoutColor = document.querySelector('input[name="rmenupro_add_to_cart_bg_color"]');
+                            const checkoutTextColor = document.querySelector('input[name="rmenupro_add_to_cart_text_color"]');
                             if (checkoutColor && checkoutTextColor) {
                                 checkoutColor.addEventListener('change', function() {
-                                    checkColors(checkoutColor, checkoutTextColor);
+                                    checkColors(checkoutColor, checkoutTextColor, button_style && button_style.value !== 'default');
                                 });
                                 checkoutTextColor.addEventListener('change', function() {
-                                    checkColors(checkoutColor, checkoutTextColor);
+                                    checkColors(checkoutColor, checkoutTextColor, button_style && button_style.value !== 'default');
                                 });
 
                                 // Initial check on page load
-                                checkColors(checkoutColor, checkoutTextColor);
+                                checkColors(checkoutColor, checkoutTextColor, button_style && button_style.value !== 'default');
                             }
 
-                            // if rmenu_add_to_cart_hover_bg_color (which is bg color) & rmenu_add_to_cart_hover_text_color (which is text color) both are dark or light, show a warning message
-                            const checkoutHoverColor = document.querySelector('input[name="rmenu_add_to_cart_hover_bg_color"]');
-                            const checkoutHoverTextColor = document.querySelector('input[name="rmenu_add_to_cart_hover_text_color"]');
+                            // if rmenupro_add_to_cart_hover_bg_color (which is bg color) & rmenupro_add_to_cart_hover_text_color (which is text color) both are dark or light, show a warning message
+                            const checkoutHoverColor = document.querySelector('input[name="rmenupro_add_to_cart_hover_bg_color"]');
+                            const checkoutHoverTextColor = document.querySelector('input[name="rmenupro_add_to_cart_hover_text_color"]');
                             if (checkoutHoverColor && checkoutHoverTextColor) {
                                 checkoutHoverColor.addEventListener('change', function() {
-                                    checkColors(checkoutHoverColor, checkoutHoverTextColor);
+                                    checkColors(checkoutHoverColor, checkoutHoverTextColor, button_style && button_style.value !== 'default');
                                 });
                                 checkoutHoverTextColor.addEventListener('change', function() {
-                                    checkColors(checkoutHoverColor, checkoutHoverTextColor);
+                                    checkColors(checkoutHoverColor, checkoutHoverTextColor, button_style && button_style.value !== 'default');
                                 });
 
                                 // Initial check on page load
-                                checkColors(checkoutHoverColor, checkoutHoverTextColor);
+                                checkColors(checkoutHoverColor, checkoutHoverTextColor, button_style && button_style.value !== 'default');
                             }
                         });
                     </script>
                 </div>
 
                 <div class="tab-content" id="button-behavior" style="padding: 0;">
-                    <div class="rmenu-settings-section">
-                        <div class="rmenu-settings-section-header">
+                    <div class="rmenupro-settings-section">
+                        <div class="rmenupro-settings-section-header">
                             <h3><span class="dashicons dashicons-layout"></span> Display Settings</h3>
                         </div>
 
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field" id="rmenu-add-to-cart-archive-display">
-                                <label class="rmenu-settings-label">Button Display on Archive Pages</label>
-                                <div class="rmenu-settings-control">
-                                    <select name="rmenu_add_to_cart_catalog_display" class="rmenu-select">
-                                        <option value="default" <?php selected(get_option('rmenu_add_to_cart_catalog_display', 'default'), 'default'); ?>>Default (WooCommerce Setting)</option>
-                                        <option value="show" <?php selected(get_option('rmenu_add_to_cart_catalog_display', 'default'), 'show'); ?>>Always Show</option>
-                                        <option value="hide" <?php selected(get_option('rmenu_add_to_cart_catalog_display', 'default'), 'hide'); ?>>Always Hide</option>
+                        <div class="rmenupro-settings-row">
+                            <div class="rmenupro-settings-field" id="rmenupro-add-to-cart-archive-display">
+                                <label class="rmenupro-settings-label">Button Display on Archive Pages</label>
+                                <div class="rmenupro-settings-control">
+                                    <select name="rmenupro_add_to_cart_catalog_display" class="rmenupro-select">
+                                        <option value="default" <?php selected(get_option('rmenupro_add_to_cart_catalog_display', 'default'), 'default'); ?>>Default (WooCommerce Setting)</option>
+                                        <option value="show" <?php selected(get_option('rmenupro_add_to_cart_catalog_display', 'default'), 'show'); ?>>Always Show</option>
+                                        <option value="hide" <?php selected(get_option('rmenupro_add_to_cart_catalog_display', 'default'), 'hide'); ?>>Always Hide</option>
                                     </select>
-                                    <p class="rmenu-field-description">Control how Add to Cart buttons appear on product archive pages.</p>
+                                    <p class="rmenupro-field-description">Control how Add to Cart buttons appear on product archive pages.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="rmenu-settings-section" id="add_to_cart_behave">
-                        <div class="rmenu-settings-section-header">
+                    <div class="rmenupro-settings-section" id="add_to_cart_behave">
+                        <div class="rmenupro-settings-section-header">
                             <h3><span class="dashicons dashicons-cart"></span> Add To Cart Behavior</h3>
                         </div>
 
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Enable AJAX Add to Cart</label>
-                                <div class="rmenu-settings-control">
-                                    <label class="rmenu-toggle-switch">
-                                        <input type="checkbox" name="rmenu_enable_ajax_add_to_cart" value="1" <?php checked(1, get_option("rmenu_enable_ajax_add_to_cart", 1), true); ?> />
-                                        <span class="rmenu-toggle-slider"></span>
+                        <div class="rmenupro-settings-row">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Enable AJAX Add to Cart</label>
+                                <div class="rmenupro-settings-control">
+                                    <label class="rmenupro-toggle-switch">
+                                        <input type="checkbox" name="rmenupro_enable_ajax_add_to_cart" value="1" <?php checked(1, get_option("rmenupro_enable_ajax_add_to_cart", 1), true); ?> />
+                                        <span class="rmenupro-toggle-slider"></span>
                                     </label>
-                                    <p class="rmenu-field-description">Add products to cart without page reload using AJAX.</p>
+                                    <p class="rmenupro-field-description">Add products to cart without page reload using AJAX.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row <?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Default Quantity</label>
-                                <div class="rmenu-settings-control">
-                                    <input <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> type="number" name="<?php echo !onepaquc_premium_feature() ? 'pro_add_to_cart_default_qty' : 'rmenu_add_to_cart_default_qty'; ?>" value="<?php echo esc_attr(get_option('rmenu_add_to_cart_default_qty', '1')); ?>" class="small-text" min="1" max="100" step="1" />
-                                    <p class="rmenu-field-description">Set the default quantity when adding products to cart from archive pages.</p>
+                        <div class="rmenupro-settings-row <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Default Quantity</label>
+                                <div class="rmenupro-settings-control">
+                                    <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="number" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_add_to_cart_default_qty' : 'rmenupro_add_to_cart_default_qty'; ?>" value="<?php echo esc_attr(get_option('rmenupro_add_to_cart_default_qty', '1')); ?>" class="small-text" min="1" max="100" step="1" />
+                                    <p class="rmenupro-field-description">Set the default quantity when adding products to cart from archive pages.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row <?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Quantity Selector on Archives</label>
-                                <div class="rmenu-settings-control">
-                                    <label class="rmenu-toggle-switch">
-                                        <input <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaquc_premium_feature() ? 'pro_show_quantity_archive' : 'rmenu_show_quantity_archive'; ?>" value="1" <?php checked(1, get_option("rmenu_show_quantity_archive", 0), true); ?> />
-                                        <span class="rmenu-toggle-slider"></span>
+                        <div class="rmenupro-settings-row <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Quantity Selector on Archives</label>
+                                <div class="rmenupro-settings-control">
+                                    <label class="rmenupro-toggle-switch">
+                                        <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_show_quantity_archive' : 'rmenupro_show_quantity_archive'; ?>" value="1" <?php checked(1, get_option("rmenupro_show_quantity_archive", 0), true); ?> />
+                                        <span class="rmenupro-toggle-slider"></span>
                                     </label>
-                                    <p class="rmenu-field-description">Display quantity selector on shop/archive pages before adding to cart.</p>
+                                    <p class="rmenupro-field-description">Display quantity selector on shop/archive pages before adding to cart.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Redirect After Add to Cart</label>
-                                <div class="rmenu-settings-control">
-                                    <select name="rmenu_redirect_after_add" class="rmenu-select">
-                                        <option value="none" <?php selected(get_option('rmenu_redirect_after_add', 'none'), 'none'); ?>>No Redirect</option>
-                                        <!-- rmenu_disable_cart_page is it's on disable below option & show cart page is disabled -->
+                        <div class="rmenupro-settings-row">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Redirect After Add to Cart</label>
+                                <div class="rmenupro-settings-control">
+                                    <select name="rmenupro_redirect_after_add" class="rmenupro-select">
+                                        <option value="none" <?php selected(get_option('rmenupro_redirect_after_add', 'none'), 'none'); ?>>No Redirect</option>
+                                        <!-- rmenupro_disable_cart_page is it's on disable below option & show cart page is disabled -->
                                         <?php
-                                        $disable_cart_page = get_option('rmenu_disable_cart_page', '0');
+                                        $disable_cart_page = get_option('rmenupro_disable_cart_page', '0');
                                         ?>
-                                        <option value="cart" <?php selected(get_option('rmenu_redirect_after_add', 'none'), 'cart'); ?> <?php echo ($disable_cart_page == '1') ? 'disabled' : ''; ?>>Cart Page <?php echo ($disable_cart_page == '1') ? '(Disabled)' : ''; ?></option>
-                                        <option value="checkout" <?php selected(get_option('rmenu_redirect_after_add', 'none'), 'checkout'); ?>>Checkout Page</option>
+                                        <option value="cart" <?php selected(get_option('rmenupro_redirect_after_add', 'none'), 'cart'); ?> <?php echo ($disable_cart_page == '1') ? 'disabled' : ''; ?>>Cart Page <?php echo ($disable_cart_page == '1') ? '(Disabled)' : ''; ?></option>
+                                        <option value="checkout" <?php selected(get_option('rmenupro_redirect_after_add', 'none'), 'checkout'); ?>>Checkout Page</option>
                                     </select>
-                                    <p class="rmenu-field-description">Choose whether to redirect customers after adding products to cart.</p>
+                                    <p class="rmenupro-field-description">Choose whether to redirect customers after adding products to cart.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Add to Cart Animation</label>
-                                <div class="rmenu-settings-control">
-                                    <select name="rmenu_add_to_cart_animation" class="rmenu-select">
-                                        <option value="none" <?php selected(get_option('rmenu_add_to_cart_animation', 'slide'), 'none'); ?>>None</option>
-                                        <option value="slide" <?php selected(get_option('rmenu_add_to_cart_animation', 'slide'), 'slide'); ?>>Slide Effect</option>
-                                        <option value="fade" <?php selected(get_option('rmenu_add_to_cart_animation', 'slide'), 'fade'); ?>>Fade Effect</option>
-                                        <option value="fly" <?php selected(get_option('rmenu_add_to_cart_animation', 'slide'), 'fly'); ?>>Fly to Cart Effect</option>
+                        <div class="rmenupro-settings-row">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Add to Cart Animation</label>
+                                <div class="rmenupro-settings-control">
+                                    <select name="rmenupro_add_to_cart_animation" class="rmenupro-select">
+                                        <option value="none" <?php selected(get_option('rmenupro_add_to_cart_animation', 'slide'), 'none'); ?>>None</option>
+                                        <option value="slide" <?php selected(get_option('rmenupro_add_to_cart_animation', 'slide'), 'slide'); ?>>Slide Effect</option>
+                                        <option value="fade" <?php selected(get_option('rmenupro_add_to_cart_animation', 'slide'), 'fade'); ?>>Fade Effect</option>
+                                        <option value="fly" <?php selected(get_option('rmenupro_add_to_cart_animation', 'slide'), 'fly'); ?>>Fly to Cart Effect</option>
                                     </select>
-                                    <p class="rmenu-field-description">Choose the animation effect when products are added to cart.</p>
+                                    <p class="rmenupro-field-description">Choose the animation effect when products are added to cart.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="rmenu-settings-section" id="add_to_cart_notification">
-                        <div class="rmenu-settings-section-header">
+                    <div class="rmenupro-settings-section" id="add_to_cart_notification">
+                        <div class="rmenupro-settings-section-header">
                             <h3><span class="dashicons dashicons-megaphone"></span> Notifications</h3>
                         </div>
 
-                        <div class="rmenu-settings-row <?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Notification Style</label>
-                                <div class="rmenu-settings-control">
-                                    <select <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> name="<?php echo !onepaquc_premium_feature() ? 'pro_add_to_cart_notification_style' : 'rmenu_add_to_cart_notification_style'; ?>" class="rmenu-select">
-                                        <option value="default" <?php selected(get_option('rmenu_add_to_cart_notification_style', 'default'), 'default'); ?>>Default WooCommerce Notices</option>
-                                        <option value="popup" <?php selected(get_option('rmenu_add_to_cart_notification_style', 'default'), 'popup'); ?>>Popup Message</option>
-                                        <option value="toast" <?php selected(get_option('rmenu_add_to_cart_notification_style', 'default'), 'toast'); ?>>Toast Notification</option>
-                                        <option value="mini_cart" <?php selected(get_option('rmenu_add_to_cart_notification_style', 'default'), 'mini_cart'); ?>>Mini Cart Preview</option>
+                        <div class="rmenupro-settings-row <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Notification Style</label>
+                                <div class="rmenupro-settings-control">
+                                    <select <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> name="<?php echo !onepaqucpro_premium_feature() ? 'pro_add_to_cart_notification_style' : 'rmenupro_add_to_cart_notification_style'; ?>" class="rmenupro-select">
+                                        <option value="default" <?php selected(get_option('rmenupro_add_to_cart_notification_style', 'default'), 'default'); ?>>Default WooCommerce Notices</option>
+                                        <option value="popup" <?php selected(get_option('rmenupro_add_to_cart_notification_style', 'default'), 'popup'); ?>>Popup Message</option>
+                                        <option value="toast" <?php selected(get_option('rmenupro_add_to_cart_notification_style', 'default'), 'toast'); ?>>Toast Notification</option>
+                                        <option value="mini_cart" <?php selected(get_option('rmenupro_add_to_cart_notification_style', 'default'), 'mini_cart'); ?>>Mini Cart Preview</option>
                                     </select>
-                                    <p class="rmenu-field-description">Choose how to display notifications when products are added to cart.</p>
+                                    <p class="rmenupro-field-description">Choose how to display notifications when products are added to cart.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row <?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Success Message</label>
-                                <div class="rmenu-settings-control">
-                                    <input <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> type="text" name="<?php echo !onepaquc_premium_feature() ? 'pro_add_to_cart_success_message' : 'rmenu_add_to_cart_success_message'; ?>" value="<?php echo esc_attr(get_option('rmenu_add_to_cart_success_message', '{product} has been added to your cart.')); ?>" class="regular-text" />
-                                    <p class="rmenu-field-description">Customize the success message shown after adding to cart. Use {product} as a placeholder for the product name.</p>
+                        <div class="rmenupro-settings-row <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Success Message</label>
+                                <div class="rmenupro-settings-control">
+                                    <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="text" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_add_to_cart_success_message' : 'rmenupro_add_to_cart_success_message'; ?>" value="<?php echo esc_attr(get_option('rmenupro_add_to_cart_success_message', '{product} has been added to your cart.')); ?>" class="regular-text" />
+                                    <p class="rmenupro-field-description">Customize the success message shown after adding to cart. Use {product} as a placeholder for the product name.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row <?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Show View Cart Link</label>
-                                <div class="rmenu-settings-control">
-                                    <label class="rmenu-toggle-switch">
-                                        <input <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaquc_premium_feature() ? 'pro_show_view_cart_link' : 'rmenu_show_view_cart_link'; ?>" value="1" <?php checked(1, get_option("rmenu_show_view_cart_link", 1), true); ?> />
-                                        <span class="rmenu-toggle-slider"></span>
+                        <div class="rmenupro-settings-row <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Show View Cart Link</label>
+                                <div class="rmenupro-settings-control">
+                                    <label class="rmenupro-toggle-switch">
+                                        <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_show_view_cart_link' : 'rmenupro_show_view_cart_link'; ?>" value="1" <?php checked(1, get_option("rmenupro_show_view_cart_link", 1), true); ?> />
+                                        <span class="rmenupro-toggle-slider"></span>
                                     </label>
-                                    <p class="rmenu-field-description">Display a "View Cart" link in the notification message.</p>
+                                    <p class="rmenupro-field-description">Display a "View Cart" link in the notification message.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row <?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Show Checkout Link</label>
-                                <div class="rmenu-settings-control">
-                                    <label class="rmenu-toggle-switch">
-                                        <input <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaquc_premium_feature() ? 'pro_show_checkout_link' : 'rmenu_show_checkout_link'; ?>" value="1" <?php checked(1, get_option("rmenu_show_checkout_link", 0), true); ?> />
-                                        <span class="rmenu-toggle-slider"></span>
+                        <div class="rmenupro-settings-row <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Show Checkout Link</label>
+                                <div class="rmenupro-settings-control">
+                                    <label class="rmenupro-toggle-switch">
+                                        <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_show_checkout_link' : 'rmenupro_show_checkout_link'; ?>" value="1" <?php checked(1, get_option("rmenupro_show_checkout_link", 0), true); ?> />
+                                        <span class="rmenupro-toggle-slider"></span>
                                     </label>
-                                    <p class="rmenu-field-description">Display a "Checkout" link in the notification message.</p>
+                                    <p class="rmenupro-field-description">Display a "Checkout" link in the notification message.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row <?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>" id="rmenu-add-to-cart-notification-settings">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Notification Duration</label>
-                                <div class="rmenu-settings-control">
-                                    <input <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> type="number" name="<?php echo !onepaquc_premium_feature() ? 'pro_add_to_cart_notification_duration' : 'rmenu_add_to_cart_notification_duration'; ?>" value="<?php echo esc_attr(get_option('rmenu_add_to_cart_notification_duration', '3000')); ?>" class="small-text" min="1000" max="10000" step="500" />
-                                    <span class="rmenu-unit">ms</span>
-                                    <p class="rmenu-field-description">How long to display the notification for (in milliseconds).</p>
+                        <div class="rmenupro-settings-row <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>" id="rmenupro-add-to-cart-notification-settings">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Notification Duration</label>
+                                <div class="rmenupro-settings-control">
+                                    <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="number" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_add_to_cart_notification_duration' : 'rmenupro_add_to_cart_notification_duration'; ?>" value="<?php echo esc_attr(get_option('rmenupro_add_to_cart_notification_duration', '3000')); ?>" class="small-text" min="1000" max="10000" step="500" />
+                                    <span class="rmenupro-unit">ms</span>
+                                    <p class="rmenupro-field-description">How long to display the notification for (in milliseconds).</p>
                                 </div>
                             </div>
                         </div>
@@ -2768,9 +2772,9 @@ function onepaquc_cart_dashboard()
 
                     <script>
                         document.addEventListener('DOMContentLoaded', function() {
-                            const checkbox = document.querySelector('input[name="rmenu_enable_ajax_add_to_cart"]');
-                            const settingsRows = document.querySelectorAll('#add_to_cart_behave .rmenu-settings-row, #add_to_cart_notification .rmenu-settings-row');
-                            const settingsInputs = document.querySelectorAll('#add_to_cart_behave .rmenu-settings-row input, #add_to_cart_notification .rmenu-settings-row input');
+                            const checkbox = document.querySelector('input[name="rmenupro_enable_ajax_add_to_cart"]');
+                            const settingsRows = document.querySelectorAll('#add_to_cart_behave .rmenupro-settings-row, #add_to_cart_notification .rmenupro-settings-row');
+                            const settingsInputs = document.querySelectorAll('#add_to_cart_behave .rmenupro-settings-row input, #add_to_cart_notification .rmenupro-settings-row input');
 
                             function updateSettings() {
                                 for (let i = 1; i < settingsRows.length; i++) { // Start loop at index 1 (second element)
@@ -2808,109 +2812,109 @@ function onepaquc_cart_dashboard()
                 </div>
 
                 <div class="tab-content" id="advanced" style="padding: 0;">
-                    <div class="rmenu-settings-section">
-                        <div class="rmenu-settings-section-header">
+                    <div class="rmenupro-settings-section">
+                        <div class="rmenupro-settings-section-header">
                             <h3><span class="dashicons dashicons-smartphone"></span> Mobile Settings</h3>
                         </div>
 
-                        <div class="rmenu-settings-row <?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Sticky Add to Cart on Mobile</label>
-                                <div class="rmenu-settings-control">
-                                    <label class="rmenu-toggle-switch">
-                                        <input <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaquc_premium_feature() ? 'pro_sticky_add_to_cart_mobile' : 'rmenu_sticky_add_to_cart_mobile'; ?>" value="1" <?php checked(1, get_option("rmenu_sticky_add_to_cart_mobile", 0), true); ?> />
-                                        <span class="rmenu-toggle-slider"></span>
+                        <div class="rmenupro-settings-row <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Sticky Add to Cart on Mobile</label>
+                                <div class="rmenupro-settings-control">
+                                    <label class="rmenupro-toggle-switch">
+                                        <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_sticky_add_to_cart_mobile' : 'rmenupro_sticky_add_to_cart_mobile'; ?>" value="1" <?php checked(1, get_option("rmenupro_sticky_add_to_cart_mobile", 0), true); ?> />
+                                        <span class="rmenupro-toggle-slider"></span>
                                     </label>
-                                    <p class="rmenu-field-description">Keep the Add to Cart button visible at the bottom of the screen on mobile devices.</p>
+                                    <p class="rmenupro-field-description">Keep the Add to Cart button visible at the bottom of the screen on mobile devices.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row <?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Mobile Button Text</label>
-                                <div class="rmenu-settings-control">
-                                    <input <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> type="text" name="<?php echo !onepaquc_premium_feature() ? 'pro_mobile_add_to_cart_text' : 'rmenu_mobile_add_to_cart_text'; ?>" value="<?php echo esc_attr(get_option('rmenu_mobile_add_to_cart_text', '')); ?>" class="regular-text" />
-                                    <p class="rmenu-field-description">Set a different button text for mobile devices. Leave empty to use the default text.</p>
+                        <div class="rmenupro-settings-row <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Mobile Button Text</label>
+                                <div class="rmenupro-settings-control">
+                                    <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="text" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_mobile_add_to_cart_text' : 'rmenupro_mobile_add_to_cart_text'; ?>" value="<?php echo esc_attr(get_option('rmenupro_mobile_add_to_cart_text', '')); ?>" class="regular-text" />
+                                    <p class="rmenupro-field-description">Set a different button text for mobile devices. Leave empty to use the default text.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row <?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Mobile Button Size</label>
-                                <div class="rmenu-settings-control">
-                                    <select <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> name="<?php echo !onepaquc_premium_feature() ? 'pro_mobile_button_size' : 'rmenu_mobile_button_size'; ?>" class="rmenu-select">
-                                        <option value="default" <?php selected(get_option('rmenu_mobile_button_size', 'default'), 'default'); ?>>Same as Desktop</option>
-                                        <option value="larger" <?php selected(get_option('rmenu_mobile_button_size', 'default'), 'larger'); ?>>Larger</option>
-                                        <option value="smaller" <?php selected(get_option('rmenu_mobile_button_size', 'default'), 'smaller'); ?>>Smaller</option>
-                                        <option value="full" <?php selected(get_option('rmenu_mobile_button_size', 'default'), 'full'); ?>>Full Width</option>
+                        <div class="rmenupro-settings-row <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Mobile Button Size</label>
+                                <div class="rmenupro-settings-control">
+                                    <select <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> name="<?php echo !onepaqucpro_premium_feature() ? 'pro_mobile_button_size' : 'rmenupro_mobile_button_size'; ?>" class="rmenupro-select">
+                                        <option value="default" <?php selected(get_option('rmenupro_mobile_button_size', 'default'), 'default'); ?>>Same as Desktop</option>
+                                        <option value="larger" <?php selected(get_option('rmenupro_mobile_button_size', 'default'), 'larger'); ?>>Larger</option>
+                                        <option value="smaller" <?php selected(get_option('rmenupro_mobile_button_size', 'default'), 'smaller'); ?>>Smaller</option>
+                                        <option value="full" <?php selected(get_option('rmenupro_mobile_button_size', 'default'), 'full'); ?>>Full Width</option>
                                     </select>
-                                    <p class="rmenu-field-description">Choose button size optimization for mobile devices.</p>
+                                    <p class="rmenupro-field-description">Choose button size optimization for mobile devices.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rmenu-settings-row <?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Mobile Button Icon Only</label>
-                                <div class="rmenu-settings-control">
-                                    <label class="rmenu-toggle-switch">
-                                        <input <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaquc_premium_feature() ? 'pro_mobile_icon_only' : 'rmenu_mobile_icon_only'; ?>" value="1" <?php checked(1, get_option("rmenu_mobile_icon_only", 0), true); ?> />
-                                        <span class="rmenu-toggle-slider"></span>
+                        <div class="rmenupro-settings-row <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Mobile Button Icon Only</label>
+                                <div class="rmenupro-settings-control">
+                                    <label class="rmenupro-toggle-switch">
+                                        <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_mobile_icon_only' : 'rmenupro_mobile_icon_only'; ?>" value="1" <?php checked(1, get_option("rmenupro_mobile_icon_only", 0), true); ?> />
+                                        <span class="rmenupro-toggle-slider"></span>
                                     </label>
-                                    <p class="rmenu-field-description">Show only the icon (without text) on mobile devices to save space.</p>
+                                    <p class="rmenupro-field-description">Show only the icon (without text) on mobile devices to save space.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="rmenu-settings-section">
-                        <div class="rmenu-settings-section-header">
+                    <div class="rmenupro-settings-section">
+                        <div class="rmenupro-settings-section-header">
                             <h3><span class="dashicons dashicons-welcome-widgets-menus"></span> Advanced Options</h3>
                         </div>
-                        <div class="rmenu-settings-row <?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Add to Cart Load Effect</label>
-                                <div class="rmenu-settings-control">
-                                    <select <?php echo !onepaquc_premium_feature() ? 'disabled' : ''; ?> name="<?php echo !onepaquc_premium_feature() ? 'pro_add_to_cart_loading_effect' : 'rmenu_add_to_cart_loading_effect'; ?>" class="rmenu-select">
-                                        <option value="none" <?php selected(get_option('rmenu_add_to_cart_loading_effect', 'spinner'), 'none'); ?>>None</option>
-                                        <option value="spinner" <?php selected(get_option('rmenu_add_to_cart_loading_effect', 'spinner'), 'spinner'); ?>>Spinner</option>
-                                        <option value="dots" <?php selected(get_option('rmenu_add_to_cart_loading_effect', 'spinner'), 'dots'); ?>>Dots</option>
-                                        <option value="pulse" <?php selected(get_option('rmenu_add_to_cart_loading_effect', 'spinner'), 'pulse'); ?>>Pulse</option>
+                        <div class="rmenupro-settings-row <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Add to Cart Load Effect</label>
+                                <div class="rmenupro-settings-control">
+                                    <select <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> name="<?php echo !onepaqucpro_premium_feature() ? 'pro_add_to_cart_loading_effect' : 'rmenupro_add_to_cart_loading_effect'; ?>" class="rmenupro-select">
+                                        <option value="none" <?php selected(get_option('rmenupro_add_to_cart_loading_effect', 'spinner'), 'none'); ?>>None</option>
+                                        <option value="spinner" <?php selected(get_option('rmenupro_add_to_cart_loading_effect', 'spinner'), 'spinner'); ?>>Spinner</option>
+                                        <option value="dots" <?php selected(get_option('rmenupro_add_to_cart_loading_effect', 'spinner'), 'dots'); ?>>Dots</option>
+                                        <option value="pulse" <?php selected(get_option('rmenupro_add_to_cart_loading_effect', 'spinner'), 'pulse'); ?>>Pulse</option>
                                     </select>
-                                    <p class="rmenu-field-description">Choose an animation effect while adding to cart is in progress.</p>
+                                    <p class="rmenupro-field-description">Choose an animation effect while adding to cart is in progress.</p>
                                 </div>
                             </div>
                         </div>
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Disable continue shopping button</label>
-                                <div class="rmenu-settings-control">
-                                    <label class="rmenu-toggle-switch">
-                                        <input type="checkbox" name="rmenu_disable_btn_out_of_stock" value="1" <?php checked(1, get_option("rmenu_disable_btn_out_of_stock", 1), true); ?> />
-                                        <span class="rmenu-toggle-slider"></span>
+                        <div class="rmenupro-settings-row">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Disable continue shopping button</label>
+                                <div class="rmenupro-settings-control">
+                                    <label class="rmenupro-toggle-switch">
+                                        <input type="checkbox" name="rmenupro_disable_btn_out_of_stock" value="1" <?php checked(1, get_option("rmenupro_disable_btn_out_of_stock", 1), true); ?> />
+                                        <span class="rmenupro-toggle-slider"></span>
                                     </label>
-                                    <p class="rmenu-field-description">WooCommerce shows a continue shopping button after a product is added to cart, with this option you can disable that link so user remain on checkout page</p>
+                                    <p class="rmenupro-field-description">WooCommerce shows a continue shopping button after a product is added to cart, with this option you can disable that link so user remain on checkout page</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="rmenu-settings-section">
-                        <div class="rmenu-settings-section-header">
+                    <div class="rmenupro-settings-section">
+                        <div class="rmenupro-settings-section-header">
                             <h3><span class="dashicons dashicons-translation"></span> Compatibility Settings</h3>
                         </div>
 
-                        <div class="rmenu-settings-row">
-                            <div class="rmenu-settings-field">
-                                <label class="rmenu-settings-label">Force Button CSS</label>
-                                <div class="rmenu-settings-control">
-                                    <label class="rmenu-toggle-switch">
-                                        <input type="checkbox" name="rmenu_force_button_css" value="1" <?php checked(1, get_option("rmenu_force_button_css", 0), true); ?> />
-                                        <span class="rmenu-toggle-slider"></span>
+                        <div class="rmenupro-settings-row">
+                            <div class="rmenupro-settings-field">
+                                <label class="rmenupro-settings-label">Force Button CSS</label>
+                                <div class="rmenupro-settings-control">
+                                    <label class="rmenupro-toggle-switch">
+                                        <input type="checkbox" name="rmenupro_force_button_css" value="1" <?php checked(1, get_option("rmenupro_force_button_css", 0), true); ?> />
+                                        <span class="rmenupro-toggle-slider"></span>
                                     </label>
-                                    <p class="rmenu-field-description">Use !important CSS rules to override theme styling (use only if needed).</p>
+                                    <p class="rmenupro-field-description">Use !important CSS rules to override theme styling (use only if needed).</p>
                                 </div>
                             </div>
                         </div>
@@ -2919,9 +2923,9 @@ function onepaquc_cart_dashboard()
                 <script>
                     document.addEventListener('DOMContentLoaded', function() {
                         // Tab click handler for Add To Cart settings tabs
-                        const tabItems = document.querySelectorAll('#tab-8 .rmenu-settings-tab-item');
+                        const tabItems = document.querySelectorAll('#tab-8 .rmenupro-settings-tab-item');
                         const tabContents = document.querySelectorAll('#tab-8  .tab-content');
-                        const btn_display = document.querySelector('select[name="rmenu_add_to_cart_catalog_display"]');
+                        const btn_display = document.querySelector('select[name="rmenupro_add_to_cart_catalog_display"]');
 
                         btn_display.addEventListener('change', function() {
                             if (this.value === 'hide') {
@@ -2960,9 +2964,9 @@ function onepaquc_cart_dashboard()
                                 tab.classList.add('active');
                                 // Show the corresponding tab content
                                 const tabId = tab.getAttribute('data-tab');
-                                const highlight_add_to_cart_enable_Section = document.querySelector('#rmenu-enable-custom-add-to-cart');
+                                const highlight_add_to_cart_enable_Section = document.querySelector('#rmenupro-enable-custom-add-to-cart');
                                 // If "Enable Custom Add to Cart" is not enabled, show a popup message and prevent tab switching
-                                const enableCustomAddToCart = document.querySelector('input[name="rmenu_enable_custom_add_to_cart"]');
+                                const enableCustomAddToCart = document.querySelector('input[name="rmenupro_enable_custom_add_to_cart"]');
                                 if (tabId !== "general-settings" && enableCustomAddToCart && !enableCustomAddToCart.checked) {
                                     showDirectCheckoutWarning(
                                         highlight_add_to_cart_enable_Section,
@@ -2975,18 +2979,18 @@ function onepaquc_cart_dashboard()
                                     }
                                 });
 
-                                const highlight_rmenu_add_to_cart_archive_display_Section = document.querySelector('#rmenu-add-to-cart-archive-display');
+                                const highlight_rmenupro_add_to_cart_archive_display_Section = document.querySelector('#rmenupro-add-to-cart-archive-display');
 
                                 // If the tab is not "button-behavior" and the button display is set to hide, show a popup message
                                 if (tabId !== "button-behavior" && btn_display && btn_display.value === 'hide') {
                                     showDirectCheckoutWarning(
-                                        highlight_rmenu_add_to_cart_archive_display_Section,
+                                        highlight_rmenupro_add_to_cart_archive_display_Section,
                                         '<b>Button Display is set to Hide</b>. You can change this in the Button Behavior -> Display Settings.'
                                     );
                                 }
                                 btn_display.addEventListener('change', function() {
                                     if (this.value !== 'hide') {
-                                        removeDirectCheckoutWarning(highlight_rmenu_add_to_cart_archive_display_Section);
+                                        removeDirectCheckoutWarning(highlight_rmenupro_add_to_cart_archive_display_Section);
                                     }
                                 });
 
@@ -3007,10 +3011,10 @@ function onepaquc_cart_dashboard()
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
                     // if the "Enable One Page Checkout" checkbox is checked, enable the "Checkout Layout" select
-                    const enableCheckout = document.querySelector('div#tab-8 input[name="rmenu_enable_custom_add_to_cart"]');
+                    const enableCheckout = document.querySelector('div#tab-8 input[name="rmenupro_enable_custom_add_to_cart"]');
 
                     const allinputFields = Array.from(document.querySelectorAll('div#tab-8 input, div#tab-8 select,div#tab-8 textarea')).filter(
-                        el => !(el.name === "rmenu_enable_custom_add_to_cart")
+                        el => !(el.name === "rmenupro_enable_custom_add_to_cart")
                     );
                     allinputFields.forEach(field => {
                         field.disabled = !enableCheckout.checked;
@@ -3024,55 +3028,55 @@ function onepaquc_cart_dashboard()
             </script>
             <?php submit_button(); ?>
         </form>
-        <form class="<?php echo !onepaquc_premium_feature() ? 'pro-only' : ''; ?>" method="post" action="" onsubmit="return confirm('Are you sure you want to reset all settings to default? This action cannot be undone.');">
-            <input type="hidden" name="<?php echo !onepaquc_premium_feature() ? 'pro-onepaquc_reset' : 'onepaquc_reset_settings'; ?>" value="1">
+        <form class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>" method="post" action="" onsubmit="return confirm('Are you sure you want to reset all settings to default? This action cannot be undone.');">
+            <input type="hidden" name="<?php echo !onepaqucpro_premium_feature() ? 'pro-onepaqucpro_reset' : 'onepaqucpro_reset_settings'; ?>" value="1">
             <?php
-            $disabled = !onepaquc_premium_feature() ? array('disabled' => 'disabled') : array();
+            $disabled = !onepaqucpro_premium_feature() ? array('disabled' => 'disabled') : array();
             submit_button( 'Reset Settings', 'button-primary', '', false, array_merge( array('style' => 'margin-left: 20px;background:#dc3545;color:#fff;border-color:#dc3545;'), $disabled ) );
             ?>
         </form>
         <p style="text-align: center;font-size: 15px;">To add menu cart to your page, use the shortcode <b>[plugincy_cart drawer="right" cart_icon="cart" product_title_tag="h4"]</b> or use Plugincy Cart Widget/Block</p>
-        <p style="text-align: center;padding-bottom:20px; font-size: 15px;">[plugincy_one_page_checkout product_ids="152,153,151,142" template="product-tabs"] or use <b>Plugincy One Page Checkout</b> widget/block <a href="/wp-admin/admin.php?page=onepaquc_cart_documentation#multiple-products">view documentation</a></p>
+        <p style="text-align: center;padding-bottom:20px; font-size: 15px;">[plugincy_one_page_checkout product_ids="152,153,151,142" template="product-tabs"] or use <b>Plugincy One Page Checkout</b> widget/block <a target="_blank" href="https://plugincy.com/documentations/one-page-quick-checkout-for-woocommerce/one-page-checkout/multi-product-one-page-checkout/">view documentation</a></p>
     </div>
 <?php
     // }
 }
-add_action('admin_init', 'onepaquc_cart_settings');
-// add_action('wp_head', 'onepaquc_cart_custom_css');
+add_action('admin_init', 'onepaqucpro_cart_settings');
+// add_action('wp_head', 'onepaqucpro_cart_custom_css');
 
 
 
 
-function onepaquc_cart_settings()
+function onepaqucpro_cart_settings()
 {
     global $string_settings_fields;
-    foreach (onepaquc_rmenu_fields() as $key => $field) {
-        register_setting('onepaquc_cart_settings', $key, 'sanitize_text_field');
+    foreach (onepaqucpro_rmenupro_fields() as $key => $field) {
+        register_setting('onepaqucpro_cart_settings', $key, 'sanitize_text_field');
     }
-    foreach (onepaquc_onpcheckout_heading() as $key => $field) {
-        register_setting('onepaquc_cart_settings', $key, 'sanitize_text_field');
+    foreach (onepaqucpro_onpcheckout_heading() as $key => $field) {
+        register_setting('onepaqucpro_cart_settings', $key, 'sanitize_text_field');
     }
 
     foreach ($string_settings_fields as $field) {
-        register_setting('onepaquc_cart_settings', $field, 'sanitize_text_field');
+        register_setting('onepaqucpro_cart_settings', $field, 'sanitize_text_field');
     }
 
-    global $onepaquc_checkoutformfields, $onepaquc_productpageformfields;
-    $settings = array_merge(array_keys($onepaquc_checkoutformfields), array_keys($onepaquc_productpageformfields));
+    global $onepaqucpro_checkoutformfields, $onepaqucpro_productpageformfields;
+    $settings = array_merge(array_keys($onepaqucpro_checkoutformfields), array_keys($onepaqucpro_productpageformfields));
 
     foreach ($settings as $setting) {
-        register_setting('onepaquc_cart_settings', $setting, 'sanitize_text_field');
+        register_setting('onepaqucpro_cart_settings', $setting, 'sanitize_text_field');
     }
     // Register the setting for the checkout fields values of array
-    register_setting('onepaquc_cart_settings', "onepaquc_checkout_fields", 'onepaquc_sanitize_array_of_text');
-    register_setting('onepaquc_cart_settings', "rmenu_show_quick_checkout_by_types", 'onepaquc_sanitize_array_of_text');
-    register_setting('onepaquc_cart_settings', "rmenu_show_quick_checkout_by_page", 'onepaquc_sanitize_array_of_text');
-    register_setting('onepaquc_cart_settings', "rmenu_add_to_cart_by_types", 'onepaquc_sanitize_array_of_text');
-    register_setting('onepaquc_cart_settings', "rmenu_quick_view_content_elements", 'onepaquc_sanitize_array_of_text');
-    register_setting('onepaquc_cart_settings', "rmenu_show_quick_view_by_types", 'onepaquc_sanitize_array_of_text');
-    register_setting('onepaquc_cart_settings', "rmenu_show_quick_view_by_page", 'onepaquc_sanitize_array_of_text');
-    register_setting('onepaquc_cart_settings', "onepaquc_my_trust_badges_items", 'onepaquc_sanitize_trust_badges_items');
-    register_setting('onepaquc_cart_settings', "checkout_form_setup", [
+    register_setting('onepaqucpro_cart_settings', "onepaqucpro_checkout_fields", 'onepaqucpro_sanitize_array_of_text');
+    register_setting('onepaqucpro_cart_settings', "rmenupro_show_quick_checkout_by_types", 'onepaqucpro_sanitize_array_of_text');
+    register_setting('onepaqucpro_cart_settings', "rmenupro_show_quick_checkout_by_page", 'onepaqucpro_sanitize_array_of_text');
+    register_setting('onepaqucpro_cart_settings', "rmenupro_add_to_cart_by_types", 'onepaqucpro_sanitize_array_of_text');
+    register_setting('onepaqucpro_cart_settings', "rmenupro_quick_view_content_elements", 'onepaqucpro_sanitize_array_of_text');
+    register_setting('onepaqucpro_cart_settings', "rmenupro_show_quick_view_by_types", 'onepaqucpro_sanitize_array_of_text');
+    register_setting('onepaqucpro_cart_settings', "rmenupro_show_quick_view_by_page", 'onepaqucpro_sanitize_array_of_text');
+    register_setting('onepaqucpro_cart_settings', "onepaqucpro_my_trust_badges_items", 'onepaqucpro_sanitize_trust_badges_items');
+    register_setting('onepaqucpro_cart_settings', "checkout_form_setup", [
         'type' => 'string',
         'sanitize_callback' => function ($value) {
             // Allow HTML, CSS, JS (no sanitization)
@@ -3080,7 +3084,7 @@ function onepaquc_cart_settings()
         },
         'show_in_rest' => false,
     ]);
-    register_setting('onepaquc_cart_settings', 'onepaquc_trust_badge_custom_html', [
+    register_setting('onepaqucpro_cart_settings', 'onepaqucpro_trust_badge_custom_html', [
         'type' => 'string',
         'sanitize_callback' => function ($value) {
             // Allow HTML, CSS, JS (no sanitization)
@@ -3091,14 +3095,14 @@ function onepaquc_cart_settings()
     ]);
 }
 
-function onepaquc_handle_reset_settings()
+function onepaqucpro_handle_reset_settings()
 {
-    if (isset($_POST['onepaquc_reset_settings']) && $_POST['onepaquc_reset_settings'] == '1') {
+    if (isset($_POST['onepaqucpro_reset_settings']) && $_POST['onepaqucpro_reset_settings'] == '1') {
         global $string_settings_fields;
-        foreach (onepaquc_rmenu_fields() as $key => $field) {
+        foreach (onepaqucpro_rmenupro_fields() as $key => $field) {
             delete_option($key);
         }
-        foreach (onepaquc_onpcheckout_heading() as $key => $field) {
+        foreach (onepaqucpro_onpcheckout_heading() as $key => $field) {
             delete_option($key);
         }
 
@@ -3106,8 +3110,8 @@ function onepaquc_handle_reset_settings()
             delete_option($field);
         }
 
-        global $onepaquc_checkoutformfields, $onepaquc_productpageformfields;
-        $settings = array_merge(array_keys($onepaquc_checkoutformfields), array_keys($onepaquc_productpageformfields));
+        global $onepaqucpro_checkoutformfields, $onepaqucpro_productpageformfields;
+        $settings = array_merge(array_keys($onepaqucpro_checkoutformfields), array_keys($onepaqucpro_productpageformfields));
 
         foreach ($settings as $setting) {
             delete_option($setting);
@@ -3115,16 +3119,16 @@ function onepaquc_handle_reset_settings()
 
         // List of settings to reset
         $settings_to_reset = [
-            'onepaquc_checkout_fields',
-            'rmenu_show_quick_checkout_by_types',
-            'rmenu_show_quick_checkout_by_page',
-            'rmenu_add_to_cart_by_types',
-            'rmenu_quick_view_content_elements',
-            'rmenu_show_quick_view_by_types',
-            'rmenu_show_quick_view_by_page',
-            'onepaquc_my_trust_badges_items',
+            'onepaqucpro_checkout_fields',
+            'rmenupro_show_quick_checkout_by_types',
+            'rmenupro_show_quick_checkout_by_page',
+            'rmenupro_add_to_cart_by_types',
+            'rmenupro_quick_view_content_elements',
+            'rmenupro_show_quick_view_by_types',
+            'rmenupro_show_quick_view_by_page',
+            'onepaqucpro_my_trust_badges_items',
             'checkout_form_setup',
-            'onepaquc_trust_badge_custom_html',
+            'onepaqucpro_trust_badge_custom_html',
         ];
 
         // Reset each setting
@@ -3137,9 +3141,9 @@ function onepaquc_handle_reset_settings()
         exit;
     }
 }
-add_action('admin_init', 'onepaquc_handle_reset_settings');
+add_action('admin_init', 'onepaqucpro_handle_reset_settings');
 
-function onepaquc_sanitize_trust_badges_items($items)
+function onepaqucpro_sanitize_trust_badges_items($items)
 {
     // Only accept an array
     if (!is_array($items)) {
@@ -3187,7 +3191,7 @@ function onepaquc_sanitize_trust_badges_items($items)
     return array_values($unique);
 }
 
-function onepaquc_sanitize_array_of_text($value)
+function onepaqucpro_sanitize_array_of_text($value)
 {
     if (!is_array($value)) {
         return [];
@@ -3197,44 +3201,44 @@ function onepaquc_sanitize_array_of_text($value)
 }
 
 
-function onepaquc_cart_custom_css()
+function onepaqucpro_cart_custom_css()
 {
-    global $onepaquc_rcheckoutformfields;
+    global $onepaqucpro_rcheckoutformfields;
 
     // Initialize an empty string for the custom CSS
     $custom_css = '.checkout-popup .woocommerce-privacy-policy-text { display: none !important; }.onepagecheckoutwidget .woocommerce-privacy-policy-text { display: block !important; }';
 
     // Loop through the fields to generate CSS
-    foreach (onepaquc_rmenu_fields() as $key => $field) {
+    foreach (onepaqucpro_rmenupro_fields() as $key => $field) {
         if (get_option($key)) {
             $custom_css .= "{$field['selector']} { display: none !important; }\n";
         }
     }
 
-    foreach (onepaquc_onpcheckout_heading() as $key => $field) {
+    foreach (onepaqucpro_onpcheckout_heading() as $key => $field) {
         if (get_option($key)) {
             $custom_css .= "{$field['selector']} { display: none !important; }\n";
         }
     }
 
-    if (get_option('onepaquc_checkout_fields')) {
-        $checkout_fields = get_option('onepaquc_checkout_fields');
+    if (get_option('onepaqucpro_checkout_fields')) {
+        $checkout_fields = get_option('onepaqucpro_checkout_fields');
         foreach ($checkout_fields as $field) {
-            if (isset($onepaquc_rcheckoutformfields[$field])) {
-                $selector = $onepaquc_rcheckoutformfields[$field]['selector'];
+            if (isset($onepaqucpro_rcheckoutformfields[$field])) {
+                $selector = $onepaqucpro_rcheckoutformfields[$field]['selector'];
                 $custom_css .= "{$selector} { display: none !important; }\n";
             }
         }
     }
 
     // Add the inline styles
-    wp_add_inline_style('rmenu-cart-style', esc_html($custom_css));
+    wp_add_inline_style('rmenupro-cart-style', esc_html($custom_css));
 }
 
 // Hook to enqueue the styles
-add_action('wp_enqueue_scripts', 'onepaquc_cart_custom_css', 9999999);
+add_action('wp_enqueue_scripts', 'onepaqucpro_cart_custom_css', 9999999);
 
-function onepaquc_rmenu_fields()
+function onepaqucpro_rmenupro_fields()
 {
     return [
         'hide_coupon_toggle'          => ['selector' => '#checkout-form .woocommerce-form-coupon-toggle, #checkout-form .col-form-coupon,.one-page-checkout-container .woocommerce-form-coupon-toggle, .one-page-checkout-container .col-form-coupon', 'title' => 'Hide Top Coupon'],
@@ -3247,7 +3251,7 @@ function onepaquc_rmenu_fields()
     ];
 }
 
-function onepaquc_onpcheckout_heading()
+function onepaqucpro_onpcheckout_heading()
 {
     return [
         'hide_billing_details'          => ['selector' => '#checkout-form .woocommerce-billing-fields h3,.one-page-checkout-container .woocommerce-billing-fields h3', 'title' => 'Hide Billing details'],

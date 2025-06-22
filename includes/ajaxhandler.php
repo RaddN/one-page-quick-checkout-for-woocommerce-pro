@@ -4,9 +4,9 @@ if (! defined('ABSPATH')) exit; // Exit if accessed directly
 
 // update cart content
 
-add_action('wp_ajax_onepaquc_get_cart_content', 'onepaquc_get_cart_content');
-add_action('wp_ajax_nopriv_onepaquc_get_cart_content', 'onepaquc_get_cart_content');
-function onepaquc_get_cart_content()
+add_action('wp_ajax_onepaqucpro_get_cart_content', 'onepaqucpro_get_cart_content');
+add_action('wp_ajax_nopriv_onepaqucpro_get_cart_content', 'onepaqucpro_get_cart_content');
+function onepaqucpro_get_cart_content()
 {
     check_ajax_referer('get_cart_content_none', 'nonce');
     //get the values from the ajax request cart_icon: cartIcon, product_title_tag: productTitleTag, drawer_position: drawerPosition
@@ -16,7 +16,7 @@ function onepaquc_get_cart_content()
     ob_start();
 
     // Use include to load the template from your plugin's directory
-    onepaquc_cart($drawerPosition, $cartIcon, $productTitleTag);
+    onepaqucpro_cart($drawerPosition, $cartIcon, $productTitleTag);
 
     $cart_html = ob_get_clean();
 
@@ -29,9 +29,9 @@ function onepaquc_get_cart_content()
 
 // update quantity
 
-add_action('wp_ajax_onepaquc_update_cart_item_quantity', 'onepaquc_update_cart_item_quantity');
-add_action('wp_ajax_nopriv_onepaquc_update_cart_item_quantity', 'onepaquc_update_cart_item_quantity');
-function onepaquc_update_cart_item_quantity()
+add_action('wp_ajax_onepaqucpro_update_cart_item_quantity', 'onepaqucpro_update_cart_item_quantity');
+add_action('wp_ajax_nopriv_onepaqucpro_update_cart_item_quantity', 'onepaqucpro_update_cart_item_quantity');
+function onepaqucpro_update_cart_item_quantity()
 {
     check_ajax_referer('update_cart_item_quantity', 'nonce');
     $cart_item_key = isset($_POST['cart_item_key']) ? sanitize_text_field(wp_unslash($_POST['cart_item_key'])) : '';
@@ -46,9 +46,9 @@ function onepaquc_update_cart_item_quantity()
 
 
 // remove cart item
-add_action('wp_ajax_onepaquc_remove_cart_item', 'onepaquc_handle_remove_cart_item');
-add_action('wp_ajax_nopriv_onepaquc_remove_cart_item', 'onepaquc_handle_remove_cart_item');
-function onepaquc_handle_remove_cart_item()
+add_action('wp_ajax_onepaqucpro_remove_cart_item', 'onepaqucpro_handle_remove_cart_item');
+add_action('wp_ajax_nopriv_onepaqucpro_remove_cart_item', 'onepaqucpro_handle_remove_cart_item');
+function onepaqucpro_handle_remove_cart_item()
 {
     check_ajax_referer('remove_cart_item', 'nonce');
     $cart_item_key = isset($_POST['cart_item_key']) ? sanitize_text_field(wp_unslash($_POST['cart_item_key'])) : '';
@@ -61,12 +61,12 @@ function onepaquc_handle_remove_cart_item()
 }
 
 // update checkout form on ajax complete
-function onepaquc_update_checkout_form()
+function onepaqucpro_update_checkout_form()
 {
     ob_start();
 
     // Use include to load the template from your plugin's directory
-    onepaquc_rmenu_checkout();
+    onepaqucpro_rmenupro_checkout();
 
     $checkout_form = ob_get_clean();
 
@@ -74,17 +74,17 @@ function onepaquc_update_checkout_form()
     wp_send_json_success(array('checkout_form' => $checkout_form));
 }
 
-add_action('wp_ajax_onepaquc_update_checkout', 'onepaquc_update_checkout_form');
-add_action('wp_ajax_nopriv_onepaquc_update_checkout', 'onepaquc_update_checkout_form');
+add_action('wp_ajax_onepaqucpro_update_checkout', 'onepaqucpro_update_checkout_form');
+add_action('wp_ajax_nopriv_onepaqucpro_update_checkout', 'onepaqucpro_update_checkout_form');
 
 // Add AJAX handler for refreshing product list
-add_action('wp_ajax_onepaquc_refresh_checkout_product_list', 'onepaquc_refresh_checkout_product_list');
-add_action('wp_ajax_nopriv_onepaquc_refresh_checkout_product_list', 'onepaquc_refresh_checkout_product_list');
+add_action('wp_ajax_onepaqucpro_refresh_checkout_product_list', 'onepaqucpro_refresh_checkout_product_list');
+add_action('wp_ajax_nopriv_onepaqucpro_refresh_checkout_product_list', 'onepaqucpro_refresh_checkout_product_list');
 
-function onepaquc_refresh_checkout_product_list()
+function onepaqucpro_refresh_checkout_product_list()
 {
     // Check nonce for security
-    check_ajax_referer('onepaquc_refresh_checkout_product_list', 'nonce');
+    check_ajax_referer('onepaqucpro_refresh_checkout_product_list', 'nonce');
     if (!isset($_POST['product_ids'])) {
         wp_die();
     }
@@ -170,10 +170,10 @@ function onepaquc_refresh_checkout_product_list()
 }
 
 
-add_action('wp_ajax_woocommerce_clear_cart', 'onepaquc_clear_cart');
-add_action('wp_ajax_nopriv_woocommerce_clear_cart', 'onepaquc_clear_cart');
+add_action('wp_ajax_woocommerce_clear_cart', 'onepaqucpro_clear_cart');
+add_action('wp_ajax_nopriv_woocommerce_clear_cart', 'onepaqucpro_clear_cart');
 
-function onepaquc_clear_cart()
+function onepaqucpro_clear_cart()
 {
     WC()->cart->empty_cart();
     wp_send_json_success();
@@ -182,18 +182,18 @@ function onepaquc_clear_cart()
 
 // add to cart
 
-add_action('wp_ajax_rmenu_ajax_add_to_cart', 'ajax_add_to_cart');
-add_action('wp_ajax_nopriv_rmenu_ajax_add_to_cart', 'ajax_add_to_cart');
+add_action('wp_ajax_onepaqucpro_ajax_add_to_cart', 'onepaqucpro_ajax_add_to_cart');
+add_action('wp_ajax_nopriv_onepaqucpro_ajax_add_to_cart', 'onepaqucpro_ajax_add_to_cart');
 
 
-function ajax_add_to_cart() {
-        check_ajax_referer('rmenu-ajax-nonce', 'nonce');
+function onepaqucpro_ajax_add_to_cart() {
+        check_ajax_referer('rmenupro-ajax-nonce', 'nonce');
 
         $product_id = apply_filters('woocommerce_add_to_cart_product_id', absint(isset($_POST['product_id']) ? $_POST['product_id'] : 0));
 
         // Get default quantity from settings if quantity is not provided
-        if(onepaquc_premium_feature()) {
-            $default_qty = get_option('rmenu_add_to_cart_default_qty', '1');
+        if(onepaqucpro_premium_feature()) {
+            $default_qty = get_option('rmenupro_add_to_cart_default_qty', '1');
         } else {
             $default_qty = 1; // Default to 1 if premium feature is not available
         }
@@ -223,7 +223,7 @@ function ajax_add_to_cart() {
             $checkout_url = function_exists('wc_get_checkout_url') ? wc_get_checkout_url() : WC()->cart->get_checkout_url();
             
             // Get redirect option
-            $redirect_option = get_option('rmenu_redirect_after_add', 'none');
+            $redirect_option = get_option('rmenupro_redirect_after_add', 'none');
             $redirect_url = 'none';
             
             if ($redirect_option === 'cart') {
@@ -244,7 +244,7 @@ function ajax_add_to_cart() {
             );
             
             // Add fragments if Mini Cart Preview is selected
-            if (get_option('rmenu_add_to_cart_notification_style', 'default') === 'mini_cart') {
+            if (get_option('rmenupro_add_to_cart_notification_style', 'default') === 'mini_cart') {
                 ob_start();
                 woocommerce_mini_cart();
                 $mini_cart = ob_get_clean();
@@ -257,7 +257,7 @@ function ajax_add_to_cart() {
         } else {
             $data = array(
                 'error' => true,
-                'message' => __('Error adding product to cart', 'one-page-quick-checkout-for-woocommerce')
+                'message' => __('Error adding product to cart', 'one-page-quick-checkout-for-woocommerce-pro')
             );
             
             wp_send_json($data);

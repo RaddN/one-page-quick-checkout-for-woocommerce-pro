@@ -1,11 +1,16 @@
 <?php
  if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
  
-
- function onepaquc_wc_checkout_block_register() {
+if (!function_exists('onepaquc_wc_checkout_block_register')) {
+ function onepaqucpro_wc_checkout_block_register() {
     // Skip block registration if Gutenberg is not available
     if ( !function_exists( 'register_block_type' ) ) {
         return;
+    }
+
+    // Check if block type is already registered
+    if (WP_Block_Type_Registry::get_instance()->is_registered('wc/checkout-block')) {
+        return; // Exit early if already registered
     }
 
     wp_register_script(
@@ -18,7 +23,7 @@
 
     register_block_type('wc/checkout-block', array(
         'editor_script' => 'wc-checkout-block',
-        'render_callback' => 'onepaquc_wc_checkout_block_render',
+        'render_callback' => 'onepaqucpro_wc_checkout_block_render',
         'attributes' => array(
             // General
             'cartIcon' => array(
@@ -157,7 +162,8 @@
         )
     ));
 }
-add_action('init', 'onepaquc_wc_checkout_block_register', 10);
+add_action('init', 'onepaqucpro_wc_checkout_block_register', 100);
+}
 
  /**
  * Render the block
@@ -166,7 +172,7 @@ add_action('init', 'onepaquc_wc_checkout_block_register', 10);
  * @return string Rendered block HTML.
  */
 
-function onepaquc_wc_checkout_block_render($attributes = array()) {
+function onepaqucpro_wc_checkout_block_render($attributes = array()) {
     // Extract attributes with defaults
     $attributes = wp_parse_args($attributes, array(
         // General
@@ -214,54 +220,54 @@ function onepaquc_wc_checkout_block_render($attributes = array()) {
 
     // Generate custom CSS based on attributes
     $custom_css = "
-        .rmenu-cart .rwc_cart-button .cart-icon svg {
+        .rmenupro-cart .rwc_cart-button .cart-icon svg {
             width: {$attributes['cartIconSize']}px !important;
             fill: {$attributes['cartIconColor']} !important;
         }
         
-        .rmenu-cart .cart-drawer {
+        .rmenupro-cart .cart-drawer {
             width: {$attributes['drawerWidth']}px !important;
             max-width: 100% !important;
             background-color: {$attributes['drawerBackground']} !important;
         }
         
-        .rmenu-cart .cart-drawer {
+        .rmenupro-cart .cart-drawer {
             padding: {$attributes['drawerPadding']}px !important;
             margin: {$attributes['drawerMargin']}px !important;
         }
         
-        .rmenu-cart .cart-item .thumbnail img {
+        .rmenupro-cart .cart-item .thumbnail img {
             width: {$attributes['productImageWidth']}px !important;
             height: {$attributes['productImageHeight']}px !important;
         }
         
-        .rmenu-cart .cart-item .item-title {
+        .rmenupro-cart .cart-item .item-title {
             font-size: {$attributes['productTitleFontSize']}px !important;
             line-height: {$attributes['productTitleLineHeight']} !important;
             color: {$attributes['productTitleColor']} !important;
         }
         
-        .rmenu-cart .cart-item .item-price {
+        .rmenupro-cart .cart-item .item-price {
             font-size: {$attributes['productPriceFontSize']}px !important;
             line-height: {$attributes['productPriceLineHeight']} !important;
             color: {$attributes['productPriceColor']} !important;
         }
         
-        .rmenu-cart .cart-item .quantity input.item-quantity {
+        .rmenupro-cart .cart-item .quantity input.item-quantity {
             width: {$attributes['quantityWidth']}px !important;
             height: {$attributes['quantityHeight']}px !important;
             padding: {$attributes['quantityPadding']}px !important;
         }
         
-        .rmenu-cart .cart-item .remove-item svg {
+        .rmenupro-cart .cart-item .remove-item svg {
             width: {$attributes['removeButtonSize']}px !important;
         }
         
-        .rmenu-cart .cart-item .remove-item {
+        .rmenupro-cart .cart-item .remove-item {
             padding: {$attributes['removeButtonPadding']}px !important;
         }
         
-        .rmenu-cart .cart-subtotal {
+        .rmenupro-cart .cart-subtotal {
             font-size: {$attributes['subtotalFontSize']}px !important;
             line-height: {$attributes['subtotalLineHeight']} !important;
             color: {$attributes['subtotalColor']} !important;
@@ -269,7 +275,7 @@ function onepaquc_wc_checkout_block_render($attributes = array()) {
             padding-bottom: 0 !important;
         }
         
-        .rmenu-cart .checkout-button {
+        .rmenupro-cart .checkout-button {
             background-color: {$attributes['checkoutBtnBackground']} !important;
             font-size: {$attributes['checkoutBtnFontSize']}px !important;
             line-height: {$attributes['checkoutBtnLineHeight']} !important;
@@ -279,7 +285,7 @@ function onepaquc_wc_checkout_block_render($attributes = array()) {
     
 
     // Add data attributes to pass to the shortcode
-    add_filter('onepaquc_cart_data_attributes', function($attributes_array) use ($attributes) {
+    add_filter('onepaqucpro_cart_data_attributes', function($attributes_array) use ($attributes) {
         return array_merge($attributes_array, array(
             'data-cart-icon' => $attributes['cartIcon'],
             'data-drawer-position' => $attributes['drawerPosition'],
@@ -290,15 +296,15 @@ function onepaquc_wc_checkout_block_render($attributes = array()) {
 
     // Enqueue the custom CSS
     wp_register_style(
-        'rmenu-cart-block-style',
+        'rmenupro-cart-block-style',
         false, // No actual CSS file
         array(), // No dependencies
         '1.0.5' // Version
     );
     
     // Now enqueue it
-    wp_enqueue_style('rmenu-cart-block-style');
-    wp_add_inline_style( 'rmenu-cart-block-style', esc_html($custom_css), 999 );
+    wp_enqueue_style('rmenupro-cart-block-style');
+    wp_add_inline_style( 'rmenupro-cart-block-style', esc_html($custom_css), 999 );
     
     // Generate a unique ID for this cart instance
     $cart_id = 'plugincy-cart-' . uniqid();

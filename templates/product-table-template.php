@@ -5,7 +5,7 @@
 <div class="one-page-checkout-container">
                 <!-- products in table format image -- title -- price -- add to cart -->
                 <div class="one-page-checkout-products">
-                    <h2><?php echo esc_html__('Products', 'one-page-quick-checkout-for-woocommerce'); ?></h2>
+                    <h2><?php echo esc_html__('Products', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h2>
                     <table class="one-page-checkout-product-table" style="border: none;">                        
                         <tbody>
                             <?php
@@ -36,7 +36,7 @@
                                 echo '<div class="one-page-checkout-product-add-to-cart">';
                                 if ($product) {
                                     $add_to_cart = do_shortcode('[add_to_cart id="' . $product_id . '" style=""]');
-                                    echo $add_to_cart;
+                                    echo $add_to_cart; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                                 }
                                 echo '</div>';
                                 echo '</td>';
@@ -44,5 +44,5 @@
                             } ?>
                         </tbody>
                     </table>
-                <?php onepaquc_rmenu_checkout_popup(true) ?>
+                <?php onepaqucpro_rmenupro_checkout_popup(true) ?>
             </div>

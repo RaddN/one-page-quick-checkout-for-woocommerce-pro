@@ -7,7 +7,7 @@ if (!defined('ABSPATH')) exit;
  * @since 1.0.5
  * @return void
  */
-function onepaquc_cart_documentation()
+function onepaqucpro_cart_documentation()
 {
 ?>
     <div class="wrap">

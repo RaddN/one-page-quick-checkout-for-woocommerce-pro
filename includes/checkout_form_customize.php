@@ -38,7 +38,7 @@ class WooCommerce_Checkout_Customizer
         // Handle visibility with CSS
         add_action('wp_head', array($this, 'add_visibility_styles'));
 
-        add_filter('woocommerce_shipping_package_name', array($this, 'onepaquc_custom_woocommerce_shipping_label'), 10, 2);
+        add_filter('woocommerce_shipping_package_name', array($this, 'onepaqucpro_custom_woocommerce_shipping_label'), 10, 2);
     }
 
     /**
@@ -377,7 +377,7 @@ class WooCommerce_Checkout_Customizer
     }
 
     // Change "Shipping" label in WooCommerce shipping totals section
-   public function onepaquc_custom_woocommerce_shipping_label($label, $package_name)
+   public function onepaqucpro_custom_woocommerce_shipping_label($label, $package_name)
     {
         if (isset($this->config['shipping']) && $this->config['shipping']['visible'] && isset($this->config['shipping']['text'])) {
                 return $this->config['shipping']['text'];

@@ -8,18 +8,18 @@ jQuery(document).ready(function ($) {
         var drawerPosition = $('.rwc_cart-button').data('drawer-position');
 
         $.ajax({
-            url: onepaquc_wc_cart_params.ajax_url,
+            url: onepaqucpro_wc_cart_params.ajax_url,
             type: 'POST',
             data: {
-                action: 'onepaquc_get_cart_content',
+                action: 'onepaqucpro_get_cart_content',
                 cart_icon: cartIcon,
                 product_title_tag: productTitleTag,
                 drawer_position: drawerPosition,
-                nonce: onepaquc_wc_cart_params.get_cart_content_none
+                nonce: onepaqucpro_wc_cart_params.get_cart_content_none
             },
             success: function (response) {
                 if (response.success) {
-                    $('.rmenu-cart').html(response.data.cart_html);
+                    $('.rmenupro-cart').html(response.data.cart_html);
                     if (isdrawer) {
                         $('.cart-drawer').addClass('open');
                     }
@@ -38,9 +38,9 @@ jQuery(document).ready(function ($) {
     // Function to update the checkout form
     function updateCheckoutForm() {
         $.ajax({
-            url: onepaquc_ajax_object.ajax_url,
+            url: onepaqucpro_ajax_object.ajax_url,
             method: 'POST',
-            data: { action: 'onepaquc_update_checkout' },
+            data: { action: 'onepaqucpro_update_checkout' },
             success: function (response) {
                 if (response.success) {
                     // $('.checkout-popup').html(response.data.checkout_form);
@@ -56,18 +56,18 @@ jQuery(document).ready(function ($) {
     }
 
     // Handle quantity change
-    $('.rmenu-cart').on('change', '.item-quantity', function () {
+    $('.rmenupro-cart').on('change', '.item-quantity', function () {
         const cartItemKey = $(this).closest('.cart-item').find('.remove-item').data('cart-item-key');
         const quantity = $(this).val();
 
         $.ajax({
-            url: onepaquc_wc_cart_params.ajax_url,
+            url: onepaqucpro_wc_cart_params.ajax_url,
             type: 'POST',
             data: {
-                action: 'onepaquc_update_cart_item_quantity',
+                action: 'onepaqucpro_update_cart_item_quantity',
                 cart_item_key: cartItemKey,
                 quantity: quantity,
-                nonce: onepaquc_wc_cart_params.update_cart_item_quantity
+                nonce: onepaqucpro_wc_cart_params.update_cart_item_quantity
             },
             success: function (response) {
                 if (response.success) {
@@ -78,7 +78,7 @@ jQuery(document).ready(function ($) {
     });
 
     // Handle remove item
-    $('.rmenu-cart').on('click', '.remove-item', function (e) {
+    $('.rmenupro-cart').on('click', '.remove-item', function (e) {
         e.preventDefault();
         const cartItemKey = $(this).data('cart-item-key');
 
@@ -87,12 +87,12 @@ jQuery(document).ready(function ($) {
         
 
         $.ajax({
-            url: onepaquc_wc_cart_params.ajax_url,
+            url: onepaqucpro_wc_cart_params.ajax_url,
             type: 'POST',
             data: {
-                action: 'onepaquc_remove_cart_item',
+                action: 'onepaqucpro_remove_cart_item',
                 cart_item_key: cartItemKey,
-                nonce: onepaquc_wc_cart_params.remove_cart_item,
+                nonce: onepaqucpro_wc_cart_params.remove_cart_item,
             },
             success: function (response) {
                 if (response.success) {
@@ -167,13 +167,13 @@ jQuery(document).ready(function ($) {
             type: 'POST',
             url: wc_checkout_params.ajax_url,
             data: {
-                action: 'onepaquc_update_cart_item_quantity',
+                action: 'onepaqucpro_update_cart_item_quantity',
                 cart_item_key: cartItemKey,
                 quantity: qty,
-                nonce: onepaquc_wc_cart_params.update_cart_item_quantity
+                nonce: onepaqucpro_wc_cart_params.update_cart_item_quantity
             },
             success: function () {
-                $('body').trigger('onepaquc_update_checkout');
+                $('body').trigger('onepaqucpro_update_checkout');
                 $(document.body).trigger('update_checkout');
                 updateCartContent(false);
             },
@@ -197,9 +197,9 @@ jQuery(document).ready(function ($) {
             type: 'POST',
             url: wc_add_to_cart_params.ajax_url,
             data: {
-                action: 'onepaquc_remove_cart_item',
+                action: 'onepaqucpro_remove_cart_item',
                 cart_item_key: cartItemKey,
-                nonce: onepaquc_wc_cart_params.remove_cart_item
+                nonce: onepaqucpro_wc_cart_params.remove_cart_item
             },
             success: function (response) {
                 // Get product IDs from data attribute
@@ -210,9 +210,9 @@ jQuery(document).ready(function ($) {
                     type: 'POST',
                     url: wc_add_to_cart_params.ajax_url,
                     data: {
-                        action: 'onepaquc_refresh_checkout_product_list',
+                        action: 'onepaqucpro_refresh_checkout_product_list',
                         product_ids: product_ids,
-                        nonce: onepaquc_wc_cart_params.onepaquc_refresh_checkout_product_list
+                        nonce: onepaqucpro_wc_cart_params.onepaqucpro_refresh_checkout_product_list
                     },
                     success: function (html) {
                         $('ul.one-page-checkout-product-list').html(html);
@@ -240,8 +240,8 @@ jQuery(document).ready(function ($) {
         });
     });
 
-    var $directbehave = onepaquc_wc_cart_params.direct_checkout_behave;
-    var methodKey = $directbehave.rmenu_wc_checkout_method;
+    var $directbehave = onepaqucpro_wc_cart_params.direct_checkout_behave;
+    var methodKey = $directbehave.rmenupro_wc_checkout_method;
 
     function directcheckout(product_id, product_type, $button) {
         var $variation_id = $button.siblings('.archive-variations-container').find('.variation_id').val() || 0;
@@ -256,7 +256,7 @@ jQuery(document).ready(function ($) {
         }
 
         // Handle confirmation if enabled
-        if ($directbehave.rmenu_wc_add_confirmation == 1) {
+        if ($directbehave.rmenupro_wc_add_confirmation == 1) {
             var methodMap = {
                 direct_checkout: "Redirect to Checkout",
                 ajax_add: "AJAX Add to Cart",
@@ -270,7 +270,7 @@ jQuery(document).ready(function ($) {
 
             var confirmMessage = `Are you sure you want to proceed with ${methodLabel}?`;
 
-            if ($directbehave.rmenu_wc_clear_cart === "1") {
+            if ($directbehave.rmenupro_wc_clear_cart === "1") {
                 confirmMessage += ` This will clear your current cart.`;
             }
 
@@ -287,13 +287,13 @@ jQuery(document).ready(function ($) {
         function proceedToAddToCart() {
             $.ajax({
                 type: 'POST',
-                url: onepaquc_wc_cart_params.ajax_url,
+                url: onepaqucpro_wc_cart_params.ajax_url,
                 data: {
-                    action: 'rmenu_ajax_add_to_cart',
+                    action: 'onepaqucpro_ajax_add_to_cart',
                     product_id: product_id,
                     quantity: 1,
                     variation_id: $variation_id,
-                    nonce: onepaquc_wc_cart_params.nonce || '', // Fallback if needed
+                    nonce: onepaqucpro_wc_cart_params.nonce || '', // Fallback if needed
                 },
                 success: function (response) {
                     if (response.success) {
@@ -318,11 +318,11 @@ jQuery(document).ready(function ($) {
 
                         // Redirect or UI handling
                         if (methodKey === 'direct_checkout') {
-                            window.location.href = onepaquc_wc_cart_params.checkout_url;
+                            window.location.href = onepaqucpro_wc_cart_params.checkout_url;
                         } else if (methodKey === 'ajax_add') {
                             $('.cart-drawer').removeClass('open');
                         } else if (methodKey === 'cart_redirect') {
-                            window.location.href = onepaquc_wc_cart_params.cart_url;
+                            window.location.href = onepaqucpro_wc_cart_params.cart_url;
                         } else if (methodKey === 'side_cart' && !$isonepagewidget) {
                             updateCartContent();
                         } else {
@@ -356,7 +356,7 @@ jQuery(document).ready(function ($) {
 
 
         // If clear cart is enabled, clear the cart before proceeding
-        if ($directbehave.rmenu_wc_clear_cart == 1) {
+        if ($directbehave.rmenupro_wc_clear_cart == 1) {
             $.ajax({
                 type: 'POST',
                 url: wc_add_to_cart_params.ajax_url,
@@ -378,9 +378,9 @@ jQuery(document).ready(function ($) {
             // Fetch the product's variation HTML using AJAX
             $.ajax({
                 type: 'GET',
-                url: onepaquc_wc_cart_params.ajax_url,
+                url: onepaqucpro_wc_cart_params.ajax_url,
                 data: {
-                    action: 'rmenu_get_product_variations', // Define this action in your PHP
+                    action: 'rmenupro_get_product_variations', // Define this action in your PHP
                     product_id: product_id
                 },
                 success: function (response) {

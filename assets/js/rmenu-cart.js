@@ -33,11 +33,11 @@ jQuery(document).ready(function ($) {
             $('.cart-drawer').removeClass('open');
             $('.checkout-popup').show();
 
-            console.log(onepaquc_rmsgValue.checkout_url);
+            console.log(onepaqucpro_rmsgValue.checkout_url);
 
             // Create iframe for checkout
             var iframe = $('<iframe>', {
-                src: onepaquc_rmsgValue.checkout_url+'?hide_header_footer=1',
+                src: onepaqucpro_rmsgValue.checkout_url+'?hide_header_footer=1',
                 id: 'checkout-iframe',
                 frameborder: 0,
                 style: 'width: 100%; min-height: 0%; height:0;'
@@ -93,7 +93,7 @@ jQuery(document).ready(function ($) {
     function handleCheckoutResponse(response) {
         $('.spinner').remove();
         if (response.result === 'success') {
-            $('.popup-message').html('<div class="Confirm_message">' + onepaquc_rmsgValue.rmsgEditor + '</div>');
+            $('.popup-message').html('<div class="Confirm_message">' + onepaqucpro_rmsgValue.rmsgEditor + '</div>');
             $('#checkout-form').remove();
         } else {
             $('.popup-message').html('<p>' + response.messages + '</p>');

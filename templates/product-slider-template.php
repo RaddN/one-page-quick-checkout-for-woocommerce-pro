@@ -8,7 +8,7 @@ wp_enqueue_style( 'owl-theme', plugin_dir_url(__FILE__) . '../assets/css/owl.the
 
 <div class="product-slider-template">
 <div class="one-page-checkout-container">
-    <h2><?php echo esc_html__('Products', 'one-page-quick-checkout-for-woocommerce'); ?></h2>
+    <h2><?php echo esc_html__('Products', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h2>
 
     <div class="one-page-checkout-slider owl-carousel">
         <?php
@@ -31,7 +31,7 @@ wp_enqueue_style( 'owl-theme', plugin_dir_url(__FILE__) . '../assets/css/owl.the
         ?>
     </div>
 
-    <?php onepaquc_rmenu_checkout_popup(true); ?>
+    <?php onepaqucpro_rmenupro_checkout_popup(true); ?>
 
 </div>
 </div>

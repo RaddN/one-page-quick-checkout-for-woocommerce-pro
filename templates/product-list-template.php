@@ -7,7 +7,7 @@
 <div class = "product-list-template">
 <div class="one-page-checkout-container">
     <div class="one-page-checkout-products">
-        <h2><?php echo esc_html__('Products', 'one-page-quick-checkout-for-woocommerce'); ?></h2>
+        <h2><?php echo esc_html__('Products', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h2>
         <ul class="one-page-checkout-product-list" data-product-ids="<?php echo esc_attr($atts['product_ids']); ?>">
             <?php
             // Remove any whitespace from product IDs
@@ -55,7 +55,7 @@
             ?>
         </ul>
         
-        <?php onepaquc_rmenu_checkout_popup(true); ?>
+        <?php onepaqucpro_rmenupro_checkout_popup(true); ?>
     </div>
 </div>
 </div>
@@ -111,7 +111,7 @@ jQuery(document).ready(function($) {
             type: 'POST',
             url: wc_add_to_cart_params.ajax_url,
             data: {
-                action: 'onepaquc_remove_cart_item',
+                action: 'onepaqucpro_remove_cart_item',
                 cart_item_key: cart_item_key,
                 nonce: wc_add_to_cart_params.remove_cart_item
             },
@@ -183,4 +183,4 @@ jQuery(document).ready(function($) {
 });";
 
     // Enqueue the inline script
-    wp_add_inline_script('rmenu-cart-script', $inline_script,99);
+    wp_add_inline_script('rmenupro-cart-script', $inline_script,99);
