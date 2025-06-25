@@ -491,7 +491,7 @@ class onepaqucpro_License_Manager
             $message = $this->get_remote_deactivation_message($remote_deactivation_status);
             echo '<div class="notice notice-error is-dismissible">';
             echo '<p><strong>License Alert:</strong> ' . esc_html($message) . '</p>';
-            echo '<p><a href="' . admin_url('admin.php?page=your-license-page') . '">Manage License</a> | ';
+            echo '<p><a target="_blank" href="https://plugincy.com/my-account">Manage License</a> | ';
             echo '<a href="https://plugincy.com/support" target="_blank">Contact Support</a></p>';
             echo '</div>';
         }
