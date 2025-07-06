@@ -69,7 +69,7 @@ function onepaqucpro_cart_dashboard()
     ?>
 
     <div class="welcome-banner">
-        <h1>Welcome to One Page Quick Checkout for WooCommerce Pro <span class="version-tag">v1.0.5</span></h1>
+        <div class="welcome-title">Welcome to One Page Quick Checkout for WooCommerce Pro <span class="version-tag">v1.0.6</span></div>
         <p>Thank you for installing One Page Quick Checkout for WooCommerce Pro! Streamline your WooCommerce checkout process and boost your conversion rates with our easy-to-configure solution.</p>
         <p>Get started by configuring your settings below or explore our quick setup guide.</p>
 
@@ -89,8 +89,9 @@ function onepaqucpro_cart_dashboard()
         </div>
 
         <div class="button-row">
-            <a target="_blank" href="https://plugincy.com/documentations/one-page-quick-checkout-for-woocommerce/" class="button">View Documentation</a>
-            <a href="https://plugincy.com/support" target="_blank" class="button button-secondary">Get Support</a>
+            <a target="_blank" href="https://demo.plugincy.com/one-page-quick-checkout-for-woocommerce/" class="button" style="background: #ed8936;color: white;"><span class="dashicons dashicons-visibility" style=" margin-right: 5px; "></span> View Demo</a>
+            <a target="_blank" href="https://plugincy.com/documentations/one-page-quick-checkout-for-woocommerce/" class="button"><span class="dashicons dashicons-book" style=" margin-right: 5px; "></span> View Documentation</a>
+            <a href="https://plugincy.com/support" target="_blank" class="button button-secondary"><span class="dashicons dashicons-sos" style=" margin-right: 5px; "></span> Get Support</a>
         </div>
     </div>
 
@@ -102,15 +103,42 @@ function onepaqucpro_cart_dashboard()
     ?>
     <div class="tab-container">
         <div class="tabs">
-            <div class="tab active" data-tab="0">Checkout Form Manage</div>
-            <div class="tab" data-tab="3">Text Manage</div>
-            <div class="tab" data-tab="2">One Page Checkout</div>
-            <div class="tab" data-tab="8">Add To Cart</div>
-            <div class="tab" data-tab="4">Direct Checkout Manage</div>
-            <div class="tab" data-tab="7">Quick View</div>
-            <div class="tab" data-tab="6">Advanced Settings</div>
-            <div class="tab" data-tab="5">Features</div>
-            <div class="tab" data-tab="100">Plugin License</div>
+            <div class="tab" data-tab="2">
+                <span class="dashicons dashicons-admin-page"></span>
+                One Page Checkout
+            </div>
+            <div class="tab" data-tab="4">
+                <span class="dashicons dashicons-cart"></span>
+                Direct Checkout
+            </div>
+            <div class="tab" data-tab="7">
+                <span class="dashicons dashicons-visibility"></span>
+                Quick View
+            </div>
+            <div class="tab" data-tab="5">
+                <span class="dashicons dashicons-star-filled"></span>
+                Features
+            </div>
+            <div class="tab" data-tab="8">
+                <span class="dashicons dashicons-plus-alt"></span>
+                Add To Cart
+            </div>
+            <div class="tab active" data-tab="0">
+                <span class="dashicons dashicons-forms"></span>
+                Checkout Form
+            </div>
+            <div class="tab" data-tab="3">
+                <span class="dashicons dashicons-edit"></span>
+                Text Manage
+            </div>
+            <div class="tab" data-tab="6">
+                <span class="dashicons dashicons-admin-settings"></span>
+                Advanced Settings
+            </div>
+            <div class="tab" data-tab="100">
+                <span class="dashicons dashicons-admin-network"></span>
+                Plugin License
+            </div>
         </div>
         <script>
             function isColorDark(color) {
@@ -321,7 +349,7 @@ function onepaqucpro_cart_dashboard()
                     <tr valign="top">
                         <th scope="row">Checkout Layout</th>
                         <td class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
-                            <select name="<?php echo !onepaqucpro_premium_feature() ? 'pro_checkout_layout' : 'onepaqucpro_checkout_layout'; ?>" <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> >
+                            <select name="<?php echo !onepaqucpro_premium_feature() ? 'pro_checkout_layout' : 'onepaqucpro_checkout_layout'; ?>" <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?>>
                                 <option <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> value="<?php echo !onepaqucpro_premium_feature() ? 'pro_two_column' : 'two_column'; ?>" <?php selected(get_option('onepaqucpro_checkout_layout', 'two_column'), 'two_column'); ?>>Two Columns (Product & Checkout)</option>
                                 <option <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> value="<?php echo !onepaqucpro_premium_feature() ? 'pro_one_column' : 'one_column'; ?>" <?php selected(get_option('onepaqucpro_checkout_layout', 'two_column'), 'one_column'); ?>>One Column (Stacked)</option>
                                 <option <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> value="<?php echo !onepaqucpro_premium_feature() ? 'pro_product_first' : 'product_first'; ?>" <?php selected(get_option('onepaqucpro_checkout_layout', 'two_column'), 'product_first'); ?>>Product First, Then Checkout</option>
@@ -885,7 +913,7 @@ function onepaqucpro_cart_dashboard()
 
                     .rmenupro-settings-section {
                         background: #fff;
-                        border: 1px solid #c3c4c7;
+                        border: 1px solid rgb(218, 218, 218);
                         border-radius: 4px;
                         box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
                         margin-bottom: 25px;
@@ -3032,7 +3060,7 @@ function onepaqucpro_cart_dashboard()
             <input type="hidden" name="<?php echo !onepaqucpro_premium_feature() ? 'pro-onepaqucpro_reset' : 'onepaqucpro_reset_settings'; ?>" value="1">
             <?php
             $disabled = !onepaqucpro_premium_feature() ? array('disabled' => 'disabled') : array();
-            submit_button( 'Reset Settings', 'button-primary', '', false, array_merge( array('style' => 'margin-left: 20px;background:#dc3545;color:#fff;border-color:#dc3545;'), $disabled ) );
+            submit_button('Reset Settings', 'button-primary', '', false, array_merge(array('style' => 'margin-left: 20px;background:#dc3545;color:#fff;border-color:#dc3545;'), $disabled));
             ?>
         </form>
         <p style="text-align: center;font-size: 15px;">To add menu cart to your page, use the shortcode <b>[plugincy_cart drawer="right" cart_icon="cart" product_title_tag="h4"]</b> or use Plugincy Cart Widget/Block</p>
