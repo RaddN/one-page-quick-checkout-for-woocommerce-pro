@@ -700,12 +700,12 @@ class onepaqucpro_License_Manager
                                     <input type="hidden" name="onepaqucpro_license_action" value="activate" />
                                     <input type="submit" class="button button-primary" value="Activate License" />
                                     <?php if ($license_status === 'site_inactive'): ?>
-                                        <button type="button" class="button button-secondary" id="dapfforwcpro-remove-license-btn" style="margin-left:10px;">
+                                        <button type="button" class="button button-secondary" id="onepaqucpro-remove-license-btn" style="margin-left:10px;">
                                             Remove License
                                         </button>
                                         <script>
                                             document.addEventListener('DOMContentLoaded', function() {
-                                                var removeBtn = document.getElementById('dapfforwcpro-remove-license-btn');
+                                                var removeBtn = document.getElementById('onepaqucpro-remove-license-btn');
                                                 if (removeBtn) {
                                                     removeBtn.addEventListener('click', function(e) {
                                                         e.preventDefault();

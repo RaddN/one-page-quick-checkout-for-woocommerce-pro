@@ -69,7 +69,7 @@ function onepaqucpro_cart_dashboard()
     ?>
 
     <div class="welcome-banner">
-        <div class="welcome-title">Welcome to One Page Quick Checkout for WooCommerce Pro <span class="version-tag">v1.0.6</span></div>
+        <div class="welcome-title">Welcome to One Page Quick Checkout for WooCommerce Pro <span class="version-tag">v1.0.7</span></div>
         <p>Thank you for installing One Page Quick Checkout for WooCommerce Pro! Streamline your WooCommerce checkout process and boost your conversion rates with our easy-to-configure solution.</p>
         <p>Get started by configuring your settings below or explore our quick setup guide.</p>
 
@@ -1432,6 +1432,21 @@ function onepaqucpro_cart_dashboard()
             </div>
             <div class="tab-content" id="tab-6">
                 <?php onepaqucpro_trust_badges_settings_content(); ?>
+                <table style="padding-top: 1rem;">
+                    <tr valign="top">
+                        <th scope="row">Contribute to Plugincy</th>
+                        <td>
+                            <label class="switch">
+                                <input type="checkbox" name="rmenupro_allow_analytics" value="1" <?php checked(1, get_option("rmenupro_allow_analytics", "1"), true); ?> />
+                                <span class="slider round"></span>
+                            </label>
+                            <span class="tooltip">
+                                <span class="question-mark">?</span>
+                                <span class="tooltip-text">We collect non-sensitive technical details from your website, like the PHP version and features usage, to help us troubleshoot issues faster, make informed development decisions, and build features that truly benefit you. <a href='https://plugincy.com/usage-tracking/' target='_blank' style="color:#fff;">Learn more…</a></span>
+                            </span>
+                        </td>
+                    </tr>
+                </table>
             </div>
             <div class="tab-content" id="tab-7">
                 <div class="rmenupro-settings-header">
