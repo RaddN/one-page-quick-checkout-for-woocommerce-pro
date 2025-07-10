@@ -879,7 +879,7 @@ class onepaqucpro_cart_analytics_main
     {
         // Initialize analytics with the correct plugin file path
         $this->analytics = new onepaqucpro_cart_anaylytics(
-            '04',
+            '03',
             'https://plugincy.com/wp-json/product-analytics/v1',
             "1.0.7",
             'One Page Quick Checkout for WooCommerce',
