@@ -34,7 +34,7 @@ class RMENUPRO_Quick_View {
      * Add quick view button to appropriate locations
      */
     private function add_quick_view_button() {
-        $button_position = get_option('rmenupro_quick_view_button_position', 'after_image');
+        $button_position = get_option('rmenupro_quick_view_button_position', 'image_overlay');
         
         switch ($button_position) {
             case 'after_image':
@@ -71,13 +71,13 @@ class RMENUPRO_Quick_View {
         global $product;
         
         // Check if product type is allowed
-        $allowed_types = get_option('rmenupro_show_quick_view_by_types', array('simple', 'variable'));
+        $allowed_types = get_option('rmenupro_show_quick_view_by_types', ['simple', 'variable',"grouped","external"]);
         if (!in_array($product->get_type(), $allowed_types)) {
             return;
         }
         
         // Check if current page is allowed
-        $allowed_pages = get_option('rmenupro_show_quick_view_by_page', array('shop-page', 'category-archives', 'search'));
+        $allowed_pages = get_option('rmenupro_show_quick_view_by_page', ['shop-page', 'category-archives',"tag-archives", 'search',"featured-products","on-sale","recent","widgets","shortcodes"]);
         $display = false;
         
         if (in_array('shop-page', $allowed_pages) && is_shop()) {
@@ -115,7 +115,7 @@ class RMENUPRO_Quick_View {
         global $product;
         
         // Same checks as display_quick_view_button
-        $allowed_types = get_option('rmenupro_show_quick_view_by_types', array('simple', 'variable'));
+        $allowed_types = get_option('rmenupro_show_quick_view_by_types', ['simple', 'variable',"grouped","external"]);
         if (!in_array($product->get_type(), $allowed_types)) {
             return;
         }
@@ -133,7 +133,7 @@ class RMENUPRO_Quick_View {
         if (empty($button_text)) {
             $button_text = 'Quick View';
         }
-        $display_type = get_option('rmenupro_quick_view_display_type', 'button');
+        $display_type = get_option('rmenupro_quick_view_display_type', 'icon');
         $button_icon = get_option('rmenupro_quick_view_button_icon', 'eye');
         $icon_position = get_option('rmenupro_quick_view_icon_position', 'left');
         
@@ -149,7 +149,7 @@ class RMENUPRO_Quick_View {
                     $icon_class = 'dashicons-search';
                     break;
                 case 'zoom':
-                    $icon_class = 'dashicons-zoom';
+                    $icon_class = 'dashicons-fullscreen-alt';
                     break;
                 case 'preview':
                     $icon_class = 'dashicons-welcome-view-site';
@@ -159,7 +159,7 @@ class RMENUPRO_Quick_View {
         }
         
         // Generate button classes
-        $button_classes = array('rmenupro-quick-view-btn');
+        $button_classes = array('opqvfw-btn');
         $button_style = get_option('rmenupro_quick_view_button_style', 'default');
         
         if ($button_style === 'default') {
@@ -212,7 +212,7 @@ class RMENUPRO_Quick_View {
         }
         
         // Get elements to display
-        $elements = get_option('rmenupro_quick_view_content_elements', array('image', 'title', 'rating', 'price', 'excerpt', 'add_to_cart', 'meta'));
+        $elements = get_option('rmenupro_quick_view_content_elements', ['image', 'title', 'rating', 'price', 'excerpt', 'add_to_cart', 'meta']);
         
         // Prepare product data
         $product_data = array(
@@ -365,7 +365,7 @@ class RMENUPRO_Quick_View {
         $mobile_optimize = get_option('rmenupro_quick_view_mobile_optimize', 1);
         $debug_mode = get_option('rmenupro_quick_view_debug_mode', 0);
         $lightbox = get_option('rmenupro_quick_view_enable_lightbox', 1);
-        $elements_in_popup = get_option('rmenupro_quick_view_content_elements', array('image', 'title', 'rating', 'price', 'excerpt', 'add_to_cart', 'meta', 'title','quantity', 'view_details'));
+        $elements_in_popup = get_option('rmenupro_quick_view_content_elements', ['image', 'title', 'rating', 'price', 'excerpt', 'add_to_cart', 'meta']);
 
         // Localize script with settings
         wp_localize_script('rmenupro-quick-view-scripts', 'rmenupro_quick_view_params', array(
@@ -416,16 +416,17 @@ class RMENUPRO_Quick_View {
      * Add dynamic CSS for button styling
      */
     private function add_dynamic_css() {
-        $button_color = get_option('rmenupro_quick_view_button_color', '#96588a');
+        $button_color = get_option('rmenupro_quick_view_button_color', '#000');
         $text_color = get_option('rmenupro_quick_view_text_color', '#ffffff');
         
         $custom_css = "
-            .rmenupro-quick-view-btn.custom-style {
+            .opqvfw-btn {
                 background-color: {$button_color};
                 color: {$text_color};
             }
-            .rmenupro-quick-view-btn.custom-style:hover {
+            .opqvfw-btn:hover {
                 background-color: " . $this->adjust_brightness($button_color, -15) . ";
+                color: {$text_color};
             }
         ";
         
@@ -457,9 +458,9 @@ class RMENUPRO_Quick_View {
      */
     public function quick_view_modal_container() {
         ?>
-        <div class="rmenupro-quick-view-modal-container">
-            <div class="rmenupro-quick-view-modal-overlay"></div>
-            <div class="rmenupro-quick-view-modal">
+        <div class="opqvfw-modal-container">
+            <div class="opqvfw-modal-overlay"></div>
+            <div class="opqvfw-modal">
                 <div class="rmenupro-quick-view-close">
                     <span class="dashicons dashicons-no-alt"></span>
                     <span class="screen-reader-text"><?php echo esc_html(get_option('rmenupro_quick_view_close_text', 'Close')); ?></span>
@@ -498,7 +499,7 @@ function rmenupro_quick_view_modal_css() {
     
     // Start CSS output
     $css = '<style type="text/css">';
-    $css .= '.rmenupro-quick-view-modal {';
+    $css .= '.opqvfw-modal {';
     
     switch ($modal_size) {
         case 'small':

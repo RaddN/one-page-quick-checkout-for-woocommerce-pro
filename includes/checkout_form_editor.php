@@ -379,7 +379,205 @@
     }
 </style>
 <?php
-$checkout_form_setup = get_option("checkout_form_setup", '');
+$default_config = array(
+        'coupon-section' => array(
+            'visible' => true,
+            'title' => 'Have a coupon?',
+            'description' => 'If you have a coupon code, please apply it below.',
+            'placeholder' => 'Coupon code',
+            'button' => 'Apply Coupon'
+        ),
+        'billing-title' => array(
+            'visible' => true,
+            'text' => 'Billing details'
+        ),
+        'first-name' => array(
+            'visible' => true,
+            'label' => 'First name',
+            'placeholder' => 'Enter your first name',
+            'required' => true
+        ),
+        'last-name' => array(
+            'visible' => true,
+            'label' => 'Last name',
+            'placeholder' => 'Enter your last name',
+            'required' => true
+        ),
+        'email' => array(
+            'visible' => true,
+            'label' => 'Email address',
+            'placeholder' => 'Enter your email address',
+            'required' => true
+        ),
+        'phone' => array(
+            'visible' => true,
+            'label' => 'Phone number',
+            'placeholder' => 'Enter your phone number',
+            'required' => false
+        ),
+        'country' => array(
+            'visible' => true,
+            'label' => 'Country / Region',
+            'required' => true
+        ),
+        'address' => array(
+            'visible' => true,
+            'label' => 'Street address',
+            'placeholder' => 'House number and street name',
+            'required' => true
+        ),
+        'address2' => array(
+            'visible' => true,
+            'placeholder' => 'Apartment, suite, unit, etc. (optional)'
+        ),
+        'city' => array(
+            'visible' => true,
+            'label' => 'Town / City',
+            'placeholder' => 'Enter your city',
+            'required' => true
+        ),
+        'state' => array(
+            'visible' => true,
+            'label' => 'State / District',
+            'placeholder' => 'Enter your state',
+            'required' => true
+        ),
+        'postcode' => array(
+            'visible' => true,
+            'label' => 'Postcode / ZIP',
+            'placeholder' => 'Enter your postcode',
+            'required' => true
+        ),
+        'company' => array(
+            'visible' => true,
+            'label' => 'Company name',
+            'placeholder' => 'Enter your company name',
+            'required' => false
+        ),
+        'ship-to-different' => array(
+            'visible' => true,
+            'label' => 'Ship to a different address?'
+        ),
+        'shipping-first-name' => array(
+            'visible' => true,
+            'label' => 'First name',
+            'placeholder' => 'Enter shipping first name',
+            'required' => true
+        ),
+        'shipping-last-name' => array(
+            'visible' => true,
+            'label' => 'Last name',
+            'placeholder' => 'Enter your shipping last name',
+            'required' => true
+        ),
+        'shipping-country' => array(
+            'visible' => true,
+            'label' => 'Country / Region',
+            'required' => true
+        ),
+        'shipping-address' => array(
+            'visible' => true,
+            'label' => 'Street address',
+            'placeholder' => 'House number and street name',
+            'required' => true
+        ),
+        'shipping-address2' => array(
+            'visible' => true,
+            'placeholder' => 'Apartment, suite, unit, etc. (optional)'
+        ),
+        'shipping-city' => array(
+            'visible' => true,
+            'label' => 'Town / City',
+            'placeholder' => 'Enter shipping city',
+            'required' => true
+        ),
+        'shipping-state' => array(
+            'visible' => true,
+            'label' => 'State / District',
+            'placeholder' => 'Enter shipping state',
+            'required' => true
+        ),
+        'shipping-postcode' => array(
+            'visible' => true,
+            'label' => 'Postcode / ZIP',
+            'placeholder' => 'Enter shipping postcode',
+            'required' => true
+        ),
+        'shipping-company' => array(
+            'visible' => true,
+            'label' => 'Company name',
+            'placeholder' => 'Enter shipping company name',
+            'required' => false
+        ),
+        'additional-title' => array(
+            'visible' => true,
+            'text' => 'Additional information'
+        ),
+        'order-notes' => array(
+            'visible' => true,
+            'label' => 'Order notes',
+            'placeholder' => 'Notes about your order, e.g. special notes for delivery.',
+            'required' => false
+        ),
+        'order-review-title' => array(
+            'visible' => true,
+            'text' => 'Your order'
+        ),
+        'order-summary' => array(
+            'visible' => true
+        ),
+        'product-header' => array(
+            'visible' => true,
+            'text' => 'Product'
+        ),
+        'subtotal-header' => array(
+            'visible' => true,
+            'text' => 'Subtotal'
+        ),
+        'order-item' => array(
+            'visible' => true,
+            'text' => 'Sample Product × 1'
+        ),
+        'order-item-price' => array(
+            'visible' => true,
+            'text' => '$29.99'
+        ),
+        'subtotal2' => array(
+            'visible' => true
+        ),
+        'subtotal-price' => array(
+            'visible' => true,
+            'text' => '$29.99'
+        ),
+        'shipping' => array(
+            'visible' => true,
+            'text' => 'Shipping'
+        ),
+        'shipping-price' => array(
+            'visible' => true,
+            'text' => '$5.00'
+        ),
+        'total-header' => array(
+            'visible' => true,
+            'text' => 'Total'
+        ),
+        'total-price' => array(
+            'visible' => true,
+            'text' => '$34.99'
+        ),
+        'payment-methods' => array(
+            'visible' => true
+        ),
+        'privacy-policy' => array(
+            'visible' => true,
+            'text' => 'Your personal data will be used to process your order, support your experience throughout this website, and for other purposes described in our privacy policy.'
+        ),
+        'place-order' => array(
+            'visible' => true,
+            'text' => 'Place order'
+        )
+    );
+$checkout_form_setup = get_option("checkout_form_setup", json_encode($default_config));
 $dataObject = json_decode($checkout_form_setup);
 if (class_exists('WC_Shipping_Zones')) {
     $shipping_zones = WC_Shipping_Zones::get_zones();
@@ -1024,7 +1222,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
 
             <div class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only' : 'editable-field'; ?><?php echo (isset($dataObject->{'privacy-policy'}->{'visible'}) && !$dataObject->{'privacy-policy'}->{'visible'}) ? ' plugincy-hidden-field' : ''; ?>" data-field="privacy-policy">
                 <div class="field-controls">
-                    <button class="control-btn edit-btn" onclick="editField('privacy-policy')" title="Edit">✎</button>
+                    <!-- <button class="control-btn edit-btn" onclick="editField('privacy-policy')" title="Edit">✎</button> -->
                     <button class="control-btn <?php echo (isset($dataObject->{'privacy-policy'}->{'visible'}) && !$dataObject->{'privacy-policy'}->{'visible'}) ? 'show-btn' : 'hide-btn'; ?>" onclick="toggleField('privacy-policy')" title="<?php echo (isset($dataObject->{'privacy-policy'}->{'visible'}) && !$dataObject->{'privacy-policy'}->{'visible'}) ? 'Show' : 'Hide'; ?>">
                         <?php echo (isset($dataObject->{'privacy-policy'}->{'visible'}) && !$dataObject->{'privacy-policy'}->{'visible'}) ? '👁‍🗨' : '👁'; ?>
                     </button>

@@ -385,6 +385,7 @@ button.rwc_cart-button span.cart-icon img {
   font-weight: bold;
   font-size: 16px;
   line-height: 26px;
+  color: #000
 }
 .checkout-qty-minus {
   border-radius: 3px 0 0 3px;
@@ -1497,19 +1498,22 @@ table.one-page-checkout-product-table td {
 .direct-checkout-button {
   position: relative; /* Required for positioning the :after element */
 }
-
-.direct-checkout-button.loading:after {
+.direct-checkout-button:focus {
+    border: none !important;
+    display: inline-block !important;
+}
+.direct-checkout-button.loading:before {
   content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 20px; /* Spinner size */
-  height: 20px; /* Spinner size */
-  border: 4px solid rgba(0, 0, 0, 0.1);
-  border-top: 4px solid #3498db;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  transform: translate(-50%, -50%); /* Center the spinner */
+  position: absolute!important;
+  top: 50%!important;
+  left: 50%!important;
+  width: 20px!important; /* Spinner size */
+  height: 20px!important; /* Spinner size */
+  border: 4px solid rgba(0, 0, 0, 0.1)!important;
+  border-top: 4px solid #3498db!important;
+  border-radius: 50%!important;
+  animation: spin 1s linear infinite!important;
+  transform: translate(-50%, -50%)!important; /* Center the spinner */
 }
 
 @keyframes spin {
@@ -1582,17 +1586,18 @@ table.one-page-checkout-product-table td {
   }
 }
 
-.rmenupro-direct-checkout-btn {
+.opqcfw-btn {
   margin-top: 10px !important;
 }
 @media (min-width: 768px) {
-  .single .summary.entry-summary .rmenupro-direct-checkout-btn {
+  .single .summary.entry-summary .opqcfw-btn {
     margin-top: 0 !important;
-    margin-left: 10px !important;
+    margin-left: 10px;
+    margin-right: 10px;
   }
 }
 @media (max-width: 768px) {
-  .single .summary.entry-summary .rmenupro-direct-checkout-btn {
+  .single .summary.entry-summary .opqcfw-btn {
     margin-top: 0 !important;
   }
 }
@@ -1744,7 +1749,7 @@ table.one-page-checkout-product-table td {
 }
 
 
-a.rmenupro-quick-view-btn.display-text_icon {
+a.opqvfw-btn.display-text_icon {
     display: flex;
     align-items: center;
     justify-content: center;

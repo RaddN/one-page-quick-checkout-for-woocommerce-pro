@@ -29,7 +29,7 @@ function onepaqucpro_should_display_button($product)
     }
 
     // Check product type
-    $allowed_product_types = get_option('rmenupro_show_quick_checkout_by_types', ['simple']);
+    $allowed_product_types = get_option('rmenupro_show_quick_checkout_by_types', ["simple", "variable", "external"]);
     $product_type = $product->get_type();
 
     if (!in_array($product_type, $allowed_product_types)) {
@@ -37,7 +37,7 @@ function onepaqucpro_should_display_button($product)
     }
 
     // Get allowed pages
-    $allowed_pages = get_option('rmenupro_show_quick_checkout_by_page', ['single']);
+    $allowed_pages = get_option('rmenupro_show_quick_checkout_by_page', ["single", "related", "upsells", "shop-page", "category-archives", "tag-archives", "featured-products", "on-sale", "recent", "widgets", "shortcodes"]);
 
     // Check current page type
 
@@ -115,22 +115,28 @@ function onepaqucpro_should_display_button($product)
 function onepaqucpro_get_button_styling()
 {
     // Basic button classes
-    $classes = "button single_add_to_cart_button direct-checkout-button rmenupro-direct-checkout-btn";
-    $style = "cursor:pointer;";
+    $classes = "button single_add_to_cart_button direct-checkout-button opqcfw-btn";
+    $style = "cursor:pointer;text-align: center;";
+    $position = get_option('rmenupro_wc_direct_checkout_position', 'after_add_to_cart');
+    if ($position === "bottom_add_to_cart") {
+        $style .= "padding: 14px 30px;";
+    } else {
+        $style .= "padding: 14px 16px;";
+    }
     $icon = '';
     $additional_css = '';
 
     // Apply button style settings
-    $button_style = get_option('rmenupro_wc_checkout_style', 'default');
+    $button_style = get_option('rmenupro_wc_checkout_style', 'alt');
     if ($button_style === 'alt') {
         $classes .= " alt-style";
     }
 
     // Apply color settings if not using default style
     if ($button_style !== 'default') {
-        $bg_color = get_option('rmenupro_wc_checkout_color', '#96588a');
+        $bg_color = get_option('rmenupro_wc_checkout_color', '#000');
         $text_color = get_option('rmenupro_wc_checkout_text_color', '#ffffff');
-        $style .= "background-color:{$bg_color}!important;color:{$text_color}!important;border-color:{$bg_color}!important;";
+        $style .= "background-color:{$bg_color};color:{$text_color};border-color:{$bg_color};";
     }
 
     // Add mobile optimization if enabled
@@ -141,7 +147,7 @@ function onepaqucpro_get_button_styling()
     }
 
     // Handle button icon
-    $icon_type = get_option('rmenupro_wc_checkout_icon', 'none');
+    $icon_type = get_option('rmenupro_wc_checkout_icon', 'cart');
     $icon_position = get_option('rmenupro_wc_checkout_icon_position', 'left');
 
     if ($icon_type !== 'none') {
@@ -199,44 +205,43 @@ function onepaqucpro_add_button_css()
 ?>
     <style>
         /* Base styling for direct checkout button */
-        .rmenupro-direct-checkout-btn {
+        .opqcfw-btn {
             transition: all 0.3s ease;
         }
 
         /* Alternative button style */
-        .rmenupro-direct-checkout-btn.alt-style {
-            border-radius: 30px;
-            text-transform: uppercase;
+        .opqcfw-btn.alt-style {
+            border-radius: 4px;
             letter-spacing: 1px;
             font-weight: 600;
         }
 
         /* Icon positioning styles */
-        .rmenupro-direct-checkout-btn .rmenupro-icon {
+        .opqcfw-btn .rmenupro-icon {
             display: inline-block;
             vertical-align: middle;
         }
 
-        .rmenupro-direct-checkout-btn.icon-position-left .rmenupro-icon {
+        .opqcfw-btn.icon-position-left .rmenupro-icon {
             margin-right: 8px;
         }
 
-        .rmenupro-direct-checkout-btn.icon-position-right .rmenupro-icon {
+        .opqcfw-btn.icon-position-right .rmenupro-icon {
             margin-left: 8px;
         }
 
-        .rmenupro-direct-checkout-btn.icon-position-top .rmenupro-icon {
+        .opqcfw-btn.icon-position-top .rmenupro-icon {
             display: block;
             margin: 0 auto 5px;
         }
 
-        .rmenupro-direct-checkout-btn.icon-position-bottom .rmenupro-icon {
+        .opqcfw-btn.icon-position-bottom .rmenupro-icon {
             display: block;
             margin: 5px auto 0;
         }
 
-        .rmenupro-direct-checkout-btn.icon-position-top,
-        .rmenupro-direct-checkout-btn.icon-position-bottom {
+        .opqcfw-btn.icon-position-top,
+        .opqcfw-btn.icon-position-bottom {
             text-align: center;
         }
 
@@ -266,9 +271,10 @@ function onepaqucpro_add_button_css()
             }
         }
 
-        <?php echo $additional_css; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+        <?php echo $additional_css; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped 
+        ?>
     </style>
-<?php
+    <?php
 
     // Output the CSS
     echo ob_get_clean(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
@@ -329,7 +335,7 @@ function onepaqucpro_add_checkout_button()
     $icon_position = isset($icon['position']) ? $icon['position'] : 'left';
 
     // Button text
-    $button_text = esc_html(get_option('txt-direct-checkout') !== "" ? get_option('txt-direct-checkout', 'Direct Checkout') : "Direct Checkout");
+    $button_text = esc_html(get_option('txt-direct-checkout') !== "" ? get_option('txt-direct-checkout', 'Buy Now') : "Buy Now");
 
     // Prepare icon HTML
     $icon_html = '<span class="onepaquc-icon">' . $icon_content . '</span>';
@@ -372,42 +378,58 @@ function onepaqucpro_modify_add_to_cart_button()
     $position = get_option("rmenupro_wc_direct_checkout_position", "after_add_to_cart");
 
     switch ($position) {
-        case 'before_add_to_cart':
-            add_action('woocommerce_before_add_to_cart_button', 'onepaqucpro_add_checkout_button');
-            break;
-
         case 'after_add_to_cart':
         case 'replace_add_to_cart':
+        case 'bottom_add_to_cart':
+        case 'before_add_to_cart':
             add_action('woocommerce_after_add_to_cart_button', 'onepaqucpro_add_checkout_button');
             break;
     }
 }
 
 // Apply the checkout button modifications if enabled
-if (get_option('rmenupro_add_direct_checkout_button')) {
-    $position = get_option("rmenupro_wc_direct_checkout_position", "after_add_to_cart");
-    if ($position === "replace_add_to_cart") {
-        add_action('wp_head', 'onepaqucpro_hide_add_to_cart_css');
-    }
+if (get_option('rmenupro_add_direct_checkout_button', 1)) {
+    add_action('wp_head', 'onepaqucpro_position_wise_css');
     add_action('woocommerce_before_single_product', 'onepaqucpro_modify_add_to_cart_button');
 }
 
 if (get_option('rmenupro_add_to_cart_catalog_display') == "hide") {
-    add_action('wp_footer', 'onepaqucpro_hide_add_to_cart_css');
+    add_action('wp_footer', 'onepaqucpro_position_wise_css');
 }
 
 // Function to hide the original add to cart button when in replace mode
-function onepaqucpro_hide_add_to_cart_css()
+function onepaqucpro_position_wise_css()
 {
-?>
-    <style>
-        button.single_add_to_cart_button,
-        a.button.product_type_simple.add_to_cart_button,
-        .quantity {
-            display: none !important;
-        }
-    </style>
+    $position = get_option("rmenupro_wc_direct_checkout_position", "after_add_to_cart");
+    if ($position === "replace_add_to_cart") {
+    ?>
+        <style>
+            button.single_add_to_cart_button,
+            a.button.product_type_simple.add_to_cart_button,
+            .quantity {
+                display: none !important;
+            }
+        </style>
+    <?php
+    } else if ($position === "before_add_to_cart") { ?>
+        <style>
+            form.cart {
+                display: flex;
+            }
+
+            button.single_add_to_cart_button {
+                order: 3;
+            }
+        </style>
+    <?php } else if ($position === "bottom_add_to_cart") { ?>
+        <style>
+            a.button.single_add_to_cart_button.direct-checkout-button.opqcfw-btn {
+                width: 100% !important;
+                margin: 0 0 1rem;
+            }
+        </style>
 <?php
+    }
 }
 
 // Function to add checkout button to product loops (listings)
@@ -427,7 +449,7 @@ function onepaqucpro_add_checkout_button_to_add_to_cart_shortcode($link, $produc
     $icon_position = isset($icon['position']) ? $icon['position'] : 'left';
 
     // Button text
-    $button_text = esc_html(get_option('txt-direct-checkout') !== "" ? get_option('txt-direct-checkout', 'Direct Checkout') : "Direct Checkout");
+    $button_text = esc_html(get_option('txt-direct-checkout') !== "" ? get_option('txt-direct-checkout', 'Buy Now') : "Buy Now");
 
     // Prepare icon HTML
     $icon_html = '<span class="onepaquc-icon">' . $icon_content . '</span>';
@@ -458,6 +480,7 @@ function onepaqucpro_add_checkout_button_to_add_to_cart_shortcode($link, $produc
             return $checkout_button . ' ' . $link;
 
         case 'after_add_to_cart':
+        case 'bottom_add_to_cart':
             return $link . ' ' . $checkout_button;
 
         case 'replace_add_to_cart':
@@ -470,6 +493,6 @@ function onepaqucpro_add_checkout_button_to_add_to_cart_shortcode($link, $produc
 
 
 // Apply the checkout button to product loops if enabled
-if (get_option('rmenupro_add_direct_checkout_button')) {
+if (get_option('rmenupro_add_direct_checkout_button', 1)) {
     add_filter('woocommerce_loop_add_to_cart_link', 'onepaqucpro_add_checkout_button_to_add_to_cart_shortcode', 10, 2);
 }

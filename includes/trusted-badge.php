@@ -76,7 +76,7 @@ function onepaqucpro_trust_badges_settings_content()
                         <option value="above_checkout" <?php selected(get_option('onepaqucpro_trust_badge_position', 'below_checkout'), 'above_checkout'); ?>><?php esc_html_e('Above Checkout Form', 'one-page-quick-checkout-for-woocommerce-pro'); ?></option>
                         <option value="below_checkout" <?php selected(get_option('onepaqucpro_trust_badge_position', 'below_checkout'), 'below_checkout'); ?>><?php esc_html_e('Below Checkout Form', 'one-page-quick-checkout-for-woocommerce-pro'); ?></option>
                         <option value="payment_section" <?php selected(get_option('onepaqucpro_trust_badge_position', 'below_checkout'), 'payment_section'); ?>><?php esc_html_e('Next to Payment Methods', 'one-page-quick-checkout-for-woocommerce-pro'); ?></option>
-                        <option value="order_summary" <?php selected(get_option('onepaqucpro_trust_badge_position', 'below_checkout'), 'order_summary'); ?>><?php esc_html_e('Below Order Summary', 'one-page-quick-checkout-for-woocommerce-pro'); ?></option>
+                        <!-- <option value="order_summary" <?php //selected(get_option('onepaqucpro_trust_badge_position', 'below_checkout'), 'order_summary'); ?>><?php //esc_html_e('Below Order Summary (Coming Soon)', 'one-page-quick-checkout-for-woocommerce-pro'); ?></option> -->
                     </select>
                 </td>
             </tr>
@@ -146,7 +146,7 @@ function onepaqucpro_trust_badges_settings_content()
                     <p>
                         <label>
                             <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="checkbox" id="show-custom-html" name="show_custom_html" value="1"
-                                <?php checked(1, !empty(get_option('onepaqucpro_trust_badge_custom_html')), true); ?> />
+                                <?php checked(1, !empty(get_option('onepaqucpro_trust_badge_custom_html', 0)), true); ?> />
                             <?php esc_html_e('I want to use custom HTML instead', 'one-page-quick-checkout-for-woocommerce-pro'); ?>
                         </label>
                     </p>
@@ -188,7 +188,7 @@ function onepaqucpro_trust_badges_settings_content()
                     <p>
                         <label><?php esc_html_e('Text:', 'one-page-quick-checkout-for-woocommerce-pro'); ?></label>
                         <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="text" name="onepaqucpro_my_trust_badges_items[{{index}}][text]"
-                            value="<?php esc_html_e('New Badge', 'one-page-quick-checkout-for-woocommerce-pro'); ?>" class="regular-text" />
+                            value="<?php esc_html_e('New Badge {{index}}', 'one-page-quick-checkout-for-woocommerce-pro'); ?>" class="regular-text" />
                     </p>
                 </div>
             </div>
@@ -263,7 +263,7 @@ function onepaqucpro_trust_badges_settings_content()
             // if onepaqucpro_trust_badges_enabled is not checked, disable all fields use on change
             $('input[name="onepaqucpro_trust_badges_enabled"]').on('change', function() {
                 var isChecked = $(this).is(':checked');
-                $('div#tab-6 table:first').find('input, select, textarea').not('[name="onepaqucpro_trust_badges_enabled"]').prop('disabled', !isChecked);
+                $('div#tab-6 table:first').find('input, select, textarea').not('[name="onepaqucpro_trust_badges_enabled"]').toggleClass("disabled",!isChecked);
             }).trigger('change');
 
             // Toggle badge content
@@ -484,8 +484,8 @@ function onepaqucpro_trust_badges_styles()
             margin-right: 0;
             margin-bottom: 10px;
             font-size: 28px;
-            width: 28px;
-            height: 28px;
+            width: 50px;
+            height: 50px;
             padding: 12px;
         }
 

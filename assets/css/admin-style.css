@@ -445,7 +445,7 @@ li.rmenupro-settings-tab-item.active {
   color: #0092ff;
 }
 input:disabled,
-input:disabled + span {
+input:disabled + span,input.disabled,input.disabled + span {
   opacity: 0.4 !important;
 }
 
@@ -500,4 +500,10 @@ li.rmenupro-settings-tab-item{
 li.rmenupro-settings-tab-item.active {
     color: #4338ca;
     font-weight: 600;
+}
+.tab-content {
+    display: none;
+}
+label.switch input {
+    display: none !important;
 }

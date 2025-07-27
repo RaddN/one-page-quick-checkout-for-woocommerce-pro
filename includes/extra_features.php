@@ -80,8 +80,8 @@ if (get_option('rmenupro_disable_cart_page', 0)) {
 }
 
 if (get_option('rmenupro_link_product', 0)) {
-    add_filter('woocommerce_cart_item_name', 'link_product_name_on_checkout', 10, 3);
-    function link_product_name_on_checkout($product_name, $cart_item, $cart_item_key)
+    add_filter('woocommerce_cart_item_name', 'onepaqucpro_link_product_name_on_checkout', 10, 3);
+    function onepaqucpro_link_product_name_on_checkout($product_name, $cart_item, $cart_item_key)
     {
         // Only apply on the checkout page
         if (is_checkout()) {
@@ -103,7 +103,7 @@ if (get_option('rmenupro_link_product', 0)) {
  * Add variation selection buttons to product archive pages using woocommerce_loop_add_to_cart_link
  */
 if (get_option('rmenupro_variation_show_archive', 1)) {
-    add_filter('woocommerce_loop_add_to_cart_link', 'onepaqucpro_add_variation_buttons_to_loop', 10, 2);
+    add_filter('woocommerce_loop_add_to_cart_link', 'onepaqucpro_add_variation_buttons_to_loop', 100, 2);
 }
 
 function onepaqucpro_add_variation_buttons_to_loop($link, $product)
@@ -201,7 +201,7 @@ function onepaqucpro_add_variation_buttons_to_loop($link, $product)
     return $link; // Return the original link for non-variable products
 }
 
-if (get_option('rmenupro_wc_hide_select_option', 1)) {
+if (get_option('rmenupro_wc_hide_select_option', 0)) {
     // Add custom CSS for .product_type_variable in the footer
     add_action('wp_footer', 'add_custom_css_for_variable_products');
     function add_custom_css_for_variable_products()

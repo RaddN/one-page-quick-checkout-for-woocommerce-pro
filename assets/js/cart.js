@@ -84,7 +84,7 @@ jQuery(document).ready(function ($) {
 
         $(this).closest('.cart-item').css('transition', 'opacity 0.5s ease'); // Optional: add transition for smooth effect
         $(this).closest('.cart-item').css('opacity', '0.5'); // Optional: fade out the item
-        
+
 
         $.ajax({
             url: onepaqucpro_wc_cart_params.ajax_url,
@@ -153,6 +153,8 @@ jQuery(document).ready(function ($) {
             return;
         }
 
+        var $thisButton = $(this);
+
         // Block the checkout while updating
         $('.woocommerce-checkout-review-order-table').block({
             message: null,
@@ -172,7 +174,9 @@ jQuery(document).ready(function ($) {
                 quantity: qty,
                 nonce: onepaqucpro_wc_cart_params.update_cart_item_quantity
             },
-            success: function () {
+            success: function (response) {
+                // Trigger WC events
+                $(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash, $thisButton]);
                 $('body').trigger('onepaqucpro_update_checkout');
                 $(document.body).trigger('update_checkout');
                 updateCartContent(false);
@@ -189,6 +193,7 @@ jQuery(document).ready(function ($) {
     $(document).on('click', '.remove-item-checkout', function (e) {
         e.preventDefault();
         var cartItemKey = $(this).data('cart-item');
+        var $thisButton = $(this);
 
         $(this).closest('.cart_item').css('transition', 'opacity 0.5s ease'); // Optional: add transition for smooth effect
         $(this).closest('.cart_item').css('opacity', '0.5'); // Optional: fade out the item
@@ -203,6 +208,7 @@ jQuery(document).ready(function ($) {
             },
             success: function (response) {
                 // Get product IDs from data attribute
+                $(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash, $thisButton]);
                 var product_ids = $('.one-page-checkout-product-list').data('product-ids');
 
                 // Refresh the list of products
@@ -244,7 +250,7 @@ jQuery(document).ready(function ($) {
     var methodKey = $directbehave.rmenupro_wc_checkout_method;
 
     function directcheckout(product_id, product_type, $button) {
-        var $variation_id = $button.siblings('.archive-variations-container').find('.variation_id').val() || 0;
+        var $variation_id = $button.siblings('.archive-variations-container').find('.variation_id').val() || $button.siblings('.variation_id').val() || 0;
 
         $('#checkout-button-drawer-link').prop('disabled', true);
 
@@ -314,7 +320,7 @@ jQuery(document).ready(function ($) {
                         updateCheckoutForm();
 
                         // Trigger WooCommerce hook
-                        // $(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash]);
+                        $(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash]);
 
                         // Redirect or UI handling
                         if (methodKey === 'direct_checkout') {
