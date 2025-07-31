@@ -286,6 +286,7 @@
     max-width: 100%;
     height: auto;
     margin: 0 auto;
+    width: 100%;
 }
 
 .rmenupro-quick-view-thumbnails {
@@ -509,7 +510,13 @@ a.rmenupro-quick-view-image img {
 }
 a.opqvfw-btn.button.display-icon {
     display: flex;
-    color: #fff;
+    background: #ffffff6e;
+    color: #1e293b;
+    border: none;
+    border-radius: 100%;
+}
+a.opqvfw-btn.button.display-icon:hover {
+    background: #ffffff;
 }
 
 

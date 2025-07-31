@@ -1,8 +1,11 @@
 jQuery(document).ready(function ($) {
+    let isUpdatingCart = false;
+    let isUpdatingCheckout = false;
     $isonepagewidget = $('.checkout-popup').data('isonepagewidget');
     // Function to fetch and update cart contents
     function updateCartContent(isdrawer = true) {
-        // get data values from the cart button & send them to the server <button class="rwc_cart-button" data-cart-icon="cart" data-product_title_tag="p" data-drawer-position="right" onclick="openCartDrawer('right')"></button>
+        if (isUpdatingCart) return;
+        isUpdatingCart = true;
         var cartIcon = $('.rwc_cart-button').data('cart-icon');
         var productTitleTag = $('.rwc_cart-button').data('product_title_tag');
         var drawerPosition = $('.rwc_cart-button').data('drawer-position');
@@ -23,20 +26,42 @@ jQuery(document).ready(function ($) {
                     if (isdrawer) {
                         $('.cart-drawer').addClass('open');
                     }
+                    isUpdatingCart = false;
                 }
+            },
+            error: function () {
+                isUpdatingCart = false;
             }
         });
     }
-    updateCartContent(false);
+
+    window.updateCartCount = function (incrementValue = 1) {
+        // Select the cart count element
+        const cartCountElement = document.querySelector('span.cart-count');
+
+        // Check if the element exists
+        if (cartCountElement) {
+            // Get the current count, parse it as an integer, and increase it by the increment value
+            let currentCount = parseInt(cartCountElement.textContent, 10);
+            currentCount += incrementValue;
+
+            // Update the cart count display
+            cartCountElement.textContent = currentCount;
+        } else {
+            console.error('Cart count element not found.');
+        }
+    };
+
     // Event handler for adding/removing items from the cart
     $(document.body).on('added_to_cart removed_from_cart', function () {
-
-        $isonepagewidget ? updateCartContent(false) : updateCartContent();
-        updateCheckoutForm();
+        window.updateCartCount();
+        debouncedUpdate();
     });
 
     // Function to update the checkout form
     function updateCheckoutForm() {
+        if (isUpdatingCheckout) return;
+        isUpdatingCheckout = true;
         $.ajax({
             url: onepaqucpro_ajax_object.ajax_url,
             method: 'POST',
@@ -48,17 +73,33 @@ jQuery(document).ready(function ($) {
                 } else {
                     console.error('Error updating checkout:', response.data);
                 }
+                isUpdatingCheckout = false;
             },
             error: function () {
                 console.error('AJAX request failed.');
+                isUpdatingCheckout = false;
             }
         });
     }
 
+    function debouncedUpdate(showdrawer = true) {
+            if (!$isonepagewidget) {
+                updateCartContent();
+            } else {
+                updateCartContent(false);
+            }
+            updateCheckoutForm();
+    }
+
     // Handle quantity change
     $('.rmenupro-cart').on('change', '.item-quantity', function () {
+        const $input = $(this);
         const cartItemKey = $(this).closest('.cart-item').find('.remove-item').data('cart-item-key');
         const quantity = $(this).val();
+
+        // Add loading class (spinner)
+        $input.prop('disabled', true).parent().addClass('loading-spinner');
+
 
         $.ajax({
             url: onepaqucpro_wc_cart_params.ajax_url,
@@ -71,8 +112,17 @@ jQuery(document).ready(function ($) {
             },
             success: function (response) {
                 if (response.success) {
-                    updateCartContent();
+                    debouncedUpdate();
+                    // Update checkout totals
+                    $(document.body).trigger('update_checkout');
+
+                    // Trigger WooCommerce hook
+                    $(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash]);
                 }
+            },
+            complete: function () {
+                // Remove loading class (spinner)
+                $input.prop('disabled', false).parent().removeClass('loading-spinner');
             }
         });
     });
@@ -96,12 +146,58 @@ jQuery(document).ready(function ($) {
             },
             success: function (response) {
                 if (response.success) {
-                    updateCartContent();
+                    debouncedUpdate();
+                    // Update checkout totals
+                    $(document.body).trigger('update_checkout');
+
+                    // Trigger WooCommerce hook
+                    $(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash]);
                 }
             }
         });
     });
     // handle quantity change
+
+    // Function to update quantity
+    function updateQuantity(cartItemKey, qty) {
+        if (!cartItemKey) {
+            return;
+        }
+
+        var $thisButton = $(this);
+
+        // Block the checkout while updating
+        $('.woocommerce-checkout-review-order-table').block({
+            message: null,
+            overlayCSS: {
+                background: '#fff',
+                opacity: 0.6
+            }
+        });
+
+        // Update via AJAX
+        $.ajax({
+            type: 'POST',
+            url: wc_checkout_params.ajax_url,
+            data: {
+                action: 'onepaqucpro_update_cart_item_quantity',
+                cart_item_key: cartItemKey,
+                quantity: qty,
+                nonce: onepaqucpro_wc_cart_params.update_cart_item_quantity
+            },
+            success: function (response) {
+                // Trigger WC events
+                $(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash, $thisButton]);
+                $('body').trigger('onepaqucpro_update_checkout');
+                $(document.body).trigger('update_checkout');
+                debouncedUpdate(false);
+            },
+            complete: function () {
+                $('.woocommerce-checkout-review-order-table').unblock();
+            }
+        });
+    }
+
     // Handle the plus button click
     $(document).on('click', '.checkout-qty-plus', function () {
         var input = $(this).prev('.checkout-qty-input');
@@ -146,48 +242,6 @@ jQuery(document).ready(function ($) {
 
         updateQuantity($(this).closest('.checkout-qty-btn').data('cart-item'), val);
     });
-
-    // Function to update quantity
-    function updateQuantity(cartItemKey, qty) {
-        if (!cartItemKey) {
-            return;
-        }
-
-        var $thisButton = $(this);
-
-        // Block the checkout while updating
-        $('.woocommerce-checkout-review-order-table').block({
-            message: null,
-            overlayCSS: {
-                background: '#fff',
-                opacity: 0.6
-            }
-        });
-
-        // Update via AJAX
-        $.ajax({
-            type: 'POST',
-            url: wc_checkout_params.ajax_url,
-            data: {
-                action: 'onepaqucpro_update_cart_item_quantity',
-                cart_item_key: cartItemKey,
-                quantity: qty,
-                nonce: onepaqucpro_wc_cart_params.update_cart_item_quantity
-            },
-            success: function (response) {
-                // Trigger WC events
-                $(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash, $thisButton]);
-                $('body').trigger('onepaqucpro_update_checkout');
-                $(document.body).trigger('update_checkout');
-                updateCartContent(false);
-            },
-            complete: function () {
-                $('.woocommerce-checkout-review-order-table').unblock();
-                $(document.body).trigger('update_checkout');
-                updateCartContent(false);
-            }
-        });
-    }
 
     // Handle click on remove item button
     $(document).on('click', '.remove-item-checkout', function (e) {
@@ -241,7 +295,7 @@ jQuery(document).ready(function ($) {
 
                 // Update checkout totals
                 $(document.body).trigger('update_checkout');
-                updateCartContent(false);
+                debouncedUpdate(false);
             }
         });
     });
@@ -316,8 +370,7 @@ jQuery(document).ready(function ($) {
                         }
 
                         // Update UI
-                        updateCartContent(false);
-                        updateCheckoutForm();
+                        debouncedUpdate(false);
 
                         // Trigger WooCommerce hook
                         $(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash]);
@@ -330,7 +383,7 @@ jQuery(document).ready(function ($) {
                         } else if (methodKey === 'cart_redirect') {
                             window.location.href = onepaqucpro_wc_cart_params.cart_url;
                         } else if (methodKey === 'side_cart' && !$isonepagewidget) {
-                            updateCartContent();
+                            debouncedUpdate();
                         } else {
                             $('.checkout-popup').show();
                             $('.cart-drawer').removeClass('open');
@@ -426,23 +479,15 @@ jQuery(document).ready(function ($) {
         }
     }
 
-
     // Event delegation for better performance
     $(document).on('click', '.direct-checkout-button', function (e) {
         e.preventDefault(); // Prevent the default anchor behavior
-
         var $button = $(this); // Cache the button reference
         var product_id = $button.data('product-id');
         var product_type = $button.data('product-type');
-
         // Add loading class
         $button.addClass('loading').prop('disabled', true); // Disable the button
-
         directcheckout(product_id, product_type, $button);
-
-
-
-
     });
 
     $(document.body).on('updated_checkout', function () {

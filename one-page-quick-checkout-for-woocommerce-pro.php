@@ -13,7 +13,7 @@
  */
 
 
- // Check if the free version is installed and active, deactivate it
+// Check if the free version is installed and active, deactivate it
 add_action('plugins_loaded', function () {
     // Try to find the free plugin by slug, regardless of directory name
     $plugins = get_plugins();
@@ -158,6 +158,19 @@ $string_settings_fields = [
     "onepaqucpro_trust_badge_position",
     "onepaqucpro_trust_badge_style",
     "show_custom_html",
+    "rmenu_enable_sticky_cart",
+    "rmenu_cart_layout",
+    "rmenu_cart_top_position",
+    "rmenu_cart_left_position",
+    "rmenu_cart_bg_color",
+    "rmenu_cart_text_color",
+    "rmenu_cart_hover_bg",
+    "rmenu_cart_hover_text",
+    "rmenu_cart_border_radius",
+    "rmenu_show_cart_icon",
+    "rmenu_show_cart_count",
+    "rmenu_show_cart_total",
+    "rmenu_cart_animation",
 ];
 
 // Enqueue scripts and styles
@@ -373,7 +386,7 @@ function onepaqucpro_display_one_page_checkout_form()
     }
 
 ?>
-    <div class="one-page-checkout-container onepagecheckoutwidget" id="checkout-popup">
+    <div class="one-page-checkout-container onepagecheckoutwidget" id="checkout-popup" data-isonepagewidget="true">
         <h2>Checkout</h2>
         <p class="one-page-checkout-description"><?php echo get_option('txt-complete_your_purchase') ? esc_attr(get_option('txt-complete_your_purchase')) : 'Complete your purchase using the form below.'; ?></p>
         <?php echo do_shortcode('[woocommerce_checkout]'); ?>
@@ -502,8 +515,37 @@ add_action('admin_init', 'onepaqucpro_add_settings_link');
 add_action('wp_head', function () {
     if (isset($_GET['hide_header_footer']) && $_GET['hide_header_footer'] == '1') {
         echo '<style>
-            div#ast-scroll-top, div#wpadminbar, header, .site-header, #masthead, footer, .site-footer, #colophon {
+            div#ast-scroll-top, div#wpadminbar, header, .site-header, #masthead, footer, .site-footer, #colophon,.rmenu-cart,iframe {
                 display: none !important;
+            }
+            html {
+                margin: 0 !important;
+                padding-bottom: 100px;
+            }
+            .ast-container {
+                padding: 0 !important;
+            }
+            .woocommerce-info {
+                margin: 0 !important;
+            }
+            .form-row.place-order {
+                position: fixed;
+                bottom: 0;
+                background: #fff;
+                width: 100%;
+                left: 0;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 20px 0 !important;
+                box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+            }
+            .form-row.place-order p.order-total-price {
+                margin: 0 !important;
+            }
+            button#place_order {
+                width: max-content !important;
+                margin: 0 !important;
             }
         </style>';
         // Add JS to append ?hide_header_footer=1 to all links
@@ -566,14 +608,43 @@ add_action('wp_head', function () {
                 // Hide header and footer elements if sizes match
                 var style = document.createElement('style');
                 style.innerHTML = `
-                        div#ast-scroll-top, div#wpadminbar, header, .site-header, #masthead, footer, .site-footer, #colophon {
+                        div#ast-scroll-top, div#wpadminbar, header, .site-header, #masthead, footer, .site-footer, #colophon,.rmenu-cart,iframe {
                             display: none !important;
+                        }
+                        html {
+                            margin: 0 !important;
+                            padding-bottom: 100px;
+                        }
+                        .ast-container {
+                            padding: 0 !important;
+                        }
+                        .woocommerce-info {
+                            margin: 0 !important;
+                        }
+                        .form-row.place-order {
+                            position: fixed;
+                            bottom: 0;
+                            background: #fff;
+                            width: 100%;
+                            left: 0;
+                            display: flex;
+                            align-items: center;
+                            justify-content: space-between;
+                            padding: 20px 0 !important;
+                            box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+                        }
+                        .form-row.place-order p.order-total-price {
+                            margin: 0 !important;
+                        }
+                        button#place_order {
+                            width: max-content !important;
+                            margin: 0 !important;
                         }
                     `;
                 document.head.appendChild(style);
             }
         </script>
-<?php
+    <?php
     }
 });
 
@@ -795,20 +866,21 @@ if (onepaqucpro_premium_feature()) {
 
 
 // Force login before WooCommerce checkout
-function onepaqucpro_force_login_before_checkout() {
+function onepaqucpro_force_login_before_checkout()
+{
     // Check if the force login option is enabled and user is not logged in
     if (get_option('rmenupro_force_login', '0') == '1' && !is_user_logged_in()) {
-        
+
         // Check if we're on the checkout page
         if (is_checkout() && !is_wc_endpoint_url()) {
             // Remove the default checkout form
             remove_action('woocommerce_checkout_order_review', 'woocommerce_checkout_payment', 20);
             remove_action('woocommerce_checkout_billing', 'woocommerce_checkout_billing', 10);
             remove_action('woocommerce_checkout_shipping', 'woocommerce_checkout_shipping', 10);
-            
+
             // Add custom login form instead
             add_action('woocommerce_before_checkout_form', 'onepaqucpro_show_login_form_instead_checkout', 5);
-            
+
             // Hide the checkout form
             add_filter('woocommerce_checkout_show_terms', '__return_false');
             add_action('woocommerce_checkout_init', 'onepaqucpro_hide_checkout_form_when_not_logged_in');
@@ -818,7 +890,8 @@ function onepaqucpro_force_login_before_checkout() {
 add_action('template_redirect', 'onepaqucpro_force_login_before_checkout');
 
 // Hide checkout form and show login form
-function onepaqucpro_hide_checkout_form_when_not_logged_in() {
+function onepaqucpro_hide_checkout_form_when_not_logged_in()
+{
     if (get_option('rmenupro_force_login', '0') == '1' && !is_user_logged_in()) {
         // Remove checkout form elements
         remove_action('woocommerce_checkout_order_review', 'woocommerce_checkout_payment', 20);
@@ -829,19 +902,20 @@ function onepaqucpro_hide_checkout_form_when_not_logged_in() {
 }
 
 // Display login form on checkout page
-function onepaqucpro_show_login_form_instead_checkout() {
+function onepaqucpro_show_login_form_instead_checkout()
+{
     if (get_option('rmenupro_force_login', '0') == '1' && !is_user_logged_in()) {
         echo '<div class="woocommerce-info">';
         echo '<p>' . __('You must be logged in to proceed with checkout.', 'woocommerce') . '</p>';
         echo '</div>';
-        
+
         // Display login form
         woocommerce_login_form(array(
             'message' => __('Please login to continue with your order.', 'woocommerce'),
             'redirect' => wc_get_checkout_url(),
             'hidden' => false
         ));
-        
+
         // Add registration form if registration is enabled
         if (get_option('users_can_register')) {
             echo '<div class="woocommerce-register-wrapper" style="margin-top: 20px;">';
@@ -852,22 +926,31 @@ function onepaqucpro_show_login_form_instead_checkout() {
     }
 }
 
-function onepaqucpro_hide_checkout_css_when_not_logged_in() {
+function onepaqucpro_hide_checkout_css_when_not_logged_in()
+{
     if (get_option('rmenupro_force_login', '0') == '1' && !is_user_logged_in() && is_checkout()) {
-        ?>
+    ?>
         <style>
-        form.woocommerce-checkout,
-        .woocommerce-form-coupon-toggle {
-            display: none !important;
-        }
+            form.woocommerce-checkout,
+            .woocommerce-form-coupon-toggle {
+                display: none !important;
+            }
         </style>
-        <?php
+<?php
     }
 }
 add_action('wp_head', 'onepaqucpro_hide_checkout_css_when_not_logged_in');
 
+if (get_option("rmenu_enable_sticky_cart", 1)) {
+    function onepaqucpro_display_cart()
+    {
+        if (class_exists('WooCommerce')) {
+            echo do_shortcode('[plugincy_cart drawer="right" cart_icon="cart" product_title_tag="h4" position="fixed" top="" left=""]');
+        }
+    }
 
-
+    add_action('wp_footer', 'onepaqucpro_display_cart');
+}
 
 
 

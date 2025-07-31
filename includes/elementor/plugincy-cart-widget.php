@@ -34,7 +34,7 @@ function onepaqucpro_plugincy_cart_elementor_widget()
          */
         public function get_title()
         {
-            return esc_html__('Plugincy Cart', 'one-page-quick-checkout-for-woocommerce-pro');
+            return esc_html__('Floating Cart', 'one-page-quick-checkout-for-woocommerce-pro');
         }
 
         /**
