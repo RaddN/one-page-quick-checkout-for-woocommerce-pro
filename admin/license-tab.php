@@ -8,12 +8,12 @@ class onepaqucpro_License_Manager
     private $item_id = 4042;
     private $cache_key = 'onepaquc_license_cache';
     private $status_cache_key = 'onepaquc_status_cache';
-    private $version_cache_key = 'RMENU_VERSION_cache';
+    private $version_cache_key = 'RMENUPRO_VERSION_cache';
 
     public function __construct()
     {
         add_action('admin_init', array($this, 'handle_license_actions'));
-        add_action('wp_ajax_onepaqucpro_check_updates', array($this, 'ajax_check_updates'));
+        add_action('wp_ajax_onepaquc_check_updates', array($this, 'ajax_check_updates'));
 
 
 
@@ -25,8 +25,8 @@ class onepaqucpro_License_Manager
                     if (typeof ajaxurl !== 'undefined') {
                         var xhr = new XMLHttpRequest();
                         var params = new URLSearchParams();
-                        params.append('action', 'onepaqucpro_background_license_check');
-                        params.append('nonce', '<?php echo esc_js(wp_create_nonce('onepaqucpro_background_check')); ?>');
+                        params.append('action', 'onepaquc_background_license_check');
+                        params.append('nonce', '<?php echo esc_js(wp_create_nonce('onepaquc_background_check')); ?>');
                         xhr.open('POST', ajaxurl, true);
                         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
                         xhr.send(params.toString());
@@ -50,35 +50,35 @@ class onepaqucpro_License_Manager
             }
         });
 
-        add_action('wp_ajax_onepaqucpro_background_license_check', function () {
-            check_ajax_referer('onepaqucpro_background_check', 'nonce');
+        add_action('wp_ajax_onepaquc_background_license_check', function () {
+            check_ajax_referer('onepaquc_background_check', 'nonce');
             $this->background_license_check();
             $this->background_update_check();
             wp_send_json_success('Checked');
         });
-        add_action('wp_ajax_nopriv_onepaqucpro_background_license_check', function () {
-            check_ajax_referer('onepaqucpro_background_check', 'nonce');
+        add_action('wp_ajax_nopriv_onepaquc_background_license_check', function () {
+            check_ajax_referer('onepaquc_background_check', 'nonce');
             $this->background_license_check();
             $this->background_update_check();
             wp_send_json_success('Checked');
         });
 
-        add_action('wp_ajax_onepaqucpro_remove_license', function () {
-            check_ajax_referer('onepaqucpro_remove_license_nonce', 'nonce');
+        add_action('wp_ajax_onepaquc_remove_license', function () {
+            check_ajax_referer('onepaquc_remove_license_nonce', 'nonce');
             delete_option('onepaquc_license_key');
             delete_option('onepaquc_license_status');
             delete_transient('onepaquc_license_deactivated_remotely');
             wp_cache_delete('onepaquc_license_cache');
             wp_cache_delete('onepaquc_status_cache');
-            wp_cache_delete('RMENU_VERSION_cache');
+            wp_cache_delete('RMENUPRO_VERSION_cache');
             delete_transient('onepaquc_license_cache');
             delete_transient('onepaquc_status_cache');
-            delete_transient('RMENU_VERSION_cache');
+            delete_transient('RMENUPRO_VERSION_cache');
             wp_send_json_success();
         });
     }
 
-   
+
 
     public function background_license_check()
     {
@@ -148,7 +148,7 @@ class onepaqucpro_License_Manager
         delete_transient($this->cache_key);
         delete_transient($this->status_cache_key);
         delete_transient($this->version_cache_key);
-        delete_transient('onepaqucpro_last_update_check');
+        delete_transient('onepaquc_last_update_check');
     }
 
     public function is_license_valid_cached()
@@ -269,15 +269,16 @@ class onepaqucpro_License_Manager
 
     public function handle_license_actions()
     {
-        if (!isset($_POST['onepaqucpro_license_action']) || !wp_verify_nonce($_POST['onepaqucpro_license_nonce'], 'onepaqucpro_license_nonce')) {
+
+        if (!isset($_POST['onepaquc_license_action']) || !isset($_POST['onepaquc_license_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['onepaquc_license_nonce'])), 'onepaquc_license_nonce')) {
             return;
         }
 
-        $license_key = sanitize_text_field($_POST['onepaquc_license_key']);
-        $action = sanitize_text_field($_POST['onepaqucpro_license_action']);
+        $license_key = sanitize_text_field(wp_unslash($_POST['onepaquc_license_key']));
+        $action = sanitize_text_field(wp_unslash($_POST['onepaquc_license_action']));
 
         if (empty($license_key)) {
-            add_settings_error('onepaqucpro_license', 'empty_license', 'Please enter a valid license key.', 'error');
+            add_settings_error('onepaquc_license', 'empty_license', 'Please enter a valid license key.', 'error');
             return;
         }
 
@@ -304,7 +305,7 @@ class onepaqucpro_License_Manager
         ));
 
         if (is_wp_error($response)) {
-            add_settings_error('onepaqucpro_license', 'api_error', 'Unable to connect to licensing server. Please try again later.', 'error');
+            add_settings_error('onepaquc_license', 'api_error', 'Unable to connect to licensing server. Please try again later.', 'error');
             return;
         }
 
@@ -315,11 +316,11 @@ class onepaqucpro_License_Manager
             update_option('onepaquc_license_status', 'valid');
             delete_transient('onepaquc_license_deactivated_remotely');
             $this->clear_all_cache();
-            add_settings_error('onepaqucpro_license', 'license_activated', 'License activated successfully!', 'updated');
+            add_settings_error('onepaquc_license', 'license_activated', 'License activated successfully!', 'updated');
         } else {
             delete_option('onepaquc_license_status');
             $error_message = $this->get_license_error_message($license_data);
-            add_settings_error('onepaqucpro_license', 'activation_failed', $error_message, 'error');
+            add_settings_error('onepaquc_license', 'activation_failed', $error_message, 'error');
         }
     }
 
@@ -339,7 +340,7 @@ class onepaqucpro_License_Manager
         ));
 
         if (is_wp_error($response)) {
-            add_settings_error('onepaqucpro_license', 'api_error', 'Unable to connect to licensing server. Please try again later.', 'error');
+            add_settings_error('onepaquc_license', 'api_error', 'Unable to connect to licensing server. Please try again later.', 'error');
             return;
         }
 
@@ -349,9 +350,9 @@ class onepaqucpro_License_Manager
             delete_option('onepaquc_license_key');
             delete_option('onepaquc_license_status');
             $this->clear_all_cache();
-            add_settings_error('onepaqucpro_license', 'license_deactivated', 'License deactivated successfully!', 'updated');
+            add_settings_error('onepaquc_license', 'license_deactivated', 'License deactivated successfully!', 'updated');
         } else {
-            add_settings_error('onepaqucpro_license', 'deactivation_failed', 'Failed to deactivate license. Please try again.', 'error');
+            add_settings_error('onepaquc_license', 'deactivation_failed', 'Failed to deactivate license. Please try again.', 'error');
         }
     }
 
@@ -441,7 +442,7 @@ class onepaqucpro_License_Manager
 
     public function ajax_check_updates()
     {
-        check_ajax_referer('onepaqucpro_check_updates', 'nonce');
+        check_ajax_referer('onepaquc_check_updates', 'nonce');
 
         wp_cache_delete($this->version_cache_key);
         delete_transient($this->version_cache_key);
@@ -491,7 +492,7 @@ class onepaqucpro_License_Manager
             $message = $this->get_remote_deactivation_message($remote_deactivation_status);
             echo '<div class="notice notice-error is-dismissible">';
             echo '<p><strong>License Alert:</strong> ' . esc_html($message) . '</p>';
-            echo '<p><a target="_blank" href="https://plugincy.com/my-account">Manage License</a> | ';
+            echo '<p><a href="' . admin_url('admin.php?page=your-license-page') . '">Manage License</a> | ';
             echo '<a href="https://plugincy.com/support" target="_blank">Contact Support</a></p>';
             echo '</div>';
         }
@@ -502,7 +503,7 @@ class onepaqucpro_License_Manager
             $update_info = $this->check_for_updates();
             if ($update_info) {
                 echo '<div class="notice notice-info is-dismissible">';
-                echo '<p><strong>One Page Quick Checkout For WooCommerce Pro Update Available!</strong></p>';
+                echo '<p><strong>Dynamic AJAX Product Filters Pro Update Available!</strong></p>';
                 echo '<p>Version ' . esc_html($update_info->new_version) . ' is now available. ';
                 echo '<a href="' . admin_url('plugins.php') . '?force_check_updates=1">Update now</a> to get the latest features and improvements.</p>';
                 echo '</div>';
@@ -535,7 +536,7 @@ class onepaqucpro_License_Manager
 
         if ($is_expired) {
             echo '<div class="notice notice-error is-dismissible">';
-            echo '<p><strong>License Expired:</strong> Your One Page Quick Checkout For WooCommerce Pro license expired on ' . esc_html($expires_date->format('M j, Y')) . '.</p>';
+            echo '<p><strong>License Expired:</strong> Your Dynamic AJAX Product Filters Pro license expired on ' . esc_html($expires_date->format('M j, Y')) . '.</p>';
             echo '<p><a href="https://plugincy.com/checkout/?edd_license_key=' . esc_attr($license_key) . '" target="_blank" class="button button-primary">Renew License</a> ';
             echo '<a href="https://plugincy.com/support" target="_blank">Contact Support</a></p>';
             echo '</div>';
@@ -573,189 +574,252 @@ class onepaqucpro_License_Manager
         $is_valid = $this->is_license_valid_cached();
         $is_expired = $this->is_license_expired_cached();
         ?>
-        <div>
-            <h2>One Page Quick Checkout For WooCommerce Pro - License Settings</h2>
-            <form method="post" action="">
-                <?php wp_nonce_field('onepaqucpro_license_nonce', 'onepaqucpro_license_nonce'); ?>
-                <table class="form-table">
-                    <tbody style="display: block;box-shadow:none;">
-                        <tr>
-                            <th scope="row">
-                                <label for="onepaquc_license_key">License Key</label>
-                            </th>
-                            <td>
-                                <input type="text" id="onepaquc_license_key" name="onepaquc_license_key" value="<?php echo esc_attr($license_key); ?>" class="regular-text" placeholder="Enter your license key" />
-                                <?php if ($is_valid && !$is_expired): ?>
-                                    <span class="dashicons dashicons-yes-alt" style="color: green; margin-top: 3px;"></span>
-                                    <span style="color: green; font-weight: bold;">Active</span>
-                                <?php elseif ($is_expired): ?>
-                                    <span class="dashicons dashicons-no-alt" style="color: #dc3545; margin-top: 3px;"></span>
-                                    <span style="color: #dc3545; font-weight: bold; background: #f8d7da; border-radius: 3px; padding: 2px 8px;">Expired</span>
-                                <?php else: ?>
-                                    <span class="dashicons dashicons-dismiss" style="color: red; margin-top: 3px;"></span>
-                                    <span style="color: red;">Inactive</span>
-                                <?php endif; ?>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th scope="row">License Status</th>
-                            <td>
-                                <?php if ($is_valid): ?>
-                                    <?php if ($is_expired): ?>
-                                        <span class="license-status license-status-invalid">
-                                            <strong>✗ License Expired</strong> - Please renew your license to continue using premium features
+        <div class="wrap">
+            <div class="row">
+                <div class="col-md-6 plugincy-card">
+                    <div class="plugincy-card-header">
+                        <div class="plugincy-card-header-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                            <svg fill="#fff" width="16" height="16" viewBox="0 0 0.48 0.48" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M.276.293.195.374H.142v.053H.089V.48H0V.391L.187.204A.2.2 0 0 1 .178.151a.151.151 0 1 1 .097.141zM.427.107A.053.053 0 1 0 .374.16.053.053 0 0 0 .427.107" />
+                            </svg>
+                        </div>
+                        <h2>License Management</h2>
+                    </div>
+                    <form method="post" action="">
+                        <?php wp_nonce_field('onepaquc_license_nonce', 'onepaquc_license_nonce'); ?>
+                        <div>
+                            <label for="onepaquc_license_key" style=" font-size: 16px; "><?php echo esc_html__('License Key', 'one-page-quick-checkout-for-woocommerce-pro'); ?></label>
+                            <div style="position: relative;">
+                                <input type="text" style="width: 100%;border: 1px solid #eee;padding: 6px 0 6px 15px;" id="onepaquc_license_key" name="onepaquc_license_key" value="<?php echo esc_attr($license_key); ?>" class="regular-text" placeholder="Enter your license key" />
+                                <div style="vertical-align: middle;margin-left: 8px;position: absolute;right: 0;top: 0;background: #dcffdc;height: 100%;display: flex;align-items: center;justify-content: center;padding: 0 20px;border-radius: 0 2px 2px 0;cursor:pointer;gap: 2px;">
+                                    <?php if ($is_valid && !$is_expired): ?>
+                                        <span class="dashicons dashicons-yes-alt" style="color: green; margin-top: 3px;"></span>
+                                        <span style="color: green; font-weight: bold;">Active</span>
+                                    <?php elseif ($is_expired): ?>
+                                        <span class="dashicons dashicons-no-alt" style="color: #dc3545; margin-top: 3px;"></span>
+                                        <span style="color: #dc3545; font-weight: bold; background: #f8d7da; border-radius: 3px; padding: 2px 8px;">Expired</span>
+                                    <?php else: ?>
+                                        <span class="dashicons dashicons-dismiss" style="color: red; margin-top: 3px;"></span>
+                                        <span style="color: red;">Inactive</span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+
+                        <?php $version_info = $this->get_version_info($license_key); ?>
+                        <?php if ($version_info && isset($version_info->new_version)):
+                            $current_version = defined('RMENUPRO_VERSION') ? RMENUPRO_VERSION : '1.0.0'; ?>
+                            <div style="margin-top: 15px; padding: 15px; background: #f0f0f1; border-radius: 6px;">
+                                <strong style="display: flex; align-items: center; gap: 8px;">
+                                    <span class="dashicons dashicons-info" style="color: #2560e8; font-size: 18px;"></span>
+                                    Version Information:
+                                </strong>
+                                <div style="margin-top: 8px;">
+                                    <span style="display: flex; align-items: center; gap: 6px;">
+                                        <span class="dashicons dashicons-admin-plugins" style="color: #6c757d; font-size: 16px;"></span>
+                                        Current Version: <code><?php echo esc_html($current_version); ?></code>
+                                    </span><br>
+                                    <span style="display: flex; align-items: center; gap: 6px;">
+                                        <span class="dashicons dashicons-update" style="color: #198754; font-size: 16px;"></span>
+                                        Latest Version: <code><?php echo esc_html($version_info->new_version); ?></code>
+                                    </span>
+                                    <?php if (version_compare($current_version, $version_info->new_version, '<')): ?>
+                                        <br>
+                                        <span style="color: #d63384; font-weight: bold; display: flex; align-items: center; gap: 6px;">
+                                            <span class="dashicons dashicons-warning" style="color: #d63384; font-size: 16px;"></span>
+                                            Update Available! <a href="<?php echo admin_url('plugins.php'); ?>">Update Now</a>
                                         </span>
                                     <?php else: ?>
-                                        <span class="license-status license-status-valid">
-                                            <strong>✓ Licensed</strong> - All premium features are available
+                                        <br>
+                                        <span style="color: #198754; font-weight: bold; display: flex; align-items: center; gap: 6px;">
+                                            <span class="dashicons dashicons-yes" style="color: #198754; font-size: 16px;"></span>
+                                            Up to date
                                         </span>
                                     <?php endif; ?>
-                                    <?php $license_details = $this->get_license_details(); ?>
-                                    <?php if ($license_details && $license_details->success): ?>
-                                        <div style="margin-top: 15px; padding: 15px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px;">
-                                            <strong>License Details:</strong>
-                                            <div style="margin-top: 8px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
-                                                <div>
-                                                    <strong>License Holder:</strong>
-                                                    <span style="color: #495057;"><?php echo esc_html($license_details->customer_name); ?></span>
-                                                </div>
-                                                <div>
-                                                    <strong>Expires:</strong>
-                                                    <?php if (strtolower($license_details->expires) === 'lifetime'): ?>
-                                                        <span style="color: #198754; font-weight: bold;">Lifetime</span>
-                                                        <?php else:
-                                                        $expires_date = new DateTime($license_details->expires);
-                                                        $current_date = new DateTime();
-                                                        $days_until_expiry = $current_date->diff($expires_date)->days;
-                                                        $is_expired = $expires_date < $current_date;
-                                                        if ($is_expired): ?>
-                                                            <span style="color: #dc3545; font-weight: bold;">
-                                                                Expired on <?php echo esc_html($expires_date->format('M j, Y')); ?>
-                                                            </span>
-                                                        <?php elseif ($days_until_expiry <= 30): ?>
-                                                            <span style="color: #fd7e14; font-weight: bold;">
-                                                                <?php echo esc_html($expires_date->format('M j, Y')); ?>
-                                                                <small>(<?php echo $days_until_expiry; ?> days left)</small>
-                                                                <?php echo '<a href="https://plugincy.com/checkout/?edd_license_key=' . esc_attr($license_key) . '" target="_blank">Renew License</a>'; ?>
-                                                            </span>
-                                                        <?php else: ?>
-                                                            <span style="color: #198754;">
-                                                                <?php echo esc_html($expires_date->format('M j, Y')); ?>
-                                                            </span>
-                                                    <?php endif;
-                                                    endif; ?>
-                                                </div>
-                                                <div>
-                                                    <strong>Site Usage:</strong>
-                                                    <span style="color: #495057;">
-                                                        <?php echo esc_html($license_details->site_count); ?> of <?php echo esc_html($license_details->license_limit); ?> sites used
-                                                    </span>
-                                                    <?php if ($license_details->site_count >= $license_details->license_limit): ?>
-                                                        <small style="color: #dc3545;">(Limit reached)</small>
-                                                    <?php else: ?>
-                                                        <small style="color: #198754;">(<?php echo esc_html($license_details->activations_left); ?> activations left)</small>
-                                                    <?php endif; ?>
-                                                </div>
-                                            </div>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                        <input type="hidden" name="onepaquc_license_action" value="deactivate" />
+                        <?php if ($is_expired): echo '<a href="https://plugincy.com/checkout/?edd_license_key=' . esc_attr($license_key) . '" target="_blank" class="button button-primary">Renew License</a>';
+                        endif; ?>
+                        <button type="submit" onclick="return confirm('Are you sure you want to deactivate your license?')" class="button button-primary" style="background: #eef1f6;color:#24262a;display: inline-flex;align-items: center;gap: 8px;margin-top: 15px;padding: 6px 20px;border: 1px solid #e3e3e3;">
+                            <svg width="20" height="20" viewBox="0 0 0.8 0.8" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M.564.135a.031.031 0 0 0-.03.055.281.281 0 1 1-.27.001L.265.19A.031.031 0 0 0 .25.131a.02.02 0 0 0-.015.004.344.344 0 1 0 .331.001zM.399.382A.03.03 0 0 0 .43.351V.05a.031.031 0 0 0-.063 0v.301c0 .017.014.031.031.031" />
+                            </svg>
+                            <?php echo esc_html__('Deactivate License', 'one-page-quick-checkout-for-woocommerce-pro-pro'); ?>
+                        </button>
+                        <button type="submit" onclick="checkForUpdates()" id="check-updates-btn" class="button button-primary" style="background: #2560e8; display: inline-flex; align-items: center; gap: 8px; margin-top: 15px; padding: 6px 20px;">
+                            <svg fill="#fff" height="20" width="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12.8 12.8" xml:space="preserve">
+                                <path d="M8.145 0A4.656 4.656 0 0 0 3.49 4.655c0 .838.225 1.62.61 2.3l-4.1 4.1.583 1.163 1.162.582 4.1-4.1c.678.388 1.463.61 2.3.61a4.656 4.656 0 0 0 0-9.31m0 7.855a3.2 3.2 0 1 1 0-6.4 3.2 3.2 0 0 1 0 6.4" />
+                            </svg>
+                            <?php echo esc_html__('Check for Updates', 'one-page-quick-checkout-for-woocommerce-pro-pro'); ?>
+                        </button>
+                    </form>
+                </div>
+                <div class="col-md-6 plugincy-card">
+                    <p>License Status</p>
+                    <?php if ($is_valid): ?>
+                        <?php if ($is_expired): ?>
+                            <span class="license-status license-status-invalid">
+                                <strong>✗ License Expired</strong> - Please renew your license to continue using premium features
+                            </span>
+                        <?php else: ?>
+                            <span class="license-status license-status-valid">
+                                <strong>✓ Licensed</strong> - All premium features are available
+                            </span>
+                        <?php endif; ?>
+                        <?php $license_details = $this->get_license_details(); ?>
+                        <?php if ($license_details && $license_details->success): ?>
+                            <div style="margin-top: 15px; padding: 15px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px;">
+                                <strong style="display: flex; align-items: center; gap: 8px;">
+                                    <span class="dashicons dashicons-id" style="color: #2560e8; font-size: 18px;"></span>
+                                    License Details:
+                                </strong>
+                                <div style=" display: flex; flex-direction: column; gap: 10px; padding-top: 10px; ">
+                                    <div style=" display: flex; justify-content: space-between; ">
+                                        <span style="display: flex; align-items: center; gap: 6px;">
+                                            <span class="dashicons dashicons-admin-users" style="color: #6c757d; font-size: 16px;"></span>
+                                            <strong>License Holder:</strong>
+                                        </span>
+                                        <span style="color: #495057;"><?php echo esc_html($license_details->customer_name); ?></span>
+                                    </div>
+                                    <div style=" display: flex; justify-content: space-between; ">
+                                        <span style="display: flex; align-items: center; gap: 6px;">
+                                            <span class="dashicons dashicons-calendar-alt" style="color: #198754; font-size: 16px;"></span>
+                                            <strong>Expires:</strong>
+                                        </span>
+                                        <?php if (strtolower($license_details->expires) === 'lifetime'): ?>
+                                            <span style="color: #198754; font-weight: bold;">
+                                                <span class="dashicons dashicons-infinity" style="font-size: 16px; vertical-align: middle;"></span>
+                                                Lifetime
+                                            </span>
+                                            <?php else:
+                                            $expires_date = new DateTime($license_details->expires);
+                                            $current_date = new DateTime();
+                                            $days_until_expiry = $current_date->diff($expires_date)->days;
+                                            $is_expired = $expires_date < $current_date;
+                                            if ($is_expired): ?>
+                                                <span style="color: #dc3545; font-weight: bold;">
+                                                    <span class="dashicons dashicons-no-alt" style="font-size: 16px; vertical-align: middle;"></span>
+                                                    Expired on <?php echo esc_html($expires_date->format('M j, Y')); ?>
+                                                </span>
+                                            <?php elseif ($days_until_expiry <= 30): ?>
+                                                <span style="color: #fd7e14; font-weight: bold;">
+                                                    <span class="dashicons dashicons-warning" style="font-size: 16px; vertical-align: middle;"></span>
+                                                    <?php echo esc_html($expires_date->format('M j, Y')); ?>
+                                                    <small>(<?php echo $days_until_expiry; ?> days left)</small>
+                                                    <?php echo '<a href="https://plugincy.com/checkout/?edd_license_key=' . esc_attr($license_key) . '" target="_blank">Renew License</a>'; ?>
+                                                </span>
+                                            <?php else: ?>
+                                                <span style="color: #198754;">
+                                                    <span class="dashicons dashicons-yes" style="font-size: 16px; vertical-align: middle;"></span>
+                                                    <?php echo esc_html($expires_date->format('M j, Y')); ?>
+                                                </span>
+                                        <?php endif;
+                                        endif; ?>
+                                    </div>
+                                    <div style=" display: flex; justify-content: space-between; ">
+                                        <span style="display: flex; align-items: center; gap: 6px;">
+                                            <span class="dashicons dashicons-networking" style="color: #6c757d; font-size: 16px;"></span>
+                                            <strong>Site Usage:</strong>
+                                        </span>
+                                        <div>
+                                            <span style="color: #495057;">
+                                                <?php echo esc_html($license_details->site_count); ?> of <?php echo esc_html($license_details->license_limit); ?> sites used
+                                            </span>
+                                            <?php if ($license_details->site_count >= $license_details->license_limit): ?>
+                                                <small style="color: #dc3545;">
+                                                    <span class="dashicons dashicons-no" style="font-size: 14px; vertical-align: middle;"></span>
+                                                    (Limit reached)
+                                                </small>
+                                            <?php else: ?>
+                                                <small style="color: #198754;">
+                                                    <span class="dashicons dashicons-plus" style="font-size: 14px; vertical-align: middle;"></span>
+                                                    (<?php echo esc_html($license_details->activations_left); ?> activations left)
+                                                </small>
+                                            <?php endif; ?>
                                         </div>
-                                    <?php endif; ?>
-
-                                    <?php $version_info = $this->get_version_info($license_key); ?>
-                                    <?php if ($version_info && isset($version_info->new_version)):
-                                        $current_version = defined('RMENUPRO_VERSION') ? RMENUPRO_VERSION : '1.0.0'; ?>
-                                        <div style="margin-top: 15px; padding: 15px; background: #f0f0f1; border-radius: 6px;">
-                                            <strong>Version Information:</strong><br>
-                                            <div style="margin-top: 8px;">
-                                                Current Version: <code><?php echo esc_html($current_version); ?></code><br>
-                                                Latest Version: <code><?php echo esc_html($version_info->new_version); ?></code>
-                                                <?php if (version_compare($current_version, $version_info->new_version, '<')): ?>
-                                                    <br><span style="color: #d63384; font-weight: bold;">
-                                                        ⚠ Update Available! <a href="<?php echo admin_url('plugins.php'); ?>">Update Now</a>
-                                                    </span>
-                                                <?php else: ?>
-                                                    <br><span style="color: #198754; font-weight: bold;">✓ Up to date</span>
-                                                <?php endif; ?>
-                                            </div>
-                                        </div>
-                                    <?php endif; ?>
-
-                                    <br><br>
-                                    <input type="hidden" name="onepaqucpro_license_action" value="deactivate" />
-                                    <?php if ($is_expired): echo '<a href="https://plugincy.com/checkout/?edd_license_key=' . esc_attr($license_key) . '" target="_blank" class="button button-primary">Renew License</a>';
-                                    endif; ?>
-                                    <input type="submit" class="button button-secondary" value="Deactivate License" onclick="return confirm('Are you sure you want to deactivate your license?')" />
-                                    <button type="button" class="button button-secondary" onclick="checkForUpdates()" id="check-updates-btn" style="margin-left: 10px;">
-                                        Check for Updates
-                                    </button>
-                                <?php else: ?>
-                                    <span class="license-status license-status-invalid">
-                                        <strong>✗ Unlicensed</strong> - Please activate your license to access premium features
-                                    </span>
-                                    <?php if (!empty($license_status) && $license_status !== 'valid'): ?>
-                                        <div style="margin-top: 10px; padding: 10px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px;">
-                                            <strong>Status:</strong> <?php echo esc_html(ucfirst(str_replace('_', ' ', $license_status))); ?>
-                                        </div>
-                                    <?php endif; ?>
-                                    <br><br>
-                                    <input type="hidden" name="onepaqucpro_license_action" value="activate" />
-                                    <input type="submit" class="button button-primary" value="Activate License" />
-                                    <?php if ($license_status === 'site_inactive'): ?>
-                                        <button type="button" class="button button-secondary" id="onepaqucpro-remove-license-btn" style="margin-left:10px;">
-                                            Remove License
-                                        </button>
-                                        <script>
-                                            document.addEventListener('DOMContentLoaded', function() {
-                                                var removeBtn = document.getElementById('onepaqucpro-remove-license-btn');
-                                                if (removeBtn) {
-                                                    removeBtn.addEventListener('click', function(e) {
-                                                        e.preventDefault();
-                                                        if (confirm('Are you sure you want to remove the license from this site?')) {
-                                                            removeBtn.textContent = 'Removing...';
-                                                            removeBtn.disabled = true;
-                                                            var xhr = new XMLHttpRequest();
-                                                            xhr.open('POST', ajaxurl, true);
-                                                            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                                                            xhr.onreadystatechange = function() {
-                                                                if (xhr.readyState === 4) {
-                                                                    if (xhr.status === 200) {
-                                                                        removeBtn.textContent = 'Success';
-                                                                        removeBtn.style.backgroundColor = '#28a745';
-                                                                        removeBtn.style.borderColor = '#28a745';
-                                                                        setTimeout(function() {
-                                                                            removeBtn.style.transition = 'opacity 0.5s';
-                                                                            removeBtn.style.opacity = '0';
-                                                                            setTimeout(function() {
-                                                                                removeBtn.style.display = 'none';
-                                                                            }, 500);
-                                                                        }, 800);
-                                                                        var licenseInput = document.getElementById('onepaquc_license_key');
-                                                                        if (licenseInput) {
-                                                                            licenseInput.value = '';
-                                                                        }
-                                                                    } else {
-                                                                        removeBtn.textContent = 'Remove License';
-                                                                        removeBtn.disabled = false;
-                                                                        alert('Failed to remove license. Please try again.');
-                                                                    }
-                                                                }
-                                                            };
-                                                            xhr.send('action=onepaqucpro_remove_license&nonce=<?php echo wp_create_nonce('onepaqucpro_remove_license_nonce'); ?>');
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                    <?php else: ?>
+                        <span class="license-status license-status-invalid">
+                            <strong>✗ Unlicensed</strong> - Please activate your license to access premium features
+                        </span>
+                        <?php if (!empty($license_status) && $license_status !== 'valid'): ?>
+                            <div style="margin-top: 10px; padding: 10px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px;">
+                                <strong>Status:</strong> <?php echo esc_html(ucfirst(str_replace('_', ' ', $license_status))); ?>
+                            </div>
+                        <?php endif; ?>
+                        <br><br>
+                        <input type="hidden" name="onepaquc_license_action" value="activate" />
+                        <input type="submit" class="button button-primary" value="Activate License" />
+                        <?php if ($license_status === 'site_inactive'): ?>
+                            <button type="button" class="button button-secondary" id="dapfforwcpro-remove-license-btn" style="margin-left:10px;">
+                                Remove License
+                            </button>
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    var removeBtn = document.getElementById('dapfforwcpro-remove-license-btn');
+                                    if (removeBtn) {
+                                        removeBtn.addEventListener('click', function(e) {
+                                            e.preventDefault();
+                                            if (confirm('Are you sure you want to remove the license from this site?')) {
+                                                removeBtn.textContent = 'Removing...';
+                                                removeBtn.disabled = true;
+                                                var xhr = new XMLHttpRequest();
+                                                xhr.open('POST', ajaxurl, true);
+                                                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                                                xhr.onreadystatechange = function() {
+                                                    if (xhr.readyState === 4) {
+                                                        if (xhr.status === 200) {
+                                                            removeBtn.textContent = 'Success';
+                                                            removeBtn.style.backgroundColor = '#28a745';
+                                                            removeBtn.style.borderColor = '#28a745';
+                                                            setTimeout(function() {
+                                                                removeBtn.style.transition = 'opacity 0.5s';
+                                                                removeBtn.style.opacity = '0';
+                                                                setTimeout(function() {
+                                                                    removeBtn.style.display = 'none';
+                                                                }, 500);
+                                                            }, 800);
+                                                            var licenseInput = document.getElementById('onepaquc_license_key');
+                                                            if (licenseInput) {
+                                                                licenseInput.value = '';
+                                                            }
+                                                        } else {
+                                                            removeBtn.textContent = 'Remove License';
+                                                            removeBtn.disabled = false;
+                                                            alert('Failed to remove license. Please try again.');
                                                         }
-                                                    });
-                                                }
-                                            });
-                                        </script>
-                                    <?php endif; ?>
+                                                    }
+                                                };
+                                                xhr.send('action=onepaquc_remove_license&nonce=<?php echo wp_create_nonce('onepaquc_remove_license_nonce'); ?>');
+                                            }
+                                        });
+                                    }
+                                });
+                            </script>
+                        <?php endif; ?>
 
-                                <?php endif; ?>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <p class="description">
-                    <strong>Need help?</strong> <a href="https://plugincy.com/support" target="_blank">Contact Support</a> | <a href="https://plugincy.com/my-account" target="_blank">Manage Your Licenses</a>
-                </p>
-            </form>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <p class="support-links">
+                <span style="margin-right: 16px;">
+                    <a href="https://plugincy.com/support" target="_blank" style="display: inline-flex; align-items: center; gap: 6px;">
+                        <span class="dashicons dashicons-sos" style="font-size: 16px; vertical-align: middle; margin-bottom: -6px;"></span>
+                        <?php echo esc_html__('Contact Support', 'one-page-quick-checkout-for-woocommerce-pro'); ?>
+                    </a>
+                </span>
+                <span>
+                    <a href="https://plugincy.com/my-account" target="_blank" style="display: inline-flex; align-items: center; gap: 6px;">
+                        <span class="dashicons dashicons-admin-network" style="font-size: 16px; vertical-align: middle; margin-bottom: -6px;"></span>
+                        <?php echo esc_html__('Manage Your Licenses', 'one-page-quick-checkout-for-woocommerce-pro'); ?>
+                    </a>
+                </span>
+            </p>
 
             <style>
                 .license-status {
@@ -811,7 +875,7 @@ class onepaqucpro_License_Manager
                         }
                     };
 
-                    xhr.send('action=onepaqucpro_check_updates&nonce=' + '<?php echo wp_create_nonce("onepaqucpro_check_updates"); ?>');
+                    xhr.send('action=onepaquc_check_updates&nonce=' + '<?php echo wp_create_nonce("onepaquc_check_updates"); ?>');
                 }
             </script>
         </div>

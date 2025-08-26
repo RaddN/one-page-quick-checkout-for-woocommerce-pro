@@ -854,4 +854,4 @@ function onepaqucpro_plugincy_cart_elementor_widget()
 
 }
 
-add_action('elementor/init', 'onepaqucpro_plugincy_cart_elementor_widget', 10);
+add_action('elementor/init', 'onepaqucpro_plugincy_cart_elementor_widget', 100);

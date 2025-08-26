@@ -586,7 +586,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
     $payment_gateways = WC()->payment_gateways->get_available_payment_gateways();
 }
 ?>
-<div class="plugincy_container <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+<div class="plugincy_card plugincy_container <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
 
     <div class="checkout-container">
         <div class="checkout-form">

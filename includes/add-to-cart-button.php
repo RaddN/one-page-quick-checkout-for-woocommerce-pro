@@ -351,7 +351,8 @@ function rmenupro_add_icons_to_buttons()
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const addToCartButtons = document.querySelectorAll('.add_to_cart_button:not(.product_type_variable), .single_add_to_cart_button:not(.product_type_variable)');
-            const svgIcon = `<?php echo $svg_icon; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped?>`; 
+            const svgIcon = `<?php echo $svg_icon; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                                ?>`;
             const iconPosition = '<?php echo esc_attr($icon_position); ?>';
             const mobileIconOnly = <?php echo $mobile_icon_only ? 'true' : 'false'; ?>;
 
@@ -633,8 +634,6 @@ class RMENUPRO_Add_To_Cart_Handler
         // Setup AJAX add to cart if enabled
         if (get_option('rmenupro_enable_ajax_add_to_cart', 1)) {
             add_action('wp_enqueue_scripts', array($this, 'enqueue_ajax_scripts'));
-            add_action('wp_ajax_onepaqucpro_ajax_add_to_cart', array($this, 'onepaqucpro_ajax_add_to_cart'));
-            add_action('wp_ajax_nopriv_onepaqucpro_ajax_add_to_cart', array($this, 'onepaqucpro_ajax_add_to_cart'));
             add_filter('woocommerce_add_to_cart_fragments', array($this, 'add_to_cart_fragments'));
         }
 
@@ -680,7 +679,7 @@ class RMENUPRO_Add_To_Cart_Handler
         wp_localize_script('rmenupro-ajax-add-to-cart', 'rmenupro_ajax_object', array(
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('rmenupro-ajax-nonce'),
-            'animation' => get_option('rmenupro_add_to_cart_animation', 'slide'),
+            'animation' => get_option('rmenupro_add_to_cart_animation', 'none'),
             'notification_style' => !onepaqucpro_premium_feature() ? "default" : get_option('rmenupro_add_to_cart_notification_style', 'default'),
             'notification_duration' => intval(get_option('rmenupro_add_to_cart_notification_duration', 3000)),
             'i18n' => array(
@@ -689,91 +688,6 @@ class RMENUPRO_Add_To_Cart_Handler
                 'checkout' => get_option('rmenupro_show_checkout_link', 0) ? __('Checkout', 'one-page-quick-checkout-for-woocommerce-pro') : '',
             )
         ));
-    }
-
-    /**
-     * AJAX add to cart handler
-     */
-    public function onepaqucpro_ajax_add_to_cart()
-    {
-        check_ajax_referer('rmenupro-ajax-nonce', 'nonce');
-
-        $product_id = apply_filters('woocommerce_add_to_cart_product_id', absint(isset($_POST['product_id']) ? $_POST['product_id'] : 0));
-
-        if (onepaqucpro_premium_feature()) {
-            $default_qty = get_option('rmenupro_add_to_cart_default_qty', '1');
-        } else {
-            $default_qty = 1; // Default to 1 if premium feature is not available
-        }
-
-        // Use posted quantity if available, otherwise use default
-        // $quantity = empty($_POST['quantity']) ? $default_qty : wc_stock_amount($_POST['quantity']);
-
-        $quantity = empty($_POST['quantity']) ? $default_qty : (int) sanitize_text_field(wp_unslash($_POST['quantity']));
-
-        $variation_id = empty($_POST['variation_id']) ? 0 : absint($_POST['variation_id']);
-        $variations = !empty($_POST['variations']) ? array_map('sanitize_text_field',  wp_unslash($_POST['variations'])) : array();
-
-        $product_status = get_post_status($product_id);
-
-        $passed_validation = apply_filters('woocommerce_add_to_cart_validation', true, $product_id, $quantity, $variation_id, $variations);
-
-        if ($passed_validation && WC()->cart->add_to_cart($product_id, $quantity, $variation_id, $variations) && 'publish' === $product_status) {
-
-            do_action('woocommerce_ajax_added_to_cart', $product_id);
-
-            // Get product name for the message
-            $product = wc_get_product($product_id);
-            $product_name = $product ? $product->get_name() : '';
-
-            // Get cart URL
-            $cart_url = function_exists('wc_get_cart_url') ? wc_get_cart_url() : WC()->cart->get_cart_url();
-
-            // Get checkout URL
-            $checkout_url = function_exists('wc_get_checkout_url') ? wc_get_checkout_url() : WC()->cart->get_checkout_url();
-
-            // Get redirect option
-            $redirect_option = get_option('rmenupro_redirect_after_add', 'none');
-            $redirect_url = 'none';
-
-            if ($redirect_option === 'cart') {
-                $redirect_url = $cart_url;
-            } elseif ($redirect_option === 'checkout') {
-                $redirect_url = $checkout_url;
-            }
-
-            $response = array(
-                'success' => true,
-                'product_name' => $product_name,
-                'cart_url' => $cart_url,
-                'checkout_url' => $checkout_url,
-                'cart_total' => WC()->cart->get_cart_total(),
-                'cart_count' => WC()->cart->get_cart_contents_count(),
-                'redirect' => $redirect_option !== 'none',
-                'redirect_url' => $redirect_url
-            );
-
-            // Add fragments if Mini Cart Preview is selected
-            if (get_option('rmenupro_add_to_cart_notification_style', 'default') === 'mini_cart') {
-                ob_start();
-                woocommerce_mini_cart();
-                $mini_cart = ob_get_clean();
-
-                $response['fragments']['div.widget_shopping_cart_content'] = '<div class="widget_shopping_cart_content">' . $mini_cart . '</div>';
-                $response['cart_hash'] = WC()->cart->get_cart_hash();
-            }
-
-            wp_send_json($response);
-        } else {
-            $data = array(
-                'error' => true,
-                'message' => __('Error adding product to cart', 'one-page-quick-checkout-for-woocommerce-pro')
-            );
-
-            wp_send_json($data);
-        }
-
-        wp_die();
     }
 
     /**
@@ -810,7 +724,7 @@ class RMENUPRO_Add_To_Cart_Handler
      */
     public function set_default_quantity($args, $product)
     {
-        if(onepaqucpro_premium_feature()) {
+        if (onepaqucpro_premium_feature()) {
             $default_qty = get_option('rmenupro_add_to_cart_default_qty', '1');
         } else {
             $default_qty = 1; // Default to 1 if premium feature is not available
@@ -926,7 +840,7 @@ class RMENUPRO_Add_To_Cart_Handler
         ob_start();
     ?>
         <span class="rmenupro-cart-count"><?php echo WC()->cart->get_cart_contents_count(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-        ?></span>
+                                            ?></span>
         <?php
         $fragments['span.rmenupro-cart-count'] = ob_get_clean();
 
@@ -934,8 +848,8 @@ class RMENUPRO_Add_To_Cart_Handler
         ob_start();
         ?>
         <span class="rmenupro-cart-total"><?php echo WC()->cart->get_cart_total(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-        ?></span>
-        <?php
+                                            ?></span>
+<?php
         $fragments['span.rmenupro-cart-total'] = ob_get_clean();
 
         return $fragments;

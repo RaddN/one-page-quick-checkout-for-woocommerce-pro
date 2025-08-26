@@ -584,4 +584,4 @@ function onepaqucpro_plugincy_one_page_checkout_widget()
     \Elementor\Plugin::instance()->widgets_manager->register(new onepaqucpro_One_Page_Checkout_Widget());
 }
 
-add_action('elementor/init', 'onepaqucpro_plugincy_one_page_checkout_widget');
+add_action('elementor/init', 'onepaqucpro_plugincy_one_page_checkout_widget', 100);
