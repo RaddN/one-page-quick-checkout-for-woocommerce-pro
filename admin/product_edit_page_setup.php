@@ -18,8 +18,8 @@ function onepaqucpro_add_one_page_checkout_to_product_type_options($product_type
     $product_type_options['one_page_checkout'] = array(
         'id'            => '_one_page_checkout',
         'wrapper_class' => '',
-        'label'         => __('One Page Checkout', 'one-page-quick-checkout-for-woocommerce-pro'),
-        'description'   => __('Enable one page checkout for this product', 'one-page-quick-checkout-for-woocommerce-pro'),
+        'label'         => esc_html__('One Page Checkout', 'one-page-quick-checkout-for-woocommerce-pro'),
+        'description'   => esc_html__('Enable one page checkout for this product', 'one-page-quick-checkout-for-woocommerce-pro'),
         'default'       => 'no'
     );
 

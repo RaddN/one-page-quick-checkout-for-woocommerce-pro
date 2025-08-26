@@ -185,7 +185,7 @@ function onepaqucpro_cart_enqueue_scripts()
     if ($checkout_page_id === -1) {
         // Create a new checkout page if it doesn't exist
         $new_checkout_id = wp_insert_post([
-            'post_title'   => __('Checkout'),
+            'post_title'   => esc_html__('Checkout','one-page-quick-checkout-for-woocommerce-pro'),
             'post_content' => '[woocommerce_checkout]',
             'post_status'  => 'publish',
             'post_type'    => 'page',
@@ -206,17 +206,17 @@ function onepaqucpro_cart_enqueue_scripts()
     ];
     // Localize script for AJAX URL and WooCommerce cart variables
     wp_localize_script('cart-script', 'onepaqucpro_wc_cart_params', array(
-        'ajax_url' => admin_url('admin-ajax.php'),
-        'get_cart_content_none' => wp_create_nonce('get_cart_content_none'),
-        'update_cart_item_quantity' => wp_create_nonce('update_cart_item_quantity'),
-        'remove_cart_item' => wp_create_nonce('remove_cart_item'),
-        'rmenu_ajax_nonce' => wp_create_nonce('rmenu-ajax-nonce'),
-        'onepaqucpro_refresh_checkout_product_list' => wp_create_nonce('onepaqucpro_refresh_checkout_product_list'),
-        'get_variations_nonce' => wp_create_nonce('get_variations_nonce'), // Add this line
+        'ajax_url' => esc_url(admin_url('admin-ajax.php')),
+        'get_cart_content_none' => esc_js(wp_create_nonce('get_cart_content_none')),
+        'update_cart_item_quantity' => esc_js(wp_create_nonce('update_cart_item_quantity')),
+        'remove_cart_item' => esc_js(wp_create_nonce('remove_cart_item')),
+        'rmenu_ajax_nonce' => esc_js(wp_create_nonce('rmenu-ajax-nonce')),
+        'onepaqucpro_refresh_checkout_product_list' => esc_js(wp_create_nonce('onepaqucpro_refresh_checkout_product_list')),
+        'get_variations_nonce' => esc_js(wp_create_nonce('get_variations_nonce')), // Add this line
         'direct_checkout_behave' => $direct_checkout_behave,
         'checkout_url' => wc_get_checkout_url(),
         'cart_url'     => wc_get_cart_url(),
-        'nonce' => wp_create_nonce('rmenupro-ajax-nonce'),
+        'nonce' => esc_js(wp_create_nonce('rmenupro-ajax-nonce')),
     ));
     // Retrieve the onepaqucpro_editor value
     $onepaqucpro_editor_value = get_option('onepaqucpro_editor', '');
@@ -226,10 +226,10 @@ function onepaqucpro_cart_enqueue_scripts()
     wp_localize_script('rmenupro-cart-script', 'onepaqucpro_rmsgValue', array(
         'rmsgEditor' => $onepaqucpro_editor_value,
         'checkout_url' => wc_get_checkout_url(),
-        'apply_coupon' => wp_create_nonce('apply-coupon'),
+        'apply_coupon' => esc_js(wp_create_nonce('apply-coupon')),
         'currency_symbol' => $currency_symbol,
     ));
-    wp_localize_script('rmenupro-cart-script', 'onepaqucpro_ajax_object', array('ajax_url' => admin_url('admin-ajax.php')));
+    wp_localize_script('rmenupro-cart-script', 'onepaqucpro_ajax_object', array('ajax_url' => esc_url(admin_url('admin-ajax.php'))));
 
     wp_enqueue_style('dashicons');
 }
@@ -447,7 +447,7 @@ function onepaqucpro_add_checkout_tab_to_product_page($tabs) {
     
     // Add checkout tab first
     $new_tabs['checkout'] = array(
-        'title'    => __('Checkout', 'woocommerce'),
+        'title'    => esc_html__('Checkout', 'one-page-quick-checkout-for-woocommerce-pro'),
         'priority' => 5, // Lower number = higher priority (appears first)
         'callback' => 'onepaqucpro_display_one_page_checkout_form'
     );
@@ -1030,12 +1030,12 @@ function onepaqucpro_show_login_form_instead_checkout()
 {
     if (get_option('rmenupro_force_login', '0') == '1' && !is_user_logged_in()) {
         echo '<div class="woocommerce-info">';
-        echo '<p>' . __('You must be logged in to proceed with checkout.', 'woocommerce') . '</p>';
+        echo '<p>' . esc_html__('You must be logged in to proceed with checkout.', 'one-page-quick-checkout-for-woocommerce-pro') . '</p>';
         echo '</div>';
 
         // Display login form
         woocommerce_login_form(array(
-            'message' => __('Please login to continue with your order.', 'woocommerce'),
+            'message' => esc_html__('Please login to continue with your order.', 'one-page-quick-checkout-for-woocommerce-pro'),
             'redirect' => wc_get_checkout_url(),
             'hidden' => false
         ));
@@ -1043,7 +1043,7 @@ function onepaqucpro_show_login_form_instead_checkout()
         // Add registration form if registration is enabled
         if (get_option('users_can_register')) {
             echo '<div class="woocommerce-register-wrapper" style="margin-top: 20px;">';
-            echo '<h3>' . __('Register', 'woocommerce') . '</h3>';
+            echo '<h3>' . esc_html__('Register', 'one-page-quick-checkout-for-woocommerce-pro') . '</h3>';
             woocommerce_register_form();
             echo '</div>';
         }
@@ -1132,7 +1132,7 @@ class onepaqucpro_cart_analytics_main
     {
         check_ajax_referer('deactivation_feedback', 'nonce');
 
-        $reason = sanitize_text_field($_POST['reason'] ?? '');
+        $reason = sanitize_text_field(wp_unslash($_POST['reason'] ?? ''));
         $this->analytics->send_deactivation_data($reason);
 
         wp_die();

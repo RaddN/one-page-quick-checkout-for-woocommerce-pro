@@ -44,7 +44,7 @@ class onepaqucpro_License_Manager
                 wp_enqueue_script('jquery');
             ?>
                 <script type="text/javascript">
-                    var ajaxurl = "<?php echo admin_url('admin-ajax.php'); ?>";
+                    var ajaxurl = "<?php echo esc_url(admin_url('admin-ajax.php')); ?>";
                 </script>
         <?php
             }
@@ -795,7 +795,7 @@ class onepaqucpro_License_Manager
                                                         }
                                                     }
                                                 };
-                                                xhr.send('action=onepaquc_remove_license&nonce=<?php echo wp_create_nonce('onepaquc_remove_license_nonce'); ?>');
+                                                xhr.send('action=onepaquc_remove_license&nonce=<?php echo esc_js(wp_create_nonce('onepaquc_remove_license_nonce')); ?>');
                                             }
                                         });
                                     }
@@ -875,7 +875,7 @@ class onepaqucpro_License_Manager
                         }
                     };
 
-                    xhr.send('action=onepaquc_check_updates&nonce=' + '<?php echo wp_create_nonce("onepaquc_check_updates"); ?>');
+                    xhr.send('action=onepaquc_check_updates&nonce=' + '<?php echo esc_js(wp_create_nonce("onepaquc_check_updates")); ?>');
                 }
             </script>
         </div>

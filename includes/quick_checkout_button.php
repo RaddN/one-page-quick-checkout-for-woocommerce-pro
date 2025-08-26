@@ -339,7 +339,7 @@ function onepaqucpro_add_checkout_button_fallback()
 
 function onepaqucpro_render_checkout_button()
 {
-    global $product;
+    global $product, $allowed_tags;
 
     if (!is_product() || !$product) {
         return;
@@ -388,10 +388,10 @@ function onepaqucpro_render_checkout_button()
         // Remove 'single_add_to_cart_button' and 'direct-checkout-button' from classes
         $button_classes = preg_replace('/\b(single_add_to_cart_button|direct-checkout-button)\b/', '', $button_styling['classes']);
         $button_classes = trim(preg_replace('/\s+/', ' ', $button_classes));
-        echo '<a href="#checkout-popup" class="' . esc_attr($button_classes) . '" style="' . esc_attr($button_styling['style']) . '">' . $button_inner . '</a>';
+        echo '<a href="#checkout-popup" class="' . esc_attr($button_classes) . '" style="' . esc_attr($button_styling['style']) . '">' . wp_kses($button_inner, $allowed_tags) . '</a>';
     } else {
         // Output the button with fallback identifier
-        echo '<a href="#checkout-popup" class="' . esc_attr($button_styling['classes']) . ' onepaquc-checkout-btn" data-product-id="' . esc_attr($product_id) . '" data-product-type="' . esc_attr($product_type) . '" data-title="' . esc_html($product_title) . '" style="' . esc_attr($button_styling['style']) . '">' . $button_inner . '</a>';
+        echo '<a href="#checkout-popup" class="' . esc_attr($button_styling['classes']) . ' onepaquc-checkout-btn" data-product-id="' . esc_attr($product_id) . '" data-product-type="' . esc_attr($product_type) . '" data-title="' . esc_html($product_title) . '" style="' . esc_attr($button_styling['style']) . '">' . wp_kses($button_inner, $allowed_tags) . '</a>';
     }
 }
 
@@ -766,6 +766,9 @@ class onepaqucpro_add_checkout_button_on_archive
         if ($this->is_btn_add_hook_works) {
             return;
         }
+
+        global $allowed_tags;
+
         // if isn't wc archive pages then return
         if (is_singular('product')) {
             return;
@@ -804,8 +807,8 @@ class onepaqucpro_add_checkout_button_on_archive
             jQuery(document).ready(function($) {
                 $(".product").each(function() {
                     let $this = $(this);
-                    const $button_pos = "<?php echo get_option('rmenupro_wc_direct_checkout_position', 'overlay_thumbnail_hover'); ?>";
-                    const $contents = '<?php echo $button_contents['button_content']; ?>';
+                    const $button_pos = "<?php echo esc_attr(get_option('rmenupro_wc_direct_checkout_position', 'overlay_thumbnail_hover')); ?>";
+                    const $contents = '<?php echo wp_kses($button_contents['button_content'], $allowed_tags); ?>';
                     const $button_class = "<?php echo esc_attr($button_contents['button_classes']); ?>";
                     const $button_style = "<?php echo esc_attr($button_contents['button_style']); ?>";
                     const $allowed_types = <?php echo json_encode(get_option('rmenupro_show_quick_checkout_by_types', ['simple', 'variable', "grouped", "external"])); ?>;

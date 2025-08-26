@@ -512,7 +512,7 @@ function onepaqucpro_plugincy_one_page_checkout_widget()
             }
 
             // Output the widget
-            echo '<div class="' . esc_attr(implode(' ', $container_classes)) . '" ' . $container_id . '>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+            echo '<div class="' . esc_attr(implode(' ', $container_classes)) . '" ' . esc_attr($container_id) . '>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 
             // Add inline styles for dynamic styling
             $this->render_inline_styles($settings);

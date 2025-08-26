@@ -65,9 +65,9 @@ function onepaqucpro_handle_remove_cart_item()
     check_ajax_referer('remove_cart_item', 'nonce');
     $cart_item_keys = array();
     if (isset($_POST['cart_item_key']) && is_array($_POST['cart_item_key'])) {
-        $cart_item_keys = $_POST['cart_item_key'];
+        $cart_item_keys = array_map('sanitize_text_field', wp_unslash($_POST['cart_item_key']));
     } elseif (isset($_POST['cart_item_key'])) {
-        $cart_item_keys = array($_POST['cart_item_key']);
+        $cart_item_keys = array(sanitize_text_field(wp_unslash($_POST['cart_item_key'])));
     } else {
         wp_send_json_error('No cart item key provided.');
     }
@@ -348,7 +348,7 @@ function onepaqucpro_ajax_add_to_cart()
     } else {
         $data = array(
             'error' => true,
-            'message' => __('Error adding product to cart', 'one-page-quick-checkout-for-woocommerce-pro')
+            'message' => esc_html__('Error adding product to cart', 'one-page-quick-checkout-for-woocommerce-pro')
         );
 
         wp_send_json($data);
@@ -367,7 +367,7 @@ function onepaqucpro_apply_coupon()
 {
     check_ajax_referer('apply-coupon', 'security');
 
-    $coupon_code = sanitize_text_field($_POST['coupon_code']);
+    $coupon_code = isset($_POST['coupon_code']) ? sanitize_text_field(wp_unslash($_POST['coupon_code'])) : '';
 
     // Apply coupon
     $cart = WC()->cart;
@@ -396,7 +396,7 @@ function onepaqucpro_remove_coupon()
 {
     check_ajax_referer('apply-coupon', 'security');
 
-    $coupon_code = sanitize_text_field($_POST['coupon_code']);
+    $coupon_code = isset($_POST['coupon_code']) ? sanitize_text_field(wp_unslash($_POST['coupon_code'])) : '';
 
     // Remove coupon
     $cart = WC()->cart;
@@ -420,7 +420,7 @@ function onepaqucpro_remove_coupon()
  */
 function onepaqucpro_get_all_products_quick_view() {
     // Verify nonce for security
-    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'rmenu_quick_view_nonce')) {
+    if (!isset($_POST['nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), 'rmenu_quick_view_nonce')) {
         wp_send_json_error(array('message' => 'Security check failed'));
     }
     
@@ -457,7 +457,7 @@ function onepaqucpro_get_all_products_quick_view() {
                 'src'   => wc_placeholder_img_src(),
                 'thumb' => wc_placeholder_img_src('thumbnail'),
                 'full'  => wc_placeholder_img_src('full'),
-                'alt'   => __('Placeholder', 'woocommerce')
+                'alt'   => esc_html__('Placeholder', 'one-page-quick-checkout-for-woocommerce-pro')
             );
         } else {
             foreach ($attachment_ids as $attachment_id) {

@@ -107,6 +107,8 @@ class RMENUPRO_Quick_View
             return;
         }
 
+        global $allowed_tags;
+
         if (is_singular('product')) {
             return;
         }
@@ -145,8 +147,8 @@ class RMENUPRO_Quick_View
             jQuery(document).ready(function($) {
                 $(".product").each(function() {
                     let $this = $(this);
-                    const $button_pos = "<?php echo get_option('rmenupro_quick_view_button_position', 'image_overlay'); ?>";
-                    const $contents = '<?php echo $button_contents['button_content']; ?>';
+                    const $button_pos = "<?php echo esc_attr(get_option('rmenupro_quick_view_button_position', 'image_overlay')); ?>";
+                    const $contents = '<?php echo wp_kses($button_contents['button_content'], $allowed_tags); ?>';
                     const $button_class = "<?php echo esc_attr(implode(' ', $button_contents['button_classes'])); ?>";
                     const $allowed_types = <?php echo json_encode(get_option('rmenupro_show_quick_view_by_types', ['simple', 'variable', "grouped", "external"])); ?>;
 
@@ -272,12 +274,12 @@ class RMENUPRO_Quick_View
         }
 
         if (!$is_return) {
-            echo '<div class="rmenupro-quick-view-overlay ' . $button_position . '">';
+            echo '<div class="rmenupro-quick-view-overlay ' . esc_attr($button_position) . '">';
             $this->render_quick_view_button($product);
             echo '</div>';
         } else {
             ob_start();
-            echo '<div class="rmenupro-quick-view-overlay ' . $button_position . '">';
+            echo '<div class="rmenupro-quick-view-overlay ' . esc_attr($button_position) . '">';
             $this->render_quick_view_button($product);
             echo '</div>';
 
@@ -313,7 +315,7 @@ class RMENUPRO_Quick_View
         );
 
 
-        echo apply_filters('rmenupro_quick_view_button_html', $button_html, $product); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+        echo wp_kses_post(apply_filters('rmenupro_quick_view_button_html', $button_html, $product)); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 
     }
 
@@ -599,8 +601,8 @@ class RMENUPRO_Quick_View
             'debug' => (bool) $debug_mode,
             'lightbox' => (bool) $lightbox,
             'elements_in_popup' => $elements_in_popup,
-            'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('rmenu_quick_view_nonce'),
+            'ajax_url' => esc_url(admin_url('admin-ajax.php')),
+            'nonce' => esc_js(wp_create_nonce('rmenu_quick_view_nonce')),
             'i18n' => array(
                 'close' => get_option('rmenupro_quick_view_close_text') !== '' ? get_option('rmenupro_quick_view_close_text') : 'Close',
                 'prev' => get_option('rmenupro_quick_view_prev_text') !== '' ? get_option('rmenupro_quick_view_prev_text') : 'Previous Product',

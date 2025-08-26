@@ -3155,7 +3155,8 @@ function onepaqucpro_cart_dashboard()
             </div>
         </form>
         <form class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>" method="post" action="" onsubmit="return confirm('Are you sure you want to reset all settings to default? This action cannot be undone.');">
-            <input type="hidden" name="<?php echo !onepaqucpro_premium_feature() ? 'pro-onepaqucpro_reset' : 'onepaqucpro_reset_settings'; ?>" value="1">
+            <?php wp_nonce_field('onepaquc_reset_settings', 'onepaquc_reset_settings_nonce'); ?>
+        <input type="hidden" name="<?php echo !onepaqucpro_premium_feature() ? 'pro-onepaqucpro_reset' : 'onepaqucpro_reset_settings'; ?>" value="1">
             <?php
             $disabled = !onepaqucpro_premium_feature() ? array('disabled' => 'disabled') : array();
             submit_button('Reset Settings', 'button-primary', '', false, array_merge(array('style' => 'margin-left: 20px;background:#dc3545;color:#fff;border-color:#dc3545;'), $disabled));
@@ -3221,6 +3222,11 @@ function onepaqucpro_cart_settings()
 
 function onepaqucpro_handle_reset_settings()
 {
+    // verify nonce
+    if (!isset($_POST['onepaquc_reset_settings_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['onepaquc_reset_settings_nonce'])), 'onepaquc_reset_settings')) {
+        return;
+    }
+
     if (isset($_POST['onepaqucpro_reset_settings']) && $_POST['onepaqucpro_reset_settings'] == '1') {
         global $onepaqucpro_string_settings_fields;
         foreach (onepaqucpro_rmenupro_fields() as $key => $field) {
@@ -3261,7 +3267,7 @@ function onepaqucpro_handle_reset_settings()
         }
 
         // Redirect to the same page to avoid resubmission
-        $current_url = $_SERVER['REQUEST_URI'];
+        $current_url = isset($_SERVER['REQUEST_URI']) ? sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI'])) : '';
 
         // Check if the URL already has a query string
         if (strpos($current_url, '?') !== false) {

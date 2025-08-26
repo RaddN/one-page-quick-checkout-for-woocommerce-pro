@@ -209,7 +209,7 @@ function onepaqucpro_add_block_category($categories)
         array(
             array(
                 'slug'  => 'plugincy',
-                'title' => __('Plugincy', 'one-page-quick-checkout-for-woocommerce-pro'),
+                'title' => esc_html__('Plugincy', 'one-page-quick-checkout-for-woocommerce-pro'),
                 'icon'  => 'cart',
             ),
         ),
@@ -358,7 +358,7 @@ function onepaqucpro_block_categories($categories, $post)
     // Create the new category array
     $new_category = array(
         'slug' => 'plugincy',
-        'title' => __('Plugincy', 'one-page-quick-checkout-for-woocommerce-pro'),
+        'title' => esc_html__('Plugincy', 'one-page-quick-checkout-for-woocommerce-pro'),
         'icon'  => 'plugincy',
     );
 
