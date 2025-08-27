@@ -66,7 +66,7 @@ function onepaqucpro_cart_dashboard()
     ?>
 
     <div class="welcome-banner">
-        <div class="welcome-title">Welcome to One Page Quick Checkout for WooCommerce Pro <span class="version-tag">v1.0.8.2</span></div>
+        <div class="welcome-title">Welcome to One Page Quick Checkout for WooCommerce Pro <span class="version-tag">v1.0.8.10</span></div>
         <p style="max-width: 70%; margin:0 auto;">Thank you for installing One Page Quick Checkout for WooCommerce! Streamline your WooCommerce checkout process and boost your conversion rates with our easy-to-configure solution.</p>
         <div class="feature-grid">
             <div class="feature-item">
@@ -633,12 +633,12 @@ function onepaqucpro_cart_dashboard()
 
                             <tr>
                                 <?php $onepaquc_helper->sec_head('th', '', '', 'Cart Checkout Behavior', 'Choose the behavior of the cart checkout process.'); ?>
-                                <td class="pro-only">
+                                <td class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
                                     <select name="rmenu_cart_checkout_behavior" class="rmenu-select">
                                         <option value="direct_checkout" <?php selected(get_option('rmenu_cart_checkout_behavior', 'direct_checkout'), 'direct_checkout'); ?>>Direct Checkout</option>
-                                        <option disabled value="pro" <?php selected(get_option('rmenu_cart_checkout_behavior', 'side_cart'), 'pro'); ?>>Popup Checkout (Pro Features)</option>
+                                        <option <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> value="popup_checkout" <?php selected(get_option('rmenu_cart_checkout_behavior', 'direct_checkout'), 'popup_checkout'); ?>>Popup Checkout</option>
                                     </select>
-                                    <span class="dashicons dashicons-lock plugincy_lock-icon"></span>
+                                    <span class="<?php echo !onepaqucpro_premium_feature() ? 'dashicons dashicons-lock plugincy_lock-icon' : ''; ?>"></span>
                                 </td>
                             </tr>
                         </table>

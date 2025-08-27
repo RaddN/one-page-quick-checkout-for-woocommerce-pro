@@ -181,6 +181,14 @@ button.rwc_cart-button span.cart-icon img {
   height: 600px;
   overflow: hidden;
 }
+.checkout-popup .woocommerce-privacy-policy-text{
+  display: none !important;
+}
+
+.checkout-popup form #customer_details * {
+    width: 100% !important;
+}
+
 .checkout-popup h2 {
   margin: 0 !important;
 }

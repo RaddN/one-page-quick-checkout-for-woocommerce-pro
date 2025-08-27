@@ -7,9 +7,10 @@ function onepaqucpro_rmenupro_checkout($isonepagewidget = false)
     <?php if (!$isonepagewidget) { ?>
       <div style=" display: flex; justify-content: space-between; ">
         <h2><?php echo get_option("txt_checkout") ? esc_attr(get_option("txt_checkout", 'Checkout')) : "Checkout"; ?></h2>
+        <div class="close_button" onclick="closeCheckoutPopup()">
+        </div>
       </div>
-      <div class="close_button" onclick="closeCheckoutPopup()">
-      </div>
+
     <?php } ?>
 
     <div class="popup-message"></div>

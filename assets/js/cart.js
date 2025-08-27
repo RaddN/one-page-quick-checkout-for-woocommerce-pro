@@ -149,7 +149,7 @@ jQuery(document).ready(function ($) {
     });
 
     // Handle remove item
-    $('.rmenu-cart').on('click', '.remove-item', function (e) {
+    $('.rmenupro-cart').on('click', '.remove-item', function (e) {
         e.preventDefault();
         const cartItemKey = $(this).data('cart-item-key');
         const cartItem = $(this).closest('.cart-item');
@@ -167,7 +167,7 @@ jQuery(document).ready(function ($) {
         const removeSelectedButton = document.getElementById('remove-selected');
 
         $.ajax({
-            url: onepaquc_wc_cart_params.ajax_url,
+            url: onepaqucpro_wc_cart_params.ajax_url,
             type: 'POST',
             data: {
                 action: 'onepaqucpro_remove_cart_item',
