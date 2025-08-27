@@ -578,10 +578,12 @@ function onepaqucpro_position_wise_css()
         return;
     }
 
-    if (!is_singular('product')) {
-        return;
-    }
     $position = get_option("rmenu_wc_direct_checkout_single_position", "after_add_to_cart");
+
+    if (!is_singular('product')) {
+        $position = get_option("rmenupro_wc_direct_checkout_position", "after_add_to_cart");
+    }
+    
     if ($position === "replace_add_to_cart" || (get_option('rmenupro_enable_custom_add_to_cart', 0) && get_option('rmenupro_add_to_cart_catalog_display') == "hide")) {
     ?>
         <style>
@@ -792,8 +794,6 @@ class onepaqucpro_add_checkout_button_on_archive
         } elseif (in_array('on-sale', $allowed_pages) && wc_get_loop_prop('is_on_sale')) {
             $display = true;
         } elseif (in_array('recent', $allowed_pages) && wc_get_loop_prop('is_recent')) {
-            $display = true;
-        } elseif (in_array('widgets', $allowed_pages) && (is_active_widget(false, false, 'woocommerce_products', true) || is_active_widget(false, false, 'woocommerce_top_rated_products', true))) {
             $display = true;
         } elseif (in_array('shortcodes', $allowed_pages) && is_singular()) {
             $display = true;

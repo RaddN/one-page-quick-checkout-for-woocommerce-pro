@@ -1119,7 +1119,9 @@ function onepaqucpro_cart_dashboard()
                                 });
 
                                 // Trigger change event on page load to set initial visibility
-                                iconSelect.dispatchEvent(new Event('change'));
+                                setTimeout(() => {
+                                    iconSelect.dispatchEvent(new Event('change'));
+                                }, 1000);
                             }
 
                             // if button_style !== 'custom', none all fields except the first two
@@ -2500,18 +2502,14 @@ function onepaqucpro_cart_dashboard()
 
                     // Show/hide custom CSS row based on selected style after page load
                     const styleSelect = document.querySelector('select[name="rmenupro_quick_view_button_style"]');
-                    const customCssRow = document.querySelector('textarea[name="rmenupro_quick_view_custom_css"]').closest('.rmenupro-settings-row');
+                    const customCssRow = document.querySelector('textarea[name="rmenupro_quick_view_custom_css"]').closest('tr');
                     // if rmenupro_quick_view_display_type is button, hide the rmenupro_quick_view_button_icon & rmenupro_quick_view_icon_position
-                    const quickViewButtonIconRow = quickViewButtonIcon.closest('.rmenupro-settings-row');
+                    const quickViewButtonIconRow = quickViewButtonIcon.closest('tr');
                     const updateQuickViewDisplayType = () => {
                         if (quickViewDisplayType.value === 'button') {
                             quickViewButtonIconRow.style.display = 'none';
-                        } else if (quickViewDisplayType.value === 'icon') {
-                            quickViewButtonIconRow.style.display = 'flex';
-                            quickViewButtonIconRow.querySelector(".rmenupro-settings-column:last-child").style.display = 'none';
                         } else {
                             quickViewButtonIconRow.style.display = 'flex';
-                            quickViewButtonIconRow.querySelector(".rmenupro-settings-column:last-child").style.display = 'block';
                         }
                     };
 
@@ -2525,7 +2523,7 @@ function onepaqucpro_cart_dashboard()
                     };
 
                     // Initial check
-                    updateCustomCssRowVisibility();
+                        updateCustomCssRowVisibility();
 
                     // Add change event listener
                     styleSelect.addEventListener('change', updateCustomCssRowVisibility);
@@ -2748,7 +2746,9 @@ function onepaqucpro_cart_dashboard()
                                 });
 
                                 // Trigger change event on page load to set initial visibility
-                                iconSelect.dispatchEvent(new Event('change'));
+                                setTimeout(() => {
+                                    iconSelect.dispatchEvent(new Event('change'));
+                                }, 1000);
                             }
 
                             if (customWidthRow) {
@@ -3156,7 +3156,7 @@ function onepaqucpro_cart_dashboard()
         </form>
         <form class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>" method="post" action="" onsubmit="return confirm('Are you sure you want to reset all settings to default? This action cannot be undone.');">
             <?php wp_nonce_field('onepaquc_reset_settings', 'onepaquc_reset_settings_nonce'); ?>
-        <input type="hidden" name="<?php echo !onepaqucpro_premium_feature() ? 'pro-onepaqucpro_reset' : 'onepaqucpro_reset_settings'; ?>" value="1">
+            <input type="hidden" name="<?php echo !onepaqucpro_premium_feature() ? 'pro-onepaqucpro_reset' : 'onepaqucpro_reset_settings'; ?>" value="1">
             <?php
             $disabled = !onepaqucpro_premium_feature() ? array('disabled' => 'disabled') : array();
             submit_button('Reset Settings', 'button-primary', '', false, array_merge(array('style' => 'margin-left: 20px;background:#dc3545;color:#fff;border-color:#dc3545;'), is_array($disabled) ? $disabled : []));

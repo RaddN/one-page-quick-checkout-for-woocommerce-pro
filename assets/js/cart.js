@@ -351,7 +351,7 @@ jQuery(document).ready(function ($) {
     var $directbehave = onepaqucpro_wc_cart_params.direct_checkout_behave;
     var methodKey = $directbehave.rmenupro_wc_checkout_method;
 
-    function directcheckout(product_id, product_type, $button, methodKey) {
+    function directcheckout(product_id, product_type, $button) {
         var $variation_id = $button.siblings('.archive-variations-container').find('.variation_id').val() ||
             $button.siblings('.variation_id').val() ||
             $button.closest('.product').find('.archive-variations-container').find('.variation_id').val() || 0;
