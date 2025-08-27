@@ -456,7 +456,7 @@ function onepaqucpro_cart_dashboard()
                     )
                 );
             ?>
-                <input type="hidden" name="checkout_form_setup" id="checkout_setup" value="<?php echo esc_attr(get_option("checkout_form_setup", json_encode($default_config))); ?>">
+                <input type="hidden" name="checkout_form_setup" id="checkout_setup" value="<?php echo esc_attr(get_option("checkout_form_setup", wp_json_encode($default_config))); ?>">
             <?php } ?>
             <div class="tab-content active" id="tab-2">
                 <!-- Tooltip CSS -->
@@ -3159,7 +3159,7 @@ function onepaqucpro_cart_dashboard()
         <input type="hidden" name="<?php echo !onepaqucpro_premium_feature() ? 'pro-onepaqucpro_reset' : 'onepaqucpro_reset_settings'; ?>" value="1">
             <?php
             $disabled = !onepaqucpro_premium_feature() ? array('disabled' => 'disabled') : array();
-            submit_button('Reset Settings', 'button-primary', '', false, array_merge(array('style' => 'margin-left: 20px;background:#dc3545;color:#fff;border-color:#dc3545;'), $disabled));
+            submit_button('Reset Settings', 'button-primary', '', false, array_merge(array('style' => 'margin-left: 20px;background:#dc3545;color:#fff;border-color:#dc3545;'), is_array($disabled) ? $disabled : []));
             ?>
         </form>
     </div>

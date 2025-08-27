@@ -35,7 +35,7 @@
                                 echo '<td>';
                                 echo '<div class="one-page-checkout-product-add-to-cart">';
                                 if ($product) {
-                                    $add_to_cart = do_shortcode('[add_to_cart id="' . $product_id . '" style=""]');
+                                    $add_to_cart = do_shortcode('[add_to_cart id="' . esc_attr($product_id) . '" style=""]');
                                     echo $add_to_cart; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                                 }
                                 echo '</div>';

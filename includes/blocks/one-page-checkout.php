@@ -213,7 +213,7 @@ function onepaqucpro_add_block_category($categories)
                 'icon'  => 'cart',
             ),
         ),
-        $categories
+       is_array($categories) ? $categories : []
     );
 }
 add_filter('block_categories_all', 'onepaqucpro_add_block_category');
@@ -346,7 +346,7 @@ function onepaqucpro_validate_block_attributes($attributes)
         $validated['template'] = 'product-tabs'; // Default fallback
     }
 
-    return array_merge($attributes, $validated);
+    return array_merge(is_array($attributes) ? $attributes : [], is_array($validated) ? $validated : []);
 }
 
 

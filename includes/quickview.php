@@ -150,7 +150,7 @@ class RMENUPRO_Quick_View
                     const $button_pos = "<?php echo esc_attr(get_option('rmenupro_quick_view_button_position', 'image_overlay')); ?>";
                     const $contents = '<?php echo wp_kses($button_contents['button_content'], $allowed_tags); ?>';
                     const $button_class = "<?php echo esc_attr(implode(' ', $button_contents['button_classes'])); ?>";
-                    const $allowed_types = <?php echo json_encode(get_option('rmenupro_show_quick_view_by_types', ['simple', 'variable', "grouped", "external"])); ?>;
+                    const $allowed_types = <?php echo wp_json_encode(get_option('rmenupro_show_quick_view_by_types', ['simple', 'variable', "grouped", "external"])); ?>;
 
                     // Remove any .rmenu-quick-view-overlay that isn't a child of .product
                     $(".rmenupro-quick-view-overlay").each(function() {
@@ -533,7 +533,7 @@ class RMENUPRO_Quick_View
         }
 
         // Output data attribute with JSON encoded product data
-        echo '<div class="rmenupro-product-data" style="display:none;" data-product-info="' . esc_attr(json_encode($product_data)) . '"></div>';
+        echo '<div class="rmenupro-product-data" style="display:none;" data-product-info="' . esc_attr(wp_json_encode($product_data)) . '"></div>';
     }
 
     /**

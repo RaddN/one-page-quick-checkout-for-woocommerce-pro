@@ -24,7 +24,7 @@ wp_enqueue_style( 'owl-theme', plugin_dir_url(__FILE__) . '../assets/css/owl.the
             echo '<div class="one-page-checkout-product-title">' . esc_html($product->get_name()) . '</div>';
             echo '<div class="one-page-checkout-product-price">' . wp_kses_post($product->get_price_html()) . '</div>';
             echo '<div class="one-page-checkout-product-add-to-cart">';
-            echo do_shortcode('[add_to_cart id="' . $product_id . '" show_price="false" style=""]');
+            echo do_shortcode('[add_to_cart id="' . esc_attr($product_id) . '" show_price="false" style=""]');
             echo '</div>';
             echo '</div>';
         }

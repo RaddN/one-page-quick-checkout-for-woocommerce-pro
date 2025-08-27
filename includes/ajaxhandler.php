@@ -481,7 +481,7 @@ function onepaqucpro_get_all_products_quick_view() {
         if ($categories && !is_wp_error($categories)) {
             $category_links = array();
             foreach ($categories as $category) {
-                $category_links[] = '<a href="' . get_term_link($category) . '">' . $category->name . '</a>';
+                $category_links[] = '<a href="' . esc_url(get_term_link($category)) . '">' . esc_html($category->name) . '</a>';
             }
             $categories_html = implode(', ', $category_links);
         }
@@ -493,7 +493,7 @@ function onepaqucpro_get_all_products_quick_view() {
             if ($brands && !is_wp_error($brands)) {
                 $brand_links = array();
                 foreach ($brands as $brand) {
-                    $brand_links[] = '<a href="' . get_term_link($brand) . '">' . $brand->name . '</a>';
+                    $brand_links[] = '<a href="' . esc_url(get_term_link($brand)) . '">' . esc_html($brand->name) . '</a>';
                 }
                 $brands_html = implode(', ', $brand_links);
             }
@@ -505,7 +505,7 @@ function onepaqucpro_get_all_products_quick_view() {
         if ($tags && !is_wp_error($tags)) {
             $tag_links = array();
             foreach ($tags as $tag) {
-                $tag_links[] = '<a href="' . get_term_link($tag) . '">' . $tag->name . '</a>';
+                $tag_links[] = '<a href="' . esc_url(get_term_link($tag)) . '">' . esc_html($tag->name) . '</a>';
             }
             $tags_html = implode(', ', $tag_links);
         }

@@ -577,7 +577,7 @@ $default_config = array(
             'text' => 'Place order'
         )
     );
-$checkout_form_setup = get_option("checkout_form_setup", json_encode($default_config));
+$checkout_form_setup = get_option("checkout_form_setup", wp_json_encode($default_config));
 $dataObject = json_decode($checkout_form_setup);
 if (class_exists('WC_Shipping_Zones')) {
     $shipping_zones = WC_Shipping_Zones::get_zones();

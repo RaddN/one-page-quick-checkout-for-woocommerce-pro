@@ -811,7 +811,7 @@ class onepaqucpro_add_checkout_button_on_archive
                     const $contents = '<?php echo wp_kses($button_contents['button_content'], $allowed_tags); ?>';
                     const $button_class = "<?php echo esc_attr($button_contents['button_classes']); ?>";
                     const $button_style = "<?php echo esc_attr($button_contents['button_style']); ?>";
-                    const $allowed_types = <?php echo json_encode(get_option('rmenupro_show_quick_checkout_by_types', ['simple', 'variable', "grouped", "external"])); ?>;
+                    const $allowed_types = <?php echo wp_json_encode(get_option('rmenupro_show_quick_checkout_by_types', ['simple', 'variable', "grouped", "external"])); ?>;
 
                     // Remove any .plugincy-quick-checkout that isn't a child of .product
                     $(".plugincy-quick-checkout").each(function() {

@@ -872,14 +872,14 @@ function onepaqucpro_plugin_api_call($result, $action, $args, $license_manager)
                 // If sections is a serialized string, unserialize it
                 $unserialized_sections = @unserialize($version_info->sections);
                 if ($unserialized_sections !== false && is_array($unserialized_sections)) {
-                    $sections = array_merge($sections, $unserialized_sections);
+                    $sections = array_merge(is_array($sections) ? $sections : [], is_array($unserialized_sections) ? $unserialized_sections : []);
                 }
             } elseif (is_object($version_info->sections)) {
                 // If sections is already an object, convert to array
-                $sections = array_merge($sections, (array)$version_info->sections);
+                $sections = array_merge(is_array($sections) ? $sections : [], (array)$version_info->sections);
             } elseif (is_array($version_info->sections)) {
                 // If sections is already an array
-                $sections = array_merge($sections, $version_info->sections);
+                $sections = array_merge(is_array($sections) ? $sections : [], $version_info->sections);
             }
         }
 
