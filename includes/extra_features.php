@@ -263,7 +263,7 @@ class onepaqucpro_add_variation_buttons_on_archive
                     }
 
                     /* Show overlay variations on product hover for hover position */
-                    .product:hover .overlay-variations {
+                    .product:hover>.overlay-variations {
                         opacity: 1;
                     }
 

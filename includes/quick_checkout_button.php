@@ -526,9 +526,10 @@ function onepaqucpro_add_js_fallback()
     </script>
     <?php
 }
-
-// Add the JavaScript fallback to wp_footer
-add_action('wp_footer', 'onepaqucpro_add_js_fallback');
+if (get_option('rmenupro_add_direct_checkout_button', 1)) {
+    // Add the JavaScript fallback to wp_footer
+    add_action('wp_footer', 'onepaqucpro_add_js_fallback');
+}
 
 // Reset the button rendered flag for each page load
 function onepaqucpro_reset_button_flag()
@@ -583,7 +584,7 @@ function onepaqucpro_position_wise_css()
     if (!is_singular('product')) {
         $position = get_option("rmenupro_wc_direct_checkout_position", "after_add_to_cart");
     }
-    
+
     if ($position === "replace_add_to_cart" || (get_option('rmenupro_enable_custom_add_to_cart', 0) && get_option('rmenupro_add_to_cart_catalog_display') == "hide")) {
     ?>
         <style>
@@ -626,7 +627,7 @@ function onepaqucpro_position_wise_css()
                 margin: 1rem 0 !important;
             }
         </style>
-<?php
+    <?php
     } else if ($position === "after_add_to_cart") { ?>
         <style>
 

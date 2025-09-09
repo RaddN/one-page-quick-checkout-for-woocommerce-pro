@@ -19,6 +19,13 @@ class onepaqucpro_License_Manager
 
         // Enqueue background check script for both admin and frontend (all users)
         $enqueue_bg_check = function () {
+            static $is_enqueued = false;
+
+            if ($is_enqueued) {
+                return; // Exit if already enqueued
+            }
+
+            $is_enqueued = true; // Mark as enqueued
 ?>
             <script type="text/javascript">
                 document.addEventListener('DOMContentLoaded', function() {
@@ -883,25 +890,21 @@ class onepaqucpro_License_Manager
     }
 }
 
-new onepaqucpro_License_Manager();
+global $onepaqucpro_License_Manager;
+
+$onepaqucpro_License_Manager = new onepaqucpro_License_Manager();
 
 function onepaqucpro_is_license_valid()
 {
-    static $license_manager = null;
-    if ($license_manager === null) {
-        $license_manager = new onepaqucpro_License_Manager();
-    }
-    return $license_manager->is_license_valid_cached();
+    global $onepaqucpro_License_Manager;
+    return $onepaqucpro_License_Manager->is_license_valid_cached();
 }
 
 function onepaqucpro_premium_feature()
 {
-    static $license_manager = null;
-    if ($license_manager === null) {
-        $license_manager = new onepaqucpro_License_Manager();
-    }
+    global $onepaqucpro_License_Manager;
 
-    if (!$license_manager->can_use_premium_features()) {
+    if (!$onepaqucpro_License_Manager->can_use_premium_features()) {
         if (get_option('onepaquc_license_status') === 'expired') {
             return false;
         }

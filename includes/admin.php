@@ -248,8 +248,8 @@ function onepaqucpro_cart_dashboard()
         </div>
         <div class="tab-content" id="tab-100">
             <?php
-            $license_manager = new onepaqucpro_License_Manager();
-            $license_manager->render_license_form();
+            global $onepaqucpro_License_Manager;
+            $onepaqucpro_License_Manager->render_license_form();
             ?>
         </div>
         <form method="post" action="options.php">

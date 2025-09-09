@@ -790,22 +790,22 @@ if (onepaqucpro_premium_feature()) {
 function onepaqucpro_init_updater()
 {
     if (class_exists('onepaqucpro_License_Manager')) {
-        $license_manager = new onepaqucpro_License_Manager();
+        global $onepaqucpro_License_Manager;
 
         // Hook into WordPress update system
-        add_filter('pre_set_site_transient_update_plugins', function ($transient) use ($license_manager) {
-            return onepaqucpro_check_for_plugin_updates($transient, $license_manager);
+        add_filter('pre_set_site_transient_update_plugins', function ($transient) use ($onepaqucpro_License_Manager) {
+            return onepaqucpro_check_for_plugin_updates($transient, $onepaqucpro_License_Manager);
         });
 
-        add_filter('plugins_api', function ($result, $action, $args) use ($license_manager) {
-            return onepaqucpro_plugin_api_call($result, $action, $args, $license_manager);
+        add_filter('plugins_api', function ($result, $action, $args) use ($onepaqucpro_License_Manager) {
+            return onepaqucpro_plugin_api_call($result, $action, $args, $onepaqucpro_License_Manager);
         }, 10, 3);
 
-        add_action('upgrader_process_complete', function ($upgrader_object, $options) use ($license_manager) {
-            onepaqucpro_clear_cache_after_update($upgrader_object, $options, $license_manager);
+        add_action('upgrader_process_complete', function ($upgrader_object, $options) use ($onepaqucpro_License_Manager) {
+            onepaqucpro_clear_cache_after_update($upgrader_object, $options, $onepaqucpro_License_Manager);
         }, 10, 2);
 
-        add_action('admin_notices', array($license_manager, 'show_license_notices'));
+        add_action('admin_notices', array($onepaqucpro_License_Manager, 'show_license_notices'));
     }
 }
 
