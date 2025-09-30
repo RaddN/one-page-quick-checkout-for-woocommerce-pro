@@ -58,8 +58,8 @@
 /* Image overlay button */
 .rmenupro-quick-view-overlay.image_overlay {
   position: absolute;
-  top: 0;
-  left: 0;
+  top: 6px;
+  left: 6px;
   transform: translate(0, 0);
   opacity: 0;
   display: flex;
@@ -67,6 +67,7 @@
   align-items: center;
   transition: opacity 0.3s ease;
   z-index: 999;
+  height: 36px;
 }
 
 .product:hover > .rmenupro-quick-view-overlay {
@@ -178,14 +179,14 @@
   background-color: #ffdcdc;
 }
 
-.rmenupro-quick-view-close .dashicons {
+.rmenupro-quick-view-close svg {
   color: #000;
   font-size: 20px;
   width: 20px;
   height: 20px;
 }
 
-.rmenu-quick-view-close .dashicons:hover {
+.rmenu-quick-view-close svg:hover {
   color: #ff0000;
 }
 
@@ -228,14 +229,6 @@
 .rmenupro-quick-view-next:hover {
   background-color: rgba(0, 0, 0, 0.8);
   color: #fff;
-}
-
-.rmenupro-quick-view-prev .dashicons,
-.rmenupro-quick-view-next .dashicons {
-  color: #fff;
-  font-size: 22px;
-  width: 22px;
-  height: 22px;
 }
 
 .rmenupro-quick-view-prev .screen-reader-text,
@@ -523,6 +516,7 @@ a.opqvfw-btn.button.display-icon {
   border: none;
   border-radius: 100%;
   min-width: 36px;
+  margin: 0 !important;
 }
 a.opqvfw-btn {
   z-index: 99999 !important;

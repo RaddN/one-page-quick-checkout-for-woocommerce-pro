@@ -41,7 +41,7 @@ function onepaqucpro_plugincy_one_page_checkout_widget()
          */
         public function get_title()
         {
-            return esc_html__('Plugincy One Page Checkout', 'one-page-quick-checkout-for-woocommerce-pro');
+            return esc_html__('Multi Product One Page Checkout', 'one-page-quick-checkout-for-woocommerce-pro');
         }
 
         /**

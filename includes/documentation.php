@@ -210,7 +210,7 @@ function onepaqucpro_cart_documentation()
                     <p>Floating Cart provides two dedicated Elementor widgets:</p>
                     <ol>
                         <li><strong>Plugincy WC Cart</strong> - For adding a mini cart</li>
-                        <li><strong>Plugincy One Page Checkout</strong> - For creating Multiple Products One Page Checkout</li>
+                        <li><strong>Multi Product One Page Checkout</strong> - For creating Multiple Products One Page Checkout</li>
                     </ol>
                 </div>
 
@@ -219,7 +219,7 @@ function onepaqucpro_cart_documentation()
                     <p>Floating Cart provides two dedicated Gutenberg blocks:</p>
                     <ol>
                         <li><strong>Plugincy WC Cart</strong> - For adding a mini cart</li>
-                        <li><strong>Plugincy One Page Checkout</strong> - For creating Multiple Products One Page Checkout</li>
+                        <li><strong>Multi Product One Page Checkout</strong> - For creating Multiple Products One Page Checkout</li>
                     </ol>
                 </div>
 

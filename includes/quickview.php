@@ -33,16 +33,18 @@ class RMENUPRO_Quick_View
             // Add product data to each product element
             add_action('woocommerce_after_shop_loop_item', array($this, 'add_product_data'), 20);
             // fallback
-            add_action('woocommerce_shop_loop', array($this, 'add_product_data'), 5);
-            add_action('woocommerce_before_shop_loop_item', array($this, 'add_product_data'), 25);
-            add_action('woocommerce_before_shop_loop_item_title', array($this, 'add_product_data'), 25);
-            add_action('woocommerce_shop_loop_item_title', array($this, 'add_product_data'), 25);
-            add_action('woocommerce_after_shop_loop_item_title', array($this, 'add_product_data'), 25);
-            add_action('woocommerce_before_single_product_summary', array($this, 'add_product_data'), 5);
-            add_action('woocommerce_single_product_summary', array($this, 'add_product_data'), 5);
-            add_action('woocommerce_output_related_products_args', array($this, 'add_product_data'), 5);
-            add_action('woocommerce_cross_sell_display', array($this, 'add_product_data'), 5);
-            add_action('woocommerce_upsell_display', array($this, 'add_product_data'), 5);
+            add_action('wp', function () {
+                add_action('woocommerce_shop_loop', array($this, 'add_product_data'), 5);
+                add_action('woocommerce_before_shop_loop_item', array($this, 'add_product_data'), 25);
+                add_action('woocommerce_before_shop_loop_item_title', array($this, 'add_product_data'), 25);
+                add_action('woocommerce_shop_loop_item_title', array($this, 'add_product_data'), 25);
+                add_action('woocommerce_after_shop_loop_item_title', array($this, 'add_product_data'), 25);
+                add_action('woocommerce_before_single_product_summary', array($this, 'add_product_data'), 5);
+                add_action('woocommerce_single_product_summary', array($this, 'add_product_data'), 5);
+                add_action('woocommerce_output_related_products_args', array($this, 'add_product_data'), 5);
+                add_action('woocommerce_cross_sell_display', array($this, 'add_product_data'), 5);
+                add_action('woocommerce_upsell_display', array($this, 'add_product_data'), 5);
+            });
         }
     }
 
@@ -145,65 +147,129 @@ class RMENUPRO_Quick_View
 ?>
         <script>
             jQuery(document).ready(function($) {
-                $(".product").each(function() {
-                    let $this = $(this);
-                    const $button_pos = "<?php echo esc_attr(get_option('rmenupro_quick_view_button_position', 'image_overlay')); ?>";
-                    const $contents = '<?php echo wp_kses($button_contents['button_content'], $allowed_tags); ?>';
-                    const $button_class = "<?php echo esc_attr(implode(' ', $button_contents['button_classes'])); ?>";
-                    const $allowed_types = <?php echo wp_json_encode(get_option('rmenupro_show_quick_view_by_types', ['simple', 'variable', "grouped", "external"])); ?>;
+                // Configuration variables
+                const quickViewConfig = {
+                    buttonPos: "<?php echo esc_attr(get_option('rmenupro_quick_view_button_position', 'image_overlay')); ?>",
+                    contents: '<?php echo wp_kses($button_contents['button_content'], $allowed_tags); ?>',
+                    buttonClass: "<?php echo esc_attr(implode(' ', $button_contents['button_classes'])); ?>",
+                    allowedTypes: <?php echo wp_json_encode(get_option('rmenupro_show_quick_view_by_types', ['simple', 'variable', "grouped", "external"])); ?>
+                };
 
-                    // Remove any .rmenu-quick-view-overlay that isn't a child of .product
-                    $(".rmenupro-quick-view-overlay").each(function() {
+                /**
+                 * Initialize quick view buttons for products
+                 * @param {jQuery} container - Optional container to limit scope (defaults to entire document)
+                 */
+                function initQuickViewButtons(container = $(document)) {
+                    container.find(".product").each(function() {
+                        let $this = $(this);
+
+                        // Skip if this product already has a quick view button or conflicting plugin button
+                        if ($this.has(".rmenu-quick-view-overlay").length || $this.has(".opqvfw-btn").length) {
+                            return;
+                        }
+
+                        // Extract product ID from class or button data
+                        let productIdMatch = $this.attr('class').match(/post-(\d+)/);
+                        let product_id = productIdMatch ? productIdMatch[1] :
+                            ($this.find(".button").length ? $this.find(".button").data("product_id") : null);
+
+                        // Extract product type from class or button data
+                        let productTypeMatch = $this.attr('class').match(/product-type-(\w+)/);
+                        let product_type = productTypeMatch ? productTypeMatch[1] :
+                            ($this.find(".button").length ? $this.find(".button").data("product-type") : null);
+
+                        // Only add button if product type is allowed and we have a product ID
+                        if (quickViewConfig.allowedTypes.includes(product_type) && product_id) {
+                            addQuickViewButton($this, product_id);
+                        }
+                    });
+
+                    // Clean up any orphaned quick view buttons
+                    cleanupOrphanedQuickViewButtons();
+                }
+
+                /**
+                 * Add quick view button based on position setting
+                 * @param {jQuery} $product - Product element
+                 * @param {string} product_id - Product ID
+                 */
+                function addQuickViewButton($product, product_id) {
+                    const buttonHtml = `<div class='rmenu-quick-view-overlay ${quickViewConfig.buttonPos}'>
+            <a href="#" class="${quickViewConfig.buttonClass}" data-product-id="${product_id}">
+                ${quickViewConfig.contents}
+            </a>
+        </div>`;
+
+                    if (quickViewConfig.buttonPos === 'after_image') {
+                        // Find the image and add button after it
+                        let $image = $product.find('img').first();
+                        if ($image.length) {
+                            $image.after(buttonHtml);
+                        } else {
+                            // Fallback: append to product if no image found
+                            $product.append(buttonHtml);
+                        }
+                    } else {
+                        // Default behavior for other positions (overlay, etc.)
+                        $product.append(buttonHtml);
+                    }
+                }
+
+                /**
+                 * Remove any quick view buttons that aren't children of .product elements
+                 */
+                function cleanupOrphanedQuickViewButtons() {
+                    $(".rmenu-quick-view-overlay").each(function() {
                         if (!$(this).closest('.product').length) {
                             $(this).remove();
                         }
                     });
+                }
 
-                    if (!$this.has(".rmenupro-quick-view-overlay").length && !$this.has(".opqvfw-btn").length) {
-                        // Extract product ID from class
-                        let productIdMatch = $this.attr('class').match(/post-(\d+)/);
-                        let product_id = productIdMatch ? productIdMatch[1] : ($this.find(".button").length ? $this.find(".button").data("product_id") : null);
-                        let productTypeMatch = $this.attr('class').match(/product-type-(\w+)/);
-                        let product_type = productTypeMatch ? productTypeMatch[1] : ($this.find(".button").length ? $this.find(".button").data("product-type") : null);
+                /**
+                 * Refresh quick view buttons (remove existing and reinitialize)
+                 * @param {jQuery} container - Optional container to limit scope
+                 */
+                function refreshQuickViewButtons(container = $(document)) {
+                    container.find(".rmenu-quick-view-overlay").remove();
+                    initQuickViewButtons(container);
+                }
 
-                        if ($allowed_types.includes(product_type)) {
+                // Initial load
+                initQuickViewButtons();
 
-                            if (product_id) {
-                                if ($button_pos === 'after_image') {
-                                    // Find the image and add button after it
-                                    let $image = $this.find('img').first();
-                                    if ($image.length) {
-                                        $image.after(
-                                            `<div class='rmenupro-quick-view-overlay ${$button_pos}'>
-                                        <a href="#" class="${$button_class}" data-product-id="${product_id}">
-                                            ${$contents}
-                                        </a>
-                                    </div>`
-                                        );
-                                    } else {
-                                        // Fallback: append to product if no image found
-                                        $this.append(
-                                            `<div class='rmenupro-quick-view-overlay ${$button_pos}'>
-                                        <a href="#" class="${$button_class}" data-product-id="${product_id}">
-                                            ${$contents}
-                                        </a>
-                                    </div>`
-                                        );
-                                    }
-                                } else {
-                                    // Default behavior for other positions (overlay, etc.)
-                                    $this.append(
-                                        `<div class='rmenupro-quick-view-overlay ${$button_pos}'>
-                                    <a href="#" class="${$button_class}" data-product-id="${product_id}">
-                                        ${$contents}
-                                    </a>
-                                </div>`
-                                    );
-                                }
-                            }
-                        }
+                // Re-initialize after AJAX complete (global)
+                $(document).ajaxComplete(function(event, xhr, settings) {
+                    // Add a small delay to ensure DOM is updated
+                    setTimeout(function() {
+                        initQuickViewButtons();
+                    }, 100);
+                });
+
+                // Re-initialize when new content is loaded via AJAX (WooCommerce specific)
+                $('body').on('wc_fragments_loaded wc_fragments_refreshed', function() {
+                    initQuickViewButtons();
+                });
+
+                // Re-initialize for infinite scroll or pagination
+                $('body').on('post-load', function(e, data) {
+                    if (data && data.length) {
+                        initQuickViewButtons($(data));
                     }
                 });
+
+                // Re-initialize when products are updated/filtered
+                $('body').on('woocommerce_updated_cart_totals updated_checkout updated_shipping_method', function() {
+                    setTimeout(function() {
+                        initQuickViewButtons();
+                    }, 100);
+                });
+
+                // Make functions globally available for manual calls
+                window.initQuickViewButtons = initQuickViewButtons;
+                window.refreshQuickViewButtons = refreshQuickViewButtons;
+                window.cleanupOrphanedQuickViewButtons = cleanupOrphanedQuickViewButtons;
+
             });
         </script>
     <?php
@@ -315,8 +381,7 @@ class RMENUPRO_Quick_View
         );
 
 
-        echo wp_kses_post(apply_filters('rmenupro_quick_view_button_html', $button_html, $product)); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-
+        echo wp_kses_post(apply_filters('rmenupro_quick_view_button_html', $button_html, $product));
     }
 
     public function button_contents()
@@ -333,22 +398,20 @@ class RMENUPRO_Quick_View
         // Generate icon HTML if needed
         $icon_html = '';
         if ($button_icon !== 'none' && ($display_type === 'icon' || $display_type === 'text_icon' || $display_type === 'hover_icon')) {
-            $icon_class = '';
             switch ($button_icon) {
                 case 'eye':
-                    $icon_class = 'dashicons-visibility';
+                    $icon_html = '<svg width="20" height="20" viewBox="0 0 0.5 0.5" xmlns="http://www.w3.org/2000/svg"><path fill="none" d="M0 0h.5v.5H0z"/><path fill="#fff" d="M.458.238a.257.257 0 0 0-.435.027q.008.015.02.03a.256.256 0 0 0 .415 0l.02-.03zM.253.18C.266.167.286.167.298.18s.013.033 0 .045-.033.013-.045 0S.24.192.253.18M.25.373A.23.23 0 0 1 .057.268.23.23 0 0 1 .175.18.1.1 0 0 0 .15.248a.1.1 0 0 0 .1.102.1.1 0 0 0 .102-.1V.247q0-.04-.028-.068a.22.22 0 0 1 .118.088.23.23 0 0 1-.193.105"/></svg>';
                     break;
                 case 'search':
-                    $icon_class = 'dashicons-search';
+                    $icon_html = '<svg width="20" height="20" fill="none" viewBox="0 0 12.8 12.8" xmlns="http://www.w3.org/2000/svg"><path fill="#fff" d="M10.4 11.2 7.975 8.775q-1.05.8-2.375.8-1.075 0-2-.525-.925-.55-1.45-1.475-.55-.925-.55-2t.55-2q.525-.925 1.45-1.45.925-.55 2-.55t2 .55q.925.525 1.475 1.45.525.925.525 2 0 1.35-.825 2.4L11.2 10.4zM5.575 8.4q1.175 0 2-.825.8-.825.8-1.975 0-1.175-.8-1.975-.825-.825-2-.825-1.15 0-1.975.825-.825.8-.825 1.975 0 1.15.825 1.975t1.975.825"/></svg>';
                     break;
                 case 'zoom':
-                    $icon_class = 'dashicons-fullscreen-alt';
+                    $icon_html = '<svg width="20" height="20" viewBox="0 0 0.6 0.6" xmlns="http://www.w3.org/2000/svg"><g fill="none"><path d="M.6 0v.6H0V0zM.315.581.313.582H.312L.31.581H.309v.012l.003.002.003-.002V.582M.322.579.317.581v.011l.005.002h.001zL.321.578m-.018 0H.302L.301.593v.001L.306.592V.581z"/><path d="M.1.375A.025.025 0 0 1 .125.4v.075H.2a.025.025 0 1 1 0 .05H.125a.05.05 0 0 1-.05-.05V.4A.025.025 0 0 1 .1.375m.4 0a.025.025 0 0 1 .025.022v.078a.05.05 0 0 1-.046.05H.4a.025.025 0 0 1-.003-.05h.078V.4A.025.025 0 0 1 .5.375m-.025-.3a.05.05 0 0 1 .05.046V.2a.025.025 0 0 1-.05.003V.125H.4a.025.025 0 0 1-.003-.05H.4zM.2.075a.025.025 0 0 1 .003.05H.125V.2a.025.025 0 0 1-.05.003V.125a.05.05 0 0 1 .046-.05h.004z" fill="#fff"/></g></svg>';
                     break;
                 case 'preview':
-                    $icon_class = 'dashicons-welcome-view-site';
+                    $icon_html = '<svg xmlns="http://www.w3.org/2000/svg" fill="#fff" viewBox="0 0 20 20" xml:space="preserve" width="20" height="20"><path d="M3.333 2.5c-0.917 0 -1.667 0.75 -1.667 1.667v11.667c0 0.917 0.75 1.667 1.667 1.667h13.333c0.917 0 1.667 -0.75 1.667 -1.667V4.167c0 -0.917 -0.75 -1.667 -1.667 -1.667zm0 1.667h13.333v11.667H3.333zm6.667 2.5c-2.75 0 -5 2.75 -5 3.333s2.25 3.333 5 3.333 5 -2.917 5 -3.333 -2.25 -3.333 -5 -3.333m0 1.25V9.167c0 0.5 0.333 0.833 0.833 0.833h1.25c0 1.333 -1.25 2.333 -2.667 2 -0.667 -0.167 -1.25 -0.75 -1.5 -1.5 -0.25 -1.333 0.75 -2.583 2.083 -2.583"/><path style="fill:none" d="M0 0h20v20H0z"/></svg>';
                     break;
             }
-            $icon_html = '<span class="dashicons ' . esc_attr($icon_class) . '"></span>';
         }
 
         // Generate button classes
@@ -671,7 +734,9 @@ class RMENUPRO_Quick_View
             <div class="opqvfw-modal-overlay"></div>
             <div class="opqvfw-modal">
                 <div class="rmenupro-quick-view-close">
-                    <span class="dashicons dashicons-no-alt"></span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M15 5 5 15M5 5l10 10" />
+                    </svg>
                     <span class="screen-reader-text"><?php echo esc_html(get_option('rmenupro_quick_view_close_text', 'Close')); ?></span>
                 </div>
                 <div class="rmenupro-quick-view-content">
@@ -682,11 +747,17 @@ class RMENUPRO_Quick_View
                 </div>
                 <div class="rmenupro-quick-view-nav">
                     <a href="#" class="rmenupro-quick-view-prev">
-                        <span class="dashicons dashicons-arrow-left-alt2"></span>
+                        <svg width="22" height="22" viewBox="0 0 1.32 1.32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path fill="#fff" fill-opacity=".01" d="M0 0h1.32v1.32H0z" />
+                            <path d="M.853.99.523.66l.33-.33" stroke="#fff" stroke-width=".11" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
                         <span class="screen-reader-text"><?php echo esc_html(get_option('rmenupro_quick_view_prev_text', 'Previous Product')); ?></span>
                     </a>
                     <a href="#" class="rmenupro-quick-view-next">
-                        <span class="dashicons dashicons-arrow-right-alt2"></span>
+                        <svg width="22" height="22" viewBox="0 0 1.32 1.32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path fill="#fff" fill-opacity=".01" d="M0 0h1.32v1.32H0z" />
+                            <path d="m.522.33.33.33-.33.33" stroke="#fff" stroke-width=".11" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
                         <span class="screen-reader-text"><?php echo esc_html(get_option('rmenupro_quick_view_next_text', 'Next Product')); ?></span>
                     </a>
                 </div>

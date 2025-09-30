@@ -124,7 +124,11 @@ function onepaqucpro_cart_dashboard()
     ?>
     <div class="tab-container">
         <div class="tabs">
-            <div class="tab active" data-tab="2">
+            <div class="tab active" data-tab="4">
+                <span class="dashicons dashicons-cart"></span>
+                Direct Checkout
+            </div>
+            <div class="tab" data-tab="2">
                 <span class="dashicons dashicons-admin-page"></span>
                 One Page Checkout
             </div>
@@ -132,10 +136,7 @@ function onepaqucpro_cart_dashboard()
                 <span class="dashicons dashicons-archive"></span>
                 Floating Cart
             </div>
-            <div class="tab" data-tab="4">
-                <span class="dashicons dashicons-cart"></span>
-                Direct Checkout
-            </div>
+
             <div class="tab" data-tab="7">
                 <span class="dashicons dashicons-visibility"></span>
                 Quick View
@@ -458,7 +459,7 @@ function onepaqucpro_cart_dashboard()
             ?>
                 <input type="hidden" name="checkout_form_setup" id="checkout_setup" value="<?php echo esc_attr(get_option("checkout_form_setup", wp_json_encode($default_config))); ?>">
             <?php } ?>
-            <div class="tab-content active" id="tab-2">
+            <div class="tab-content" id="tab-2">
                 <!-- Tooltip CSS -->
                 <style>
                     .tooltip {
@@ -767,7 +768,7 @@ function onepaqucpro_cart_dashboard()
                     });
                 </script>
             </div>
-            <div class="tab-content" id="tab-4">
+            <div class="tab-content active" id="tab-4">
                 <div class="plugincy_nav_card mb-4">
                     <?php $onepaquc_helper->sec_head('h2', 'plugincy_sec_head2', '<svg fill="#fff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" xml:space="preserve" width="16" height="16">
                                 <path d="M13.984 5.25a.73.73 0 0 0-.65-.402H9.662l1.898-3.796A.727.727 0 0 0 10.909 0H6.545a.73.73 0 0 0-.65.402L2.016 8.16a.727.727 0 0 0 .65 1.052h3.949L5.349 15.12a.726.726 0 0 0 .41.814.73.73 0 0 0 .883-.226l7.273-9.697a.73.73 0 0 0 .069-.762" />
@@ -959,71 +960,6 @@ function onepaqucpro_cart_dashboard()
                     </div>
 
                     <div class="plugincy_row">
-                        <div class="rmenupro-settings-section direct-button-style-section plugincy_card plugincy_col-5">
-                            <?php $onepaquc_helper->sec_head('h3', 'plugincy_sec_head', '<span class="dashicons dashicons-admin-appearance"></span>', 'Button Style', ''); ?>
-
-                            <table class="form-table plugincy_table">
-                                <tbody class="plugincy_grid">
-                                    <tr style="grid-column: span 2;">
-                                        <th class="rmenu-settings-label">Button Style</th>
-                                        <td class="rmenupro-settings-control">
-                                            <select name="rmenupro_wc_checkout_style" class="rmenupro-select" id="rmenupro-style-select">
-                                                <option value="default" <?php selected(get_option('rmenupro_wc_checkout_style', 'alt'), 'default'); ?>>Default WooCommerce Style</option>
-                                                <option value="alt" <?php selected(get_option('rmenupro_wc_checkout_style', 'alt'), 'alt'); ?>>Alternative Style</option>
-                                                <option value="custom" <?php selected(get_option('rmenupro_wc_checkout_style', 'alt'), 'custom'); ?>>Custom Style</option>
-                                            </select>
-                                        </td>
-                                    </tr>
-
-                                    <tr>
-                                        <th class="rmenu-settings-label">Button Color</th>
-                                        <td class="rmenu-settings-control">
-                                            <input type="color" name="rmenupro_wc_checkout_color" value="<?php echo esc_attr(get_option('rmenupro_wc_checkout_color', '#000')); ?>" class="rmenupro-color-picker" />
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="rmenupro-settings-label">Text Color</th>
-                                        <td class="rmenupro-settings-control">
-                                            <input type="color" name="rmenupro_wc_checkout_text_color" value="<?php echo esc_attr(get_option('rmenupro_wc_checkout_text_color', '#ffffff')); ?>" class="rmenupro-color-picker" />
-                                        </td>
-                                    </tr>
-
-
-
-                                    <tr class="rmenupro-settings-row rmenupro-custom-css-row" id="rmenupro-custom-css-row" style="<?php echo (get_option('rmenupro_wc_checkout_style', 'default') == 'custom') ? 'display:block;' : 'display:none;'; ?>">
-                                        <th class="rmenupro-settings-label">Custom CSS</th>
-                                        <td class="rmenupro-settings-control">
-                                            <textarea name="rmenupro_wc_checkout_custom_css" class="rmenupro-textarea-code" rows="6"><?php echo esc_textarea(get_option('rmenupro_wc_checkout_custom_css', '')); ?></textarea>
-                                            <p class="rmenupro-field-description">Add custom CSS for advanced button styling. Use the class <code>.opqcfw-btn</code> to target the button.</p>
-                                        </td>
-                                    </tr>
-
-                                    <tr>
-                                        <th class="rmenupro-settings-label">Button Icon</th>
-                                        <td class="rmenupro-settings-control">
-                                            <select name="rmenupro_wc_checkout_icon" class="rmenupro-select">
-                                                <option value="none" <?php selected(get_option('rmenupro_wc_checkout_icon', 'cart'), 'none'); ?>>No Icon</option>
-                                                <option value="cart" <?php selected(get_option('rmenupro_wc_checkout_icon', 'cart'), 'cart'); ?>>Cart Icon</option>
-                                                <option value="checkout" <?php selected(get_option('rmenupro_wc_checkout_icon', 'cart'), 'checkout'); ?>>Checkout Icon</option>
-                                                <option value="arrow" <?php selected(get_option('rmenupro_wc_checkout_icon', 'cart'), 'arrow'); ?>>Arrow Icon</option>
-                                            </select>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="rmenupro-settings-label">Icon Position</th>
-                                        <td class="rmenupro-settings-control">
-                                            <select name="rmenupro_wc_checkout_icon_position" class="rmenupro-select">
-                                                <option value="left" <?php selected(get_option('rmenupro_wc_checkout_icon_position', 'left'), 'left'); ?>>Left</option>
-                                                <option value="right" <?php selected(get_option('rmenupro_wc_checkout_icon_position', 'left'), 'right'); ?>>Right</option>
-                                                <option value="top" <?php selected(get_option('rmenupro_wc_checkout_icon_position', 'left'), 'top'); ?>>Top</option>
-                                                <option value="bottom" <?php selected(get_option('rmenupro_wc_checkout_icon_position', 'left'), 'bottom'); ?>>Bottom</option>
-                                            </select>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-
-                        </div>
                         <div class="plugincy_col-5 items_center  space_between plugincy_card">
                             <?php $onepaquc_helper->sec_head('h3', 'plugincy_sec_head', '<span class="dashicons dashicons-cart"></span>', 'Quick Checkout Behavior', ''); ?>
 
@@ -1099,6 +1035,101 @@ function onepaqucpro_cart_dashboard()
                                     </td>
                                 </tr>
                             </table>
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    const checkoutMethodSelect = document.getElementById('rmenupro-checkout-method');
+                                    const stickyCartCheckbox = document.querySelector('input[name="rmenu_enable_sticky_cart"]');
+                                    const sideCartOption = checkoutMethodSelect.querySelector('option[value="side_cart"]');
+
+                                    function updateSideCartOption() {
+                                        if (!stickyCartCheckbox.checked) {
+                                            sideCartOption.disabled = true;
+                                            if (checkoutMethodSelect.value === 'side_cart') {
+                                                showDirectCheckoutWarning(
+                                                    checkoutMethodSelect.closest('tr'),
+                                                    'Enable Sticky Cart in Floating Cart settings to use Side Cart Slide-in or use others Checkout Method.'
+                                                );
+                                            }
+                                        } else {
+                                            sideCartOption.disabled = false;
+                                            removeDirectCheckoutWarning(checkoutMethodSelect.closest('tr'));
+                                        }
+                                    }
+
+                                    stickyCartCheckbox.addEventListener('change', updateSideCartOption);
+                                    checkoutMethodSelect.addEventListener('change', updateSideCartOption);
+
+                                    // Initial check
+                                    updateSideCartOption();
+                                });
+                            </script>
+
+                        </div>
+
+                        <div class="rmenupro-settings-section direct-button-style-section plugincy_card plugincy_col-5">
+                            <?php $onepaquc_helper->sec_head('h3', 'plugincy_sec_head', '<span class="dashicons dashicons-admin-appearance"></span>', 'Button Style', ''); ?>
+
+                            <table class="form-table plugincy_table">
+                                <tbody class="plugincy_grid">
+                                    <tr style="grid-column: span 2;">
+                                        <th class="rmenu-settings-label">Button Style</th>
+                                        <td class="rmenupro-settings-control">
+                                            <select name="rmenupro_wc_checkout_style" class="rmenupro-select" id="rmenupro-style-select">
+                                                <option value="default" <?php selected(get_option('rmenupro_wc_checkout_style', 'alt'), 'default'); ?>>Default WooCommerce Style</option>
+                                                <option value="alt" <?php selected(get_option('rmenupro_wc_checkout_style', 'alt'), 'alt'); ?>>Alternative Style</option>
+                                                <option value="custom" <?php selected(get_option('rmenupro_wc_checkout_style', 'alt'), 'custom'); ?>>Custom Style</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <th class="rmenu-settings-label">Button Color</th>
+                                        <td class="rmenu-settings-control">
+                                            <input type="color" name="rmenupro_wc_checkout_color" value="<?php echo esc_attr(get_option('rmenupro_wc_checkout_color', '#000')); ?>" class="rmenupro-color-picker" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th class="rmenupro-settings-label">Text Color</th>
+                                        <td class="rmenupro-settings-control">
+                                            <input type="color" name="rmenupro_wc_checkout_text_color" value="<?php echo esc_attr(get_option('rmenupro_wc_checkout_text_color', '#ffffff')); ?>" class="rmenupro-color-picker" />
+                                        </td>
+                                    </tr>
+
+
+
+                                    <tr class="rmenupro-settings-row rmenupro-custom-css-row" id="rmenupro-custom-css-row" style="<?php echo (get_option('rmenupro_wc_checkout_style', 'default') == 'custom') ? 'display:block;' : 'display:none;'; ?>">
+                                        <th class="rmenupro-settings-label">Custom CSS</th>
+                                        <td class="rmenupro-settings-control">
+                                            <textarea name="rmenupro_wc_checkout_custom_css" class="rmenupro-textarea-code" rows="6"><?php echo esc_textarea(get_option('rmenupro_wc_checkout_custom_css', '')); ?></textarea>
+                                            <p class="rmenupro-field-description">Add custom CSS for advanced button styling. Use the class <code>.opqcfw-btn</code> to target the button.</p>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <th class="rmenupro-settings-label">Button Icon</th>
+                                        <td class="rmenupro-settings-control">
+                                            <select name="rmenupro_wc_checkout_icon" class="rmenupro-select">
+                                                <option value="none" <?php selected(get_option('rmenupro_wc_checkout_icon', 'cart'), 'none'); ?>>No Icon</option>
+                                                <option value="cart" <?php selected(get_option('rmenupro_wc_checkout_icon', 'cart'), 'cart'); ?>>Cart Icon</option>
+                                                <option value="checkout" <?php selected(get_option('rmenupro_wc_checkout_icon', 'cart'), 'checkout'); ?>>Checkout Icon</option>
+                                                <option value="arrow" <?php selected(get_option('rmenupro_wc_checkout_icon', 'cart'), 'arrow'); ?>>Arrow Icon</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th class="rmenupro-settings-label">Icon Position</th>
+                                        <td class="rmenupro-settings-control">
+                                            <select name="rmenupro_wc_checkout_icon_position" class="rmenupro-select">
+                                                <option value="left" <?php selected(get_option('rmenupro_wc_checkout_icon_position', 'left'), 'left'); ?>>Left</option>
+                                                <option value="right" <?php selected(get_option('rmenupro_wc_checkout_icon_position', 'left'), 'right'); ?>>Right</option>
+                                                <option value="top" <?php selected(get_option('rmenupro_wc_checkout_icon_position', 'left'), 'top'); ?>>Top</option>
+                                                <option value="bottom" <?php selected(get_option('rmenupro_wc_checkout_icon_position', 'left'), 'bottom'); ?>>Bottom</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
                         </div>
 
                     </div>
@@ -1172,6 +1203,24 @@ function onepaqucpro_cart_dashboard()
                                     <?php $onepaquc_helper->sec_head('th', '', '', 'Show Variation Selection in Archive pages', 'When enabled, the variation selection will be shown on archive pages.'); ?>
                                     <td class="rmenupro-settings-control">
                                         <?php $onepaquc_helper->switcher('rmenupro_variation_show_archive', 1); ?>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <?php $onepaquc_helper->sec_head('th', '', '', 'Variation Selection Layout', 'Choose variation selection Layout.'); ?>
+                                    <td>
+                                        <div class="rmenu-settings-control">
+                                            <select name="rmenu_variation_layout" class="rmenu-select">
+                                                <option value="combine" <?php selected(get_option('rmenu_variation_layout', 'separate'), 'combine'); ?>>Combine</option>
+                                                <option value="separate" <?php selected(get_option('rmenu_variation_layout', 'separate'), 'separate'); ?>>Separate</option>
+                                            </select>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <?php $onepaquc_helper->sec_head('th', '', '', 'Show Variation Title', 'When enabled, the variation title will be shown on archive pages.'); ?>
+                                    <td class="rmenu-settings-control">
+                                        <?php $onepaquc_helper->switcher('rmenu_show_variation_title', 0); ?>
                                     </td>
                                 </tr>
 
@@ -2523,7 +2572,7 @@ function onepaqucpro_cart_dashboard()
                     };
 
                     // Initial check
-                        updateCustomCssRowVisibility();
+                    updateCustomCssRowVisibility();
 
                     // Add change event listener
                     styleSelect.addEventListener('change', updateCustomCssRowVisibility);
@@ -2735,6 +2784,7 @@ function onepaqucpro_cart_dashboard()
                             // if rmenupro_add_to_cart_icon is none, hide the rmenupro-atc-icon-position-row
                             const iconPositionRow = document.getElementById('rmenupro-atc-icon-position-row');
                             const iconSelect = document.querySelector('select[name="rmenupro_add_to_cart_icon"]');
+                            const customwidth = document.querySelector('select[name="rmenu_add_to_cart_width"]');
 
                             if (iconSelect && iconPositionRow) {
                                 iconSelect.addEventListener('change', function() {
@@ -2766,8 +2816,10 @@ function onepaqucpro_cart_dashboard()
                                         } else {
                                             document.getElementById('rmenupro-atc-custom-css-row').style.display = 'block';
                                         }
+                                        customwidth.dispatchEvent(new Event('change'));
                                     } else {
                                         allFields.forEach(field => field.style.display = 'none');
+                                        customWidthRow.style.display = 'none';
                                     }
                                 });
 
@@ -3162,6 +3214,189 @@ function onepaqucpro_cart_dashboard()
             submit_button('Reset Settings', 'button-primary', '', false, array_merge(array('style' => 'margin-left: 20px;background:#dc3545;color:#fff;border-color:#dc3545;'), is_array($disabled) ? $disabled : []));
             ?>
         </form>
+
+
+        <div>
+            <div class="plugincy_nav_card mb-4" style="padding-bottom: 1px;">
+                <?php $onepaquc_helper->sec_head('h2', 'plugincy_sec_head2', '<span class="dashicons dashicons-video-alt3"></span>', 'Tutorials', '', 'Learn how to use our plugin features with these step-by-step video tutorials.'); ?>
+            </div>
+
+            <div class="tutorial-container">
+                <!-- Tutorial Topic 1 -->
+                <div class="tutorial-topic">
+                    <div class="tutorial-video">
+                        <iframe
+                            width="100%"
+                            height="200"
+                            src="https://www.youtube.com/embed/IJU9EEIT8MA?autoplay=1&mute=1&loop=1&playlist=IJU9EEIT8MA"
+                            frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                    <h3>Buy Now Button</h3>
+                    <p>Transform your WooCommerce store with instant purchase buttons that bypass the traditional cart process. Our plugin automatically adds buy now buttons on single product and archive pages, but you have complete control over placement and customization.</p>
+
+                    <div class="tutorial-shortcode">
+                        <h4>Basic Shortcode:</h4>
+                        <code>[onepaquc_button]</code>
+                        <p>This shortcode will display a buy now button for the current product when used on product pages.</p>
+                    </div>
+                </div>
+
+                <!-- Tutorial Topic 2 -->
+                <div class="tutorial-topic">
+                    <div class="tutorial-video">
+                        <iframe
+                            width="100%"
+                            height="200"
+                            src="https://www.youtube.com/embed/FY_-CSI03vk?autoplay=1&mute=1&loop=1&playlist=FY_-CSI03vk"
+                            frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                    <h3>Buy Now Button Anywhere</h3>
+                    <p>You can use buy now button anywhere on your site with this shortcode.</p>
+                    <div class="tutorial-shortcode">
+                        <h4>Shortcode:</h4>
+                        <code>[onepaquc_button product_id="123" variation_id="456" qty="2"]</code>
+                    </div>
+                    <div class="tutorial-tips">
+                        <h4>Tips:</h4>
+                        <p>Use our widget or block (Buy Now Button) for easier implementation.</p>
+                    </div>
+                </div>
+
+                <!-- Tutorial Topic 3 -->
+                <div class="tutorial-topic">
+                    <div class="tutorial-video">
+                        <iframe
+                            width="100%"
+                            height="200"
+                            src="https://www.youtube.com/embed/nXmUvcNzDb8?autoplay=1&mute=1&loop=1&playlist=nXmUvcNzDb8"
+                            frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                    <h3>One Page Checkout</h3>
+                    <p>You can use one page checkout anywhere on your site with this shortcode.</p>
+                    <div class="tutorial-shortcode">
+                        <h4>Shortcode:</h4>
+                        <code>[onepaquc_checkout product_id="123" variation_id="456" qty="2" clear_cart="yes" auto_add="yes"]</code>
+                    </div>
+                    <div class="tutorial-tips">
+                        <h4>Tips:</h4>
+                        <p>Use our widget or block (One-page checkout) for easier implementation.</p>
+                    </div>
+                </div>
+
+                <div class="tutorial-topic">
+                    <div class="tutorial-video">
+                        <iframe
+                            width="100%"
+                            height="200"
+                            src="https://www.youtube.com/embed/S96e1Nj5Kxc?autoplay=1&mute=1&loop=1&playlist=S96e1Nj5Kxc"
+                            frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                    <h3>Floating Cart</h3>
+                    <p>A modern, stylish side-drawer cart that users can access from any page for improved convenience.</p>
+                    <div class="tutorial-tips">
+                        <h4>Floating Cart Benefits:</h4>
+                        <ul>
+                            <li><strong>Reduced Abandonment:</strong> Customers can review their cart without losing their place on your site</li>
+                            <li><strong>Improved UX:</strong> No page reloads or redirects needed to manage cart contents</li>
+                            <li><strong>Mobile Friendly:</strong> Touch-optimized interface perfect for mobile shopping</li>
+                            <li><strong>Sales Boost:</strong> Easy access to cart encourages completion of purchases</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <style>
+                .tutorial-container {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                    gap: 25px;
+                    margin-top: 20px;
+                }
+
+                .tutorial-topic {
+                    background: #fff;
+                    border: 1px solid #e5e5e5;
+                    border-radius: 8px;
+                    padding: 20px;
+                    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+                    transition: box-shadow 0.3s ease;
+                }
+
+                .tutorial-topic:hover {
+                    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+                }
+
+                .tutorial-video {
+                    margin-bottom: 15px;
+                    border-radius: 5px;
+                    overflow: hidden;
+                    background: #000;
+                }
+
+                .tutorial-video video {
+                    width: 100%;
+                    display: block;
+                }
+
+                .tutorial-topic h3 {
+                    margin-top: 0;
+                    margin-bottom: 10px;
+                    color: #23282d;
+                    font-size: 18px;
+                }
+
+                .tutorial-topic p {
+                    margin-bottom: 15px;
+                    color: #555;
+                    line-height: 1.5;
+                }
+
+                .tutorial-shortcode,
+                .tutorial-tips {
+                    background: #f8f9fa;
+                    border-left: 4px solid #0073aa;
+                    padding: 12px 15px;
+                    margin-top: 15px;
+                    border-radius: 0 4px 4px 0;
+                }
+
+                .tutorial-shortcode h4,
+                .tutorial-tips h4 {
+                    margin-top: 0;
+                    margin-bottom: 8px;
+                    font-size: 14px;
+                    color: #23282d;
+                }
+
+                .tutorial-shortcode code {
+                    display: block;
+                    background: #eaeaea;
+                    padding: 8px 12px;
+                    border-radius: 4px;
+                    font-family: monospace;
+                    font-size: 14px;
+                    color: #0073aa;
+                    overflow-x: auto;
+                }
+
+                .tutorial-tips p {
+                    margin-bottom: 0;
+                    font-size: 14px;
+                }
+            </style>
+        </div>
     </div>
 <?php
     // }

@@ -36,6 +36,9 @@ add_action('plugins_loaded', function () {
 
 
 if (! defined('ABSPATH')) exit; // Exit if accessed directly
+
+define('ONEPAQUC_PLUGIN_URL', plugin_dir_url(__FILE__));
+
 define("RMENUPRO_VERSION", "1.0.8.10");
 
 // Include the admin notice file
@@ -48,6 +51,7 @@ require_once plugin_dir_path(__FILE__) . 'includes/admin.php';
 require_once plugin_dir_path(__FILE__) . 'includes/one-page-checkout-shortcode.php';
 require_once plugin_dir_path(__FILE__) . 'includes/add-to-cart-button.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class_helper.php';
+require_once plugin_dir_path(__FILE__) . 'includes/blocks/checkout-form-block.php';
 
 global $onepaqucpro_checkoutformfields, $onepaqucpro_productpageformfields, $onepaqucpro_rcheckoutformfields, $onepaqucpro_string_settings_fields;
 
@@ -83,6 +87,8 @@ $onepaqucpro_string_settings_fields = [
     "rmenupro_wc_direct_checkout_position",
     "rmenu_wc_direct_checkout_single_position",
     "rmenupro_variation_show_archive",
+    "rmenu_variation_layout",
+    "rmenu_show_variation_title",
     "rmenupro_wc_hide_select_option",
     "txt-direct-checkout",
     "rmenupro_wc_checkout_color",
@@ -95,6 +101,7 @@ $onepaqucpro_string_settings_fields = [
     "rmenupro_add_to_cart_border_radius",
     "rmenupro_add_to_cart_font_size",
     "rmenupro_add_to_cart_width",
+    "rmenupro_add_to_cart_custom_width",
     "rmenupro_add_to_cart_custom_css",
     "rmenupro_add_to_cart_icon",
     "rmenupro_add_to_cart_icon_position",
@@ -185,7 +192,7 @@ function onepaqucpro_cart_enqueue_scripts()
     if ($checkout_page_id === -1) {
         // Create a new checkout page if it doesn't exist
         $new_checkout_id = wp_insert_post([
-            'post_title'   => esc_html__('Checkout','one-page-quick-checkout-for-woocommerce-pro'),
+            'post_title'   => esc_html__('Checkout', 'one-page-quick-checkout-for-woocommerce-pro'),
             'post_content' => '[woocommerce_checkout]',
             'post_status'  => 'publish',
             'post_type'    => 'page',
@@ -222,12 +229,33 @@ function onepaqucpro_cart_enqueue_scripts()
     $onepaqucpro_editor_value = get_option('onepaqucpro_editor', '');
     $currency_symbol = get_woocommerce_currency_symbol();
 
+    $plugincy_all_settings = [];
+    $others_settings = [
+        'onepaqucpro_checkout_fields',
+        'rmenupro_show_quick_checkout_by_types',
+        'rmenupro_show_quick_checkout_by_page',
+        'rmenupro_add_to_cart_by_types',
+        'rmenupro_quick_view_content_elements',
+        'rmenupro_show_quick_view_by_types',
+        'rmenupro_show_quick_view_by_page',
+        'onepaqucpro_my_trust_badges_items',
+        'checkout_form_setup',
+        'onepaqucpro_trust_badge_custom_html',
+    ];
+    foreach ($GLOBALS['onepaquc_string_settings_fields'] as $field) {
+        $plugincy_all_settings[$field] = get_option($field, '');
+    }
+    foreach ($others_settings as $field) {
+        $plugincy_all_settings[$field] = get_option($field, []);
+    }
+
     // Localize the script with the onepaqucpro_editor value
     wp_localize_script('rmenupro-cart-script', 'onepaqucpro_rmsgValue', array(
         'rmsgEditor' => $onepaqucpro_editor_value,
         'checkout_url' => wc_get_checkout_url(),
         'apply_coupon' => esc_js(wp_create_nonce('apply-coupon')),
         'currency_symbol' => $currency_symbol,
+        'plugincy_all_settings' => $plugincy_all_settings,
     ));
     wp_localize_script('rmenupro-cart-script', 'onepaqucpro_ajax_object', array('ajax_url' => esc_url(admin_url('admin-ajax.php'))));
 
@@ -264,8 +292,12 @@ require_once plugin_dir_path(__FILE__) . 'includes/label-change.php';
 
 function onepaqucpro_editor_script()
 {
+    if (wp_script_is('onepaquc_editor_script', 'enqueued')) {
+        return;
+    }
+
     wp_enqueue_script(
-        'plugincy-custom-editor',
+        'onepaquc_editor_script',
         plugin_dir_url(__FILE__) . 'includes/blocks/editor.js',
         array('wp-blocks', 'wp-element', 'wp-edit-post', 'wp-dom-ready', 'wp-plugins'),
         '1.0.8.10',
@@ -359,25 +391,25 @@ function onepaqucpro_display_checkout_on_single_product()
             add_action('woocommerce_after_single_product_summary', 'onepaqucpro_display_one_page_checkout_form',  get_option("onepaqucpro_checkout_position", '9'));
             // Fallback hooks for themes that don't use the standard hook
 
-            // Product tabs area hooks
-            add_action('woocommerce_product_tabs', 'onepaqucpro_display_one_page_checkout_form', get_option("onepaqucpro_checkout_position", '9'));
-            add_action('woocommerce_before_product_tabs', 'onepaqucpro_display_one_page_checkout_form', get_option("onepaqucpro_checkout_position", '9'));
-            add_action('woocommerce_after_product_tabs', 'onepaqucpro_display_one_page_checkout_form', get_option("onepaqucpro_checkout_position", '9'));
+            add_action('wp', function () {
+                // Product tabs area hooks
+                add_action('woocommerce_product_tabs', 'onepaqucpro_display_one_page_checkout_form', get_option("onepaqucpro_checkout_position", '9'));
+                add_action('woocommerce_before_product_tabs', 'onepaqucpro_display_one_page_checkout_form', get_option("onepaqucpro_checkout_position", '9'));
+                add_action('woocommerce_after_product_tabs', 'onepaqucpro_display_one_page_checkout_form', get_option("onepaqucpro_checkout_position", '9'));
 
-            // Related products
-            add_action('woocommerce_output_related_products', 'onepaqucpro_display_one_page_checkout_form', get_option("onepaqucpro_checkout_position", '9'));
-            add_action('woocommerce_before_related_products', 'onepaqucpro_display_one_page_checkout_form', get_option("onepaqucpro_checkout_position", '9'));
-            add_action('woocommerce_after_related_products', 'onepaqucpro_display_one_page_checkout_form', get_option("onepaqucpro_checkout_position", '9'));
+                // Related products
+                add_action('woocommerce_output_related_products', 'onepaqucpro_display_one_page_checkout_form', get_option("onepaqucpro_checkout_position", '9'));
+                add_action('woocommerce_before_related_products', 'onepaqucpro_display_one_page_checkout_form', get_option("onepaqucpro_checkout_position", '9'));
+                add_action('woocommerce_after_related_products', 'onepaqucpro_display_one_page_checkout_form', get_option("onepaqucpro_checkout_position", '9'));
 
-            // After single product
-            add_action('woocommerce_after_single_product', 'onepaqucpro_display_one_page_checkout_form', get_option("onepaqucpro_checkout_position", '9'));
+                // After single product
+                add_action('woocommerce_after_single_product', 'onepaqucpro_display_one_page_checkout_form', get_option("onepaqucpro_checkout_position", '9'));
 
-            // WooCommerce content hooks (broader scope)
-            add_action('woocommerce_after_main_content', 'onepaqucpro_display_one_page_checkout_form', get_option("onepaqucpro_checkout_position", '9'));
+                // WooCommerce content hooks (broader scope)
+                add_action('woocommerce_after_main_content', 'onepaqucpro_display_one_page_checkout_form', get_option("onepaqucpro_checkout_position", '9'));
 
-            add_action('wp_footer', 'onepaqucpro_display_one_page_checkout_form', 10);
-
-            
+                add_action('wp_footer', 'onepaqucpro_display_one_page_checkout_form', 10);
+            });
         }
         if (get_option("onepaqucpro_checkout_hide_cart_button") === "1") {
             remove_action('woocommerce_single_product_summary', 'woocommerce_template_single_add_to_cart', 30);
@@ -403,27 +435,23 @@ function onepaqucpro_display_checkout_on_single_product()
 
 add_action('wp', 'onepaqucpro_display_checkout_on_single_product', 99);
 
-$is_one_checkout = false;
+function onepaquc_checkout_already_rendered(): bool
+{
+    return defined('ONEPAQUC_CHECKOUT_RENDERED') && ONEPAQUC_CHECKOUT_RENDERED === 1;
+}
+
+
 
 /**
  * Display the checkout form
  */
-function onepaqucpro_display_one_page_checkout_form()
+function onepaqucpro_display_one_page_checkout_form(): bool
 {
 
-    global $is_one_checkout;
-
-    // check if cart is empty
-    if (WC()->cart->is_empty()) {
-        return;
+    if (onepaquc_checkout_already_rendered() || !function_exists('WC') || !WC()->cart || WC()->cart->is_empty()) {
+        return false;
     }
 
-    if ($is_one_checkout) {
-        return; // Already displayed
-    }
-
-    // Mark as displayed
-    $is_one_checkout = true;
 
 ?>
     <div class="one-page-checkout-container onepagecheckoutwidget" id="checkout-popup" data-isonepagewidget="true">
@@ -432,32 +460,38 @@ function onepaqucpro_display_one_page_checkout_form()
         <?php echo do_shortcode('[woocommerce_checkout]'); ?>
     </div>
     <?php
+
+    // Mark as rendered for the rest of this request
+    if (!defined('ONEPAQUC_CHECKOUT_RENDERED')) {
+        define('ONEPAQUC_CHECKOUT_RENDERED', 1);
+    }
+    return true;
 }
 
 
-function onepaqucpro_add_checkout_tab_to_product_page($tabs) {
+function onepaqucpro_add_checkout_tab_to_product_page($tabs)
+{
+    // If it's already printed somewhere, don't add the tab
+    if (onepaquc_checkout_already_rendered()) {
+        return $tabs;
+    }
+
     // Add checkout tab as the first tab
     $new_tabs = array();
 
-    global $is_one_checkout;
-
-    if ($is_one_checkout) {
-        return; // Already displayed
-    }
-    
     // Add checkout tab first
     $new_tabs['checkout'] = array(
         'title'    => esc_html__('Checkout', 'one-page-quick-checkout-for-woocommerce-pro'),
         'priority' => 5, // Lower number = higher priority (appears first)
         'callback' => 'onepaqucpro_display_one_page_checkout_form'
     );
-    
+
     // Add existing tabs after checkout
-    foreach($tabs as $key => $tab) {
+    foreach ($tabs as $key => $tab) {
         $tab['priority'] = $tab['priority'] + 10; // Push other tabs down
         $new_tabs[$key] = $tab;
     }
-    
+
     return $new_tabs;
 }
 
@@ -523,6 +557,7 @@ function onepaqucpro_force_woocommerce_checkout_mode($is_checkout)
 
 require_once plugin_dir_path(__FILE__) . 'includes/extra_features.php';
 require_once plugin_dir_path(__FILE__) . 'includes/quick_checkout_button.php';
+require_once plugin_dir_path(__FILE__) . 'includes/blocks/buy-now-button-block.php';
 require_once plugin_dir_path(__FILE__) . 'includes/trusted-badge.php';
 require_once plugin_dir_path(__FILE__) . 'includes/elementor/plugincy-cart-widget.php';
 require_once plugin_dir_path(__FILE__) . 'includes/elementor/one-page-checkout.php';
@@ -1140,3 +1175,23 @@ class onepaqucpro_cart_analytics_main
 }
 
 new onepaqucpro_cart_analytics_main();
+
+
+
+
+
+add_action('wp_enqueue_scripts', function () {
+    wp_add_inline_script('jquery-core', "
+        (function() {
+            function isDebugMode() {
+                return new URLSearchParams(window.location.search).get('plugincydebug') === 'true';
+            }
+            
+            window.plugincydebugLog = function() {
+                if (isDebugMode() && console && console.log) {
+                    console.log.apply(console, arguments);
+                }
+            };
+        })();
+    ");
+});
