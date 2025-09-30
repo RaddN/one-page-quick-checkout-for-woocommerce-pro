@@ -581,31 +581,31 @@ class onepaqucpro_License_Manager
         $is_valid = $this->is_license_valid_cached();
         $is_expired = $this->is_license_expired_cached();
         ?>
-        <div class="wrap">
-            <div class="col-md-6 plugincy-dapfforwc-card">
-                <div class="plugincy-dapfforwc-card-header">
-                    <div class="plugincy-dapfforwc-card-header-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        <div class="wrap" style="max-width: 100%;">
+            <div class="col-md-6">
+                <div class="plugincy_sec_head">
+                    <span class="plugincy_sec_icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
                         <svg fill="#fff" width="16" height="16" viewBox="0 0 0.48 0.48" xmlns="http://www.w3.org/2000/svg">
                             <path d="M.276.293.195.374H.142v.053H.089V.48H0V.391L.187.204A.2.2 0 0 1 .178.151a.151.151 0 1 1 .097.141zM.427.107A.053.053 0 1 0 .374.16.053.053 0 0 0 .427.107" />
                         </svg>
-                    </div>
-                    <div>
-                        <h2>License Settings</h2>
+                    </span>
+                    <span>
+                        <span style="color: #1d2327; font-size: 1.3em; font-weight: 600;">License Settings</span>
                         <p>Manage your license key, check status, and update to the latest version</p>
-                    </div>
+                    </span>
                 </div>
             </div>
             <div class="row" style="gap: 20px;">
-                <div class="col-md-6 plugincy-dapfforwc-card" style="box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px; <?php echo !$is_valid ? 'flex: 0 0 100%; max-width: 99%;':'';?>">
+                <div class="col-md-6" style="<?php echo !$is_valid ? 'flex: 0 0 100%; max-width: 99%;':'';?>">
 
-                    <div class="row" style="gap: 5px;align-items: center;">
+                    <div style="gap: 5px;align-items: center;display: flex;">
                         <div style=" background: #eee; padding: 5px; border-radius: 5px; "><span class="dashicons dashicons-lock"></span></div>
                         <h3 for="onepaquc_license_key" style="font-size: 16px;margin: 0;"><?php echo esc_html__('License Key', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
                     </div>
                     <form method="post" action="">
                         <?php wp_nonce_field('onepaquc_license_nonce', 'onepaquc_license_nonce'); ?>
                         <div>
-                            <div class="row" style="gap: 5px;align-items: center;margin-bottom: 10px;">
+                            <div style="gap: 5px;align-items: center;display: flex;margin-top: 1rem;">
                                 <span class="dashicons dashicons-shield" style="color: #0000ff;"></span>
                                 <label for="onepaquc_license_key" style="font-size: 16px;margin: 0;"><?php echo esc_html__('Your License Key', 'one-page-quick-checkout-for-woocommerce-pro'); ?></label>
                             </div>
@@ -968,13 +968,13 @@ global $onepaqucpro_License_Manager;
 
 $onepaqucpro_License_Manager = new onepaqucpro_License_Manager();
 
-function onepaquc_is_license_valid()
+function onepaqucpro_is_license_valid()
 {
     global $onepaqucpro_License_Manager;
     return $onepaqucpro_License_Manager->is_license_valid_cached();
 }
 
-function onepaquc_premium_feature()
+function onepaqucpro_premium_feature()
 {
     global $onepaqucpro_License_Manager;
 
