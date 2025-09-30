@@ -1627,7 +1627,7 @@ table.one-page-checkout-product-table td {
 }
 @media (min-width: 768px) {
   .single .summary.entry-summary .opqcfw-btn {
-    margin-top: 0;
+    margin-top: 0px !important;
     margin-left: 10px;
     margin-right: 10px;
   }

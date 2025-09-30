@@ -2607,7 +2607,7 @@ function onepaqucpro_cart_dashboard()
                                 <tr id="rmenupro-enable-custom-add-to-cart">
                                     <?php $onepaquc_helper->sec_head('th', '', '', 'Customizable Add to Cart', 'Enable or disable custom Add to Cart styling and functionality.'); ?>
                                     <td class="rmenupro-settings-control">
-                                        <?php $onepaquc_helper->switcher('rmenupro_enable_custom_add_to_cart', 1); ?>
+                                        <?php $onepaquc_helper->switcher('rmenupro_enable_custom_add_to_cart', 0); ?>
                                     </td>
                                 </tr>
 
@@ -3206,12 +3206,12 @@ function onepaqucpro_cart_dashboard()
                 </button>
             </div>
         </form>
-        <form class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>" method="post" action="" onsubmit="return confirm('Are you sure you want to reset all settings to default? This action cannot be undone.');">
+        <form class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>" method="post" action="" style="text-align: right;display: flex;justify-content: flex-end;width: 99%;align-items: center;padding: 0 2rem 2rem;box-sizing: border-box;" onsubmit="return confirm('Are you sure you want to reset all settings to default? This action cannot be undone.');">
             <?php wp_nonce_field('onepaquc_reset_settings', 'onepaquc_reset_settings_nonce'); ?>
             <input type="hidden" name="<?php echo !onepaqucpro_premium_feature() ? 'pro-onepaqucpro_reset' : 'onepaqucpro_reset_settings'; ?>" value="1">
             <?php
             $disabled = !onepaqucpro_premium_feature() ? array('disabled' => 'disabled') : array();
-            submit_button('Reset Settings', 'button-primary', '', false, array_merge(array('style' => 'margin-left: 20px;background:#dc3545;color:#fff;border-color:#dc3545;'), is_array($disabled) ? $disabled : []));
+            submit_button('Reset Settings', 'button-primary', '', false, array_merge(array('style' => 'background:#dc3545;color:#fff;border-color:#dc3545;padding: 4px 27px;'), is_array($disabled) ? $disabled : []));
             ?>
         </form>
 

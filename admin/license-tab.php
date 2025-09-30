@@ -582,20 +582,33 @@ class onepaqucpro_License_Manager
         $is_expired = $this->is_license_expired_cached();
         ?>
         <div class="wrap">
-            <div class="row">
-                <div class="col-md-6 plugincy-card">
-                    <div class="plugincy-card-header">
-                        <div class="plugincy-card-header-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                            <svg fill="#fff" width="16" height="16" viewBox="0 0 0.48 0.48" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M.276.293.195.374H.142v.053H.089V.48H0V.391L.187.204A.2.2 0 0 1 .178.151a.151.151 0 1 1 .097.141zM.427.107A.053.053 0 1 0 .374.16.053.053 0 0 0 .427.107" />
-                            </svg>
-                        </div>
-                        <h2>License Management</h2>
+            <div class="col-md-6 plugincy-dapfforwc-card">
+                <div class="plugincy-dapfforwc-card-header">
+                    <div class="plugincy-dapfforwc-card-header-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <svg fill="#fff" width="16" height="16" viewBox="0 0 0.48 0.48" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M.276.293.195.374H.142v.053H.089V.48H0V.391L.187.204A.2.2 0 0 1 .178.151a.151.151 0 1 1 .097.141zM.427.107A.053.053 0 1 0 .374.16.053.053 0 0 0 .427.107" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h2>License Settings</h2>
+                        <p>Manage your license key, check status, and update to the latest version</p>
+                    </div>
+                </div>
+            </div>
+            <div class="row" style="gap: 20px;">
+                <div class="col-md-6 plugincy-dapfforwc-card" style="box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px; <?php echo !$is_valid ? 'flex: 0 0 100%; max-width: 99%;':'';?>">
+
+                    <div class="row" style="gap: 5px;align-items: center;">
+                        <div style=" background: #eee; padding: 5px; border-radius: 5px; "><span class="dashicons dashicons-lock"></span></div>
+                        <h3 for="onepaquc_license_key" style="font-size: 16px;margin: 0;"><?php echo esc_html__('License Key', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
                     </div>
                     <form method="post" action="">
                         <?php wp_nonce_field('onepaquc_license_nonce', 'onepaquc_license_nonce'); ?>
                         <div>
-                            <label for="onepaquc_license_key" style=" font-size: 16px; "><?php echo esc_html__('License Key', 'one-page-quick-checkout-for-woocommerce-pro'); ?></label>
+                            <div class="row" style="gap: 5px;align-items: center;margin-bottom: 10px;">
+                                <span class="dashicons dashicons-shield" style="color: #0000ff;"></span>
+                                <label for="onepaquc_license_key" style="font-size: 16px;margin: 0;"><?php echo esc_html__('Your License Key', 'one-page-quick-checkout-for-woocommerce-pro'); ?></label>
+                            </div>
                             <div style="position: relative;">
                                 <input type="text" style="width: 100%;border: 1px solid #eee;padding: 6px 0 6px 15px;" id="onepaquc_license_key" name="onepaquc_license_key" value="<?php echo esc_attr($license_key); ?>" class="regular-text" placeholder="Enter your license key" />
                                 <div style="vertical-align: middle;margin-left: 8px;position: absolute;right: 0;top: 0;background: #dcffdc;height: 100%;display: flex;align-items: center;justify-content: center;padding: 0 20px;border-radius: 0 2px 2px 0;cursor:pointer;gap: 2px;">
@@ -613,205 +626,266 @@ class onepaqucpro_License_Manager
                             </div>
                         </div>
 
-                        <?php $version_info = $this->get_version_info($license_key); ?>
-                        <?php if ($version_info && isset($version_info->new_version)):
-                            $current_version = defined('RMENUPRO_VERSION') ? RMENUPRO_VERSION : '1.0.0'; ?>
-                            <div style="margin-top: 15px; padding: 15px; background: #f0f0f1; border-radius: 6px;">
-                                <strong style="display: flex; align-items: center; gap: 8px;">
-                                    <span class="dashicons dashicons-info" style="color: #2560e8; font-size: 18px;"></span>
-                                    Version Information:
-                                </strong>
-                                <div style="margin-top: 8px;">
-                                    <span style="display: flex; align-items: center; gap: 6px;">
-                                        <span class="dashicons dashicons-admin-plugins" style="color: #6c757d; font-size: 16px;"></span>
-                                        Current Version: <code><?php echo esc_html($current_version); ?></code>
-                                    </span><br>
-                                    <span style="display: flex; align-items: center; gap: 6px;">
-                                        <span class="dashicons dashicons-update" style="color: #198754; font-size: 16px;"></span>
-                                        Latest Version: <code><?php echo esc_html($version_info->new_version); ?></code>
-                                    </span>
-                                    <?php if (version_compare($current_version, $version_info->new_version, '<')): ?>
-                                        <br>
-                                        <span style="color: #d63384; font-weight: bold; display: flex; align-items: center; gap: 6px;">
-                                            <span class="dashicons dashicons-warning" style="color: #d63384; font-size: 16px;"></span>
-                                            Update Available! <a href="<?php echo admin_url('plugins.php'); ?>">Update Now</a>
+                        <?php if ($is_valid && !$is_expired): ?>
+                            <?php $version_info = $this->get_version_info($license_key); ?>
+                            <?php if ($version_info && isset($version_info->new_version)):
+                                $current_version = defined('RMENUPRO_VERSION') ? RMENUPRO_VERSION : '1.0.0'; ?>
+                                <div style="margin-top: 15px;padding: 15px;background: #fbfbfb;border-radius: 6px;">
+                                    <strong style="display: flex; align-items: center; gap: 8px;">
+                                        <div style="background: #dce6ff;padding: 5px;border-radius: 5px;">
+                                            <span class="dashicons dashicons-info" style="color: #2560e8; font-size: 18px;"></span>
+                                        </div>
+                                        Version Information:
+                                    </strong>
+                                    <div style="margin-top: 8px;">
+                                        <span style="display: flex;align-items: center;gap: 6px;justify-content: space-between;">
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <div style="background: #6c757d0a;padding: 5px;border-radius: 5px;">
+                                                    <span class="dashicons dashicons-admin-plugins" style="color: #6c757d; font-size: 16px;"></span>
+                                                </div>
+                                                Current Version:
+                                            </div><?php echo esc_html($current_version); ?>
+                                        </span><br>
+                                        <span style="display: flex;align-items: center;gap: 6px;justify-content: space-between;">
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <div style="background: #fff2eaff;padding: 5px;border-radius: 5px;">
+                                                    <span class="dashicons dashicons-update" style="color: #e75404; font-size: 16px;"></span>
+                                                </div>
+                                                Latest Version:
+                                            </div> <?php echo esc_html($version_info->new_version); ?>
                                         </span>
-                                    <?php else: ?>
-                                        <br>
-                                        <span style="color: #198754; font-weight: bold; display: flex; align-items: center; gap: 6px;">
-                                            <span class="dashicons dashicons-yes" style="color: #198754; font-size: 16px;"></span>
-                                            Up to date
-                                        </span>
-                                    <?php endif; ?>
+                                        <?php if (version_compare($current_version, $version_info->new_version, '<')): ?>
+                                            <br>
+                                            <span style="color: #d63384; font-weight: bold; display: flex; align-items: center; gap: 6px; justify-content: space-between;">
+                                                <div><span class="dashicons dashicons-warning" style="color: #d63384; font-size: 16px;"></span>
+                                                    Update Available!</div> <a href="<?php echo admin_url('plugins.php'); ?>">Update Now</a>
+                                            </span>
+                                        <?php else: ?>
+                                            <br>
+                                            <span style="color: #198754; font-weight: bold; display: flex; align-items: center; gap: 6px; justify-content: space-between;">
+                                                <div style="display: flex; align-items: center; gap: 8px;">
+                                                    <div style="background: #e8fff4;padding: 5px;border-radius: 5px;">
+                                                        <span class="dashicons dashicons-yes" style="color: #198754; font-size: 16px;"></span>
+                                                    </div>
+                                                    Status
+                                                </div>
+                                                <div style="font-size: 14px;">
+                                                    <span class="dashicons dashicons-yes-alt" style="color: green;margin-top: 3px;font-size: 14px;"></span>
+                                                    Up to date
+                                                </div>
+                                            </span>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
-                            </div>
+                            <?php endif; ?>
+                            <input type="hidden" name="onepaquc_license_action" value="deactivate" />
+                            <?php if ($is_expired): echo '<a href="https://plugincy.com/checkout/?edd_license_key=' . esc_attr($license_key) . '" target="_blank" class="button button-primary">Renew License</a>';
+                            endif; ?>
+                            <button type="submit" onclick="return confirm('Are you sure you want to deactivate your license?')" class="button button-primary" style="background: #eef1f6;color:#24262a;display: inline-flex;align-items: center;gap: 8px;margin-top: 15px;padding: 6px 20px;border: 1px solid #e3e3e3;">
+                                <svg width="20" height="20" viewBox="0 0 0.8 0.8" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M.564.135a.031.031 0 0 0-.03.055.281.281 0 1 1-.27.001L.265.19A.031.031 0 0 0 .25.131a.02.02 0 0 0-.015.004.344.344 0 1 0 .331.001zM.399.382A.03.03 0 0 0 .43.351V.05a.031.031 0 0 0-.063 0v.301c0 .017.014.031.031.031" />
+                                </svg>
+                                <?php echo esc_html__('Deactivate License', 'one-page-quick-checkout-for-woocommerce-pro-pro'); ?>
+                            </button>
+                            <button type="submit" onclick="checkForUpdates()" id="check-updates-btn" class="button button-primary" style="background: #2560e8; display: inline-flex; align-items: center; gap: 8px; margin-top: 15px; padding: 6px 20px;">
+                                <svg fill="#fff" height="20" width="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12.8 12.8" xml:space="preserve">
+                                    <path d="M8.145 0A4.656 4.656 0 0 0 3.49 4.655c0 .838.225 1.62.61 2.3l-4.1 4.1.583 1.163 1.162.582 4.1-4.1c.678.388 1.463.61 2.3.61a4.656 4.656 0 0 0 0-9.31m0 7.855a3.2 3.2 0 1 1 0-6.4 3.2 3.2 0 0 1 0 6.4" />
+                                </svg>
+                                <?php echo esc_html__('Check for Updates', 'one-page-quick-checkout-for-woocommerce-pro-pro'); ?>
+                            </button>
+                        <?php else: ?>
+                            <input type="hidden" name="onepaquc_license_action" value="activate" />
+                            <button type="submit" class="button button-primary" style="background: #2560e8; display: flex; align-items: center; gap: 8px; margin-top: 15px; padding: 6px 20px;">
+                                <svg width="18" height="18" viewBox="0 0 0.54 0.54" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M.27.045a.02.02 0 0 1 .022.022v.238L.344.254a.022.022 0 0 1 .032.032l-.09.09a.022.022 0 0 1-.032 0l-.09-.09A.022.022 0 1 1 .196.254l.051.052V.068A.022.022 0 0 1 .27.045M.113.383a.02.02 0 0 1 .022.022V.45h.27V.405a.022.022 0 1 1 .045 0V.45a.045.045 0 0 1-.045.045h-.27A.045.045 0 0 1 .09.45V.405A.022.022 0 0 1 .113.383" fill="#fff"></path>
+                                </svg>
+                                Activate License &amp; Install Pro
+                            </button>
                         <?php endif; ?>
-                        <input type="hidden" name="onepaquc_license_action" value="deactivate" />
-                        <?php if ($is_expired): echo '<a href="https://plugincy.com/checkout/?edd_license_key=' . esc_attr($license_key) . '" target="_blank" class="button button-primary">Renew License</a>';
-                        endif; ?>
-                        <button type="submit" onclick="return confirm('Are you sure you want to deactivate your license?')" class="button button-primary" style="background: #eef1f6;color:#24262a;display: inline-flex;align-items: center;gap: 8px;margin-top: 15px;padding: 6px 20px;border: 1px solid #e3e3e3;">
-                            <svg width="20" height="20" viewBox="0 0 0.8 0.8" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M.564.135a.031.031 0 0 0-.03.055.281.281 0 1 1-.27.001L.265.19A.031.031 0 0 0 .25.131a.02.02 0 0 0-.015.004.344.344 0 1 0 .331.001zM.399.382A.03.03 0 0 0 .43.351V.05a.031.031 0 0 0-.063 0v.301c0 .017.014.031.031.031" />
-                            </svg>
-                            <?php echo esc_html__('Deactivate License', 'one-page-quick-checkout-for-woocommerce-pro-pro'); ?>
-                        </button>
-                        <button type="submit" onclick="checkForUpdates()" id="check-updates-btn" class="button button-primary" style="background: #2560e8; display: inline-flex; align-items: center; gap: 8px; margin-top: 15px; padding: 6px 20px;">
-                            <svg fill="#fff" height="20" width="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12.8 12.8" xml:space="preserve">
-                                <path d="M8.145 0A4.656 4.656 0 0 0 3.49 4.655c0 .838.225 1.62.61 2.3l-4.1 4.1.583 1.163 1.162.582 4.1-4.1c.678.388 1.463.61 2.3.61a4.656 4.656 0 0 0 0-9.31m0 7.855a3.2 3.2 0 1 1 0-6.4 3.2 3.2 0 0 1 0 6.4" />
-                            </svg>
-                            <?php echo esc_html__('Check for Updates', 'one-page-quick-checkout-for-woocommerce-pro-pro'); ?>
-                        </button>
                     </form>
                 </div>
-                <div class="col-md-6 plugincy-card">
-                    <p>License Status</p>
-                    <?php if ($is_valid): ?>
-                        <?php if ($is_expired): ?>
-                            <span class="license-status license-status-invalid">
-                                <strong>✗ License Expired</strong> - Please renew your license to continue using premium features
-                            </span>
-                        <?php else: ?>
-                            <span class="license-status license-status-valid">
-                                <strong>✓ Licensed</strong> - All premium features are available
-                            </span>
-                        <?php endif; ?>
-                        <?php $license_details = $this->get_license_details(); ?>
-                        <?php if ($license_details && $license_details->success): ?>
-                            <div style="margin-top: 15px; padding: 15px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px;">
-                                <strong style="display: flex; align-items: center; gap: 8px;">
-                                    <span class="dashicons dashicons-id" style="color: #2560e8; font-size: 18px;"></span>
-                                    License Details:
-                                </strong>
-                                <div style=" display: flex; flex-direction: column; gap: 10px; padding-top: 10px; ">
-                                    <div style=" display: flex; justify-content: space-between; ">
-                                        <span style="display: flex; align-items: center; gap: 6px;">
-                                            <span class="dashicons dashicons-admin-users" style="color: #6c757d; font-size: 16px;"></span>
-                                            <strong>License Holder:</strong>
-                                        </span>
-                                        <span style="color: #495057;"><?php echo esc_html($license_details->customer_name); ?></span>
-                                    </div>
-                                    <div style=" display: flex; justify-content: space-between; ">
-                                        <span style="display: flex; align-items: center; gap: 6px;">
-                                            <span class="dashicons dashicons-calendar-alt" style="color: #198754; font-size: 16px;"></span>
-                                            <strong>Expires:</strong>
-                                        </span>
-                                        <?php if (strtolower($license_details->expires) === 'lifetime'): ?>
-                                            <span style="color: #198754; font-weight: bold;">
-                                                <span class="dashicons dashicons-infinity" style="font-size: 16px; vertical-align: middle;"></span>
-                                                Lifetime
+                <?php if ($is_valid && !$is_expired): ?>
+                    <div class="col-md-6 plugincy-dapfforwc-card" style="box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;">
+                        <div style="display: flex; align-items: center; gap: 8px; justify-content: space-between;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="background: #f2fcf4;padding: 5px;border-radius: 5px;">
+                                    <span class="dashicons dashicons-info-outline" style="color: #238b4e;"></span>
+                                </div>
+                                <p>License Status</p>
+                            </div>
+                            <div>
+                                <div style="font-size: 14px;background: #e2fbec;color: green;padding: 5px 10px 2px;border-radius: 10px;border: 1px solid #ccfbdf;">
+                                    <span class="dashicons dashicons-yes-alt" style="color: green;margin-top: 3px;font-size: 14px;"></span>
+                                    Licensed
+                                </div>
+                            </div>
+                        </div>
+                        <?php if ($is_valid): ?>
+                            <?php if ($is_expired): ?>
+                                <span class="license-status license-status-invalid">
+                                    <strong>✗ License Expired</strong> - Please renew your license to continue using premium features
+                                </span>
+                            <?php else: ?>
+                                <span class="license-status license-status-valid" style="display: flex;font-size: 14px;background: #e2fbec;color: green;border-radius: 10px;border: 1px solid #ccfbdf;padding: 20px;align-items: center;gap: 10px;">
+                                    <span class="dashicons dashicons-yes-alt" style="color: green;margin-top: 3px;font-size: 14px;"></span>
+                                    <div style="display: flex; flex-direction: column;"><strong>Premium License Active</strong> All premium features are available and active on your site</div>
+                                </span>
+                            <?php endif; ?>
+                            <?php $license_details = $this->get_license_details(); ?>
+                            <?php if ($license_details && $license_details->success): ?>
+                                <div style="margin-top: 15px; padding: 15px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px;">
+                                    <strong style="display: flex; align-items: center; gap: 8px;">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <div style="background: #e6edff;padding: 5px;border-radius: 5px;">
+                                                <span class="dashicons dashicons-id" style="color: #2560e8; font-size: 18px;"></span>
+                                            </div>
+                                            License Details:
+                                        </div>
+                                    </strong>
+                                    <div style=" display: flex; flex-direction: column; gap: 10px; padding-top: 10px; ">
+                                        <div style=" display: flex; justify-content: space-between; ">
+                                            <span style="display: flex; align-items: center; gap: 6px;">
+                                                <div style="display: flex; align-items: center; gap: 8px;">
+                                                    <div style="background: #ffece1ff;padding: 5px;border-radius: 5px;">
+                                                        <span class="dashicons dashicons-admin-users" style="color: #e75404; font-size: 16px;"></span>
+                                                    </div>
+                                                    <strong>License Holder:</strong>
+                                                </div>
                                             </span>
-                                            <?php else:
-                                            $expires_date = new DateTime($license_details->expires);
-                                            $current_date = new DateTime();
-                                            $days_until_expiry = $current_date->diff($expires_date)->days;
-                                            $is_expired = $expires_date < $current_date;
-                                            if ($is_expired): ?>
-                                                <span style="color: #dc3545; font-weight: bold;">
-                                                    <span class="dashicons dashicons-no-alt" style="font-size: 16px; vertical-align: middle;"></span>
-                                                    Expired on <?php echo esc_html($expires_date->format('M j, Y')); ?>
-                                                </span>
-                                            <?php elseif ($days_until_expiry <= 30): ?>
-                                                <span style="color: #fd7e14; font-weight: bold;">
-                                                    <span class="dashicons dashicons-warning" style="font-size: 16px; vertical-align: middle;"></span>
-                                                    <?php echo esc_html($expires_date->format('M j, Y')); ?>
-                                                    <small>(<?php echo $days_until_expiry; ?> days left)</small>
-                                                    <?php echo '<a href="https://plugincy.com/checkout/?edd_license_key=' . esc_attr($license_key) . '" target="_blank">Renew License</a>'; ?>
-                                                </span>
-                                            <?php else: ?>
-                                                <span style="color: #198754;">
-                                                    <span class="dashicons dashicons-yes" style="font-size: 16px; vertical-align: middle;"></span>
-                                                    <?php echo esc_html($expires_date->format('M j, Y')); ?>
-                                                </span>
-                                        <?php endif;
-                                        endif; ?>
-                                    </div>
-                                    <div style=" display: flex; justify-content: space-between; ">
-                                        <span style="display: flex; align-items: center; gap: 6px;">
-                                            <span class="dashicons dashicons-networking" style="color: #6c757d; font-size: 16px;"></span>
-                                            <strong>Site Usage:</strong>
-                                        </span>
-                                        <div>
-                                            <span style="color: #495057;">
-                                                <?php echo esc_html($license_details->site_count); ?> of <?php echo esc_html($license_details->license_limit); ?> sites used
+                                            <span style="color: #495057;"><?php echo esc_html($license_details->customer_name); ?></span>
+                                        </div>
+                                        <div style=" display: flex; justify-content: space-between; ">
+                                            <span style="display: flex; align-items: center; gap: 6px;">
+                                                <div style="display: flex; align-items: center; gap: 8px;">
+                                                    <div style="background: #e0fff1;padding: 5px;border-radius: 5px;">
+                                                        <span class="dashicons dashicons-calendar-alt" style="color: #198754; font-size: 16px;"></span>
+                                                    </div>
+                                                    <strong>Expires:</strong>
+                                                </div>
                                             </span>
-                                            <?php if ($license_details->site_count >= $license_details->license_limit): ?>
-                                                <small style="color: #dc3545;">
-                                                    <span class="dashicons dashicons-no" style="font-size: 14px; vertical-align: middle;"></span>
-                                                    (Limit reached)
-                                                </small>
-                                            <?php else: ?>
-                                                <small style="color: #198754;">
-                                                    <span class="dashicons dashicons-plus" style="font-size: 14px; vertical-align: middle;"></span>
-                                                    (<?php echo esc_html($license_details->activations_left); ?> activations left)
-                                                </small>
-                                            <?php endif; ?>
+                                            <?php if (strtolower($license_details->expires) === 'lifetime'): ?>
+                                                <span style="color: #198754; font-weight: bold;">
+                                                    <span class="dashicons dashicons-infinity" style="font-size: 16px; vertical-align: middle;"></span>
+                                                    Lifetime
+                                                </span>
+                                                <?php else:
+                                                $expires_date = new DateTime($license_details->expires);
+                                                $current_date = new DateTime();
+                                                $days_until_expiry = $current_date->diff($expires_date)->days;
+                                                $is_expired = $expires_date < $current_date;
+                                                if ($is_expired): ?>
+                                                    <span style="color: #dc3545; font-weight: bold;">
+                                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                                            <div style="background: #e0fff1;padding: 5px;border-radius: 5px;">
+                                                                <span class="dashicons dashicons-no-alt" style="font-size: 16px; vertical-align: middle;"></span>
+                                                            </div>
+                                                            Expired on <?php echo esc_html($expires_date->format('M j, Y')); ?>
+                                                        </div>
+                                                    </span>
+                                                <?php elseif ($days_until_expiry <= 30): ?>
+                                                    <span style="color: #fd7e14; font-weight: bold;">
+                                                        <span class="dashicons dashicons-warning" style="font-size: 16px; vertical-align: middle;"></span>
+                                                        <?php echo esc_html($expires_date->format('M j, Y')); ?>
+                                                        <small>(<?php echo $days_until_expiry; ?> days left)</small>
+                                                        <?php echo '<a href="https://plugincy.com/checkout/?edd_license_key=' . esc_attr($license_key) . '" target="_blank">Renew License</a>'; ?>
+                                                    </span>
+                                                <?php else: ?>
+                                                    <span style="color: #198754;">
+                                                        <span class="dashicons dashicons-yes" style="font-size: 16px; vertical-align: middle;"></span>
+                                                        <?php echo esc_html($expires_date->format('M j, Y')); ?>
+                                                    </span>
+                                            <?php endif;
+                                            endif; ?>
+                                        </div>
+                                        <div style=" display: flex; justify-content: space-between; ">
+                                            <span style="display: flex; align-items: center; gap: 6px;">
+                                                <div style="display: flex; align-items: center; gap: 8px;">
+                                                    <div style="background: #e4f9ffff;padding: 5px;border-radius: 5px;">
+                                                        <span class="dashicons dashicons-networking" style="color: #1b85a5; font-size: 16px;"></span>
+                                                    </div>
+                                                    <strong>Site Usage:</strong>
+                                                </div>
+                                            </span>
+                                            <div>
+                                                <span style="color: #495057;">
+                                                    <?php echo esc_html($license_details->site_count); ?> of <?php echo esc_html($license_details->license_limit); ?> sites used
+                                                </span>
+                                                <?php if ($license_details->site_count >= $license_details->license_limit): ?>
+                                                    <small style="color: #dc3545;">
+                                                        <span class="dashicons dashicons-no" style="font-size: 14px; vertical-align: middle;"></span>
+                                                        (Limit reached)
+                                                    </small>
+                                                <?php else: ?>
+                                                    <small style="color: #198754;">
+                                                        <span class="dashicons dashicons-plus" style="font-size: 14px; vertical-align: middle;"></span>
+                                                        (<?php echo esc_html($license_details->activations_left); ?> activations left)
+                                                    </small>
+                                                <?php endif; ?>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        <?php endif; ?>
-                    <?php else: ?>
-                        <span class="license-status license-status-invalid">
-                            <strong>✗ Unlicensed</strong> - Please activate your license to access premium features
-                        </span>
-                        <?php if (!empty($license_status) && $license_status !== 'valid'): ?>
-                            <div style="margin-top: 10px; padding: 10px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px;">
-                                <strong>Status:</strong> <?php echo esc_html(ucfirst(str_replace('_', ' ', $license_status))); ?>
-                            </div>
-                        <?php endif; ?>
-                        <br><br>
-                        <input type="hidden" name="onepaquc_license_action" value="activate" />
-                        <input type="submit" class="button button-primary" value="Activate License" />
-                        <?php if ($license_status === 'site_inactive'): ?>
-                            <button type="button" class="button button-secondary" id="dapfforwcpro-remove-license-btn" style="margin-left:10px;">
-                                Remove License
-                            </button>
-                            <script>
-                                document.addEventListener('DOMContentLoaded', function() {
-                                    var removeBtn = document.getElementById('dapfforwcpro-remove-license-btn');
-                                    if (removeBtn) {
-                                        removeBtn.addEventListener('click', function(e) {
-                                            e.preventDefault();
-                                            if (confirm('Are you sure you want to remove the license from this site?')) {
-                                                removeBtn.textContent = 'Removing...';
-                                                removeBtn.disabled = true;
-                                                var xhr = new XMLHttpRequest();
-                                                xhr.open('POST', ajaxurl, true);
-                                                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                                                xhr.onreadystatechange = function() {
-                                                    if (xhr.readyState === 4) {
-                                                        if (xhr.status === 200) {
-                                                            removeBtn.textContent = 'Success';
-                                                            removeBtn.style.backgroundColor = '#28a745';
-                                                            removeBtn.style.borderColor = '#28a745';
-                                                            setTimeout(function() {
-                                                                removeBtn.style.transition = 'opacity 0.5s';
-                                                                removeBtn.style.opacity = '0';
+                            <?php endif; ?>
+                        <?php else: ?>
+                            <span class="license-status license-status-invalid">
+                                <strong>✗ Unlicensed</strong> - Please activate your license to access premium features
+                            </span>
+                            <?php if (!empty($license_status) && $license_status !== 'valid'): ?>
+                                <div style="margin-top: 10px; padding: 10px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px;">
+                                    <strong>Status:</strong> <?php echo esc_html(ucfirst(str_replace('_', ' ', $license_status))); ?>
+                                </div>
+                            <?php endif; ?>
+                            <?php if ($license_status === 'site_inactive'): ?>
+                                <button type="button" class="button button-secondary" id="onepaquc-remove-license-btn" style="margin-left:10px;">
+                                    Remove License
+                                </button>
+                                <script>
+                                    document.addEventListener('DOMContentLoaded', function() {
+                                        var removeBtn = document.getElementById('onepaquc-remove-license-btn');
+                                        if (removeBtn) {
+                                            removeBtn.addEventListener('click', function(e) {
+                                                e.preventDefault();
+                                                if (confirm('Are you sure you want to remove the license from this site?')) {
+                                                    removeBtn.textContent = 'Removing...';
+                                                    removeBtn.disabled = true;
+                                                    var xhr = new XMLHttpRequest();
+                                                    xhr.open('POST', ajaxurl, true);
+                                                    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                                                    xhr.onreadystatechange = function() {
+                                                        if (xhr.readyState === 4) {
+                                                            if (xhr.status === 200) {
+                                                                removeBtn.textContent = 'Success';
+                                                                removeBtn.style.backgroundColor = '#28a745';
+                                                                removeBtn.style.borderColor = '#28a745';
                                                                 setTimeout(function() {
-                                                                    removeBtn.style.display = 'none';
-                                                                }, 500);
-                                                            }, 800);
-                                                            var licenseInput = document.getElementById('onepaquc_license_key');
-                                                            if (licenseInput) {
-                                                                licenseInput.value = '';
+                                                                    removeBtn.style.transition = 'opacity 0.5s';
+                                                                    removeBtn.style.opacity = '0';
+                                                                    setTimeout(function() {
+                                                                        removeBtn.style.display = 'none';
+                                                                    }, 500);
+                                                                }, 800);
+                                                                var licenseInput = document.getElementById('onepaquc_license_key');
+                                                                if (licenseInput) {
+                                                                    licenseInput.value = '';
+                                                                }
+                                                            } else {
+                                                                removeBtn.textContent = 'Remove License';
+                                                                removeBtn.disabled = false;
+                                                                alert('Failed to remove license. Please try again.');
                                                             }
-                                                        } else {
-                                                            removeBtn.textContent = 'Remove License';
-                                                            removeBtn.disabled = false;
-                                                            alert('Failed to remove license. Please try again.');
                                                         }
-                                                    }
-                                                };
-                                                xhr.send('action=onepaquc_remove_license&nonce=<?php echo esc_js(wp_create_nonce('onepaquc_remove_license_nonce')); ?>');
-                                            }
-                                        });
-                                    }
-                                });
-                            </script>
-                        <?php endif; ?>
+                                                    };
+                                                    xhr.send('action=onepaquc_remove_license&nonce=<?php echo wp_create_nonce('onepaquc_remove_license_nonce'); ?>');
+                                                }
+                                            });
+                                        }
+                                    });
+                                </script>
+                            <?php endif; ?>
 
-                    <?php endif; ?>
-                </div>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
             </div>
             <p class="support-links">
                 <span style="margin-right: 16px;">
@@ -882,7 +956,7 @@ class onepaqucpro_License_Manager
                         }
                     };
 
-                    xhr.send('action=onepaquc_check_updates&nonce=' + '<?php echo esc_js(wp_create_nonce("onepaquc_check_updates")); ?>');
+                    xhr.send('action=onepaquc_check_updates&nonce=' + '<?php echo wp_create_nonce("onepaquc_check_updates"); ?>');
                 }
             </script>
         </div>
@@ -894,13 +968,13 @@ global $onepaqucpro_License_Manager;
 
 $onepaqucpro_License_Manager = new onepaqucpro_License_Manager();
 
-function onepaqucpro_is_license_valid()
+function onepaquc_is_license_valid()
 {
     global $onepaqucpro_License_Manager;
     return $onepaqucpro_License_Manager->is_license_valid_cached();
 }
 
-function onepaqucpro_premium_feature()
+function onepaquc_premium_feature()
 {
     global $onepaqucpro_License_Manager;
 

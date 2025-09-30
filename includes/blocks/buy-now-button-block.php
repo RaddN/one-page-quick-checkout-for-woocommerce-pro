@@ -6,10 +6,16 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  * Register: wc/buy-btn block
  * Path: includes/blocks/buy-now-button-block.php
  */
-function onepaquc_buy_now_button_block_register() {
+if (!function_exists('onepaquc_buy_now_button_block_register')) {
+function onepaqucpro_buy_now_button_block_register() {
     // Skip if Gutenberg not available
     if ( ! function_exists( 'register_block_type' ) ) {
         return;
+    }
+
+    // Check if block type is already registered
+    if (WP_Block_Type_Registry::get_instance()->is_registered('wc/buy-btn')) {
+        return; // Exit early if already registered
     }
 
     // Editor script
@@ -23,7 +29,7 @@ function onepaquc_buy_now_button_block_register() {
 
     register_block_type( 'wc/buy-btn', array(
         'editor_script'   => 'onepaquc-buy-now-button-block',
-        'render_callback' => 'onepaquc_buy_now_button_block_render',
+        'render_callback' => 'onepaqucpro_buy_now_button_block_render',
         'attributes'      => array(
             // Product / Variation
             'product_id'       => array( 'type' => 'number',  'default' => null ),
@@ -45,12 +51,14 @@ function onepaquc_buy_now_button_block_register() {
         ),
     ) );
 }
-add_action( 'init', 'onepaquc_buy_now_button_block_register', 10 );
+add_action( 'init', 'onepaqucpro_buy_now_button_block_register', 100 );
+
+}
 
 /**
  * Render callback: reuse your shortcode handler
  */
-function onepaquc_buy_now_button_block_render( $attrs = array() ) {
+function onepaqucpro_buy_now_button_block_render( $attrs = array() ) {
     // Normalize to the shortcode handler’s expected strings
     $atts = array(
         'product_id'       => isset( $attrs['product_id'] ) ? (string) absint( $attrs['product_id'] ) : '',
@@ -68,8 +76,8 @@ function onepaquc_buy_now_button_block_render( $attrs = array() ) {
     );
 
     // Prefer calling the PHP renderer directly to avoid shortcode parsing
-    if ( function_exists( 'onepaquc_button_shortcode_handler' ) ) {
-        return onepaquc_button_shortcode_handler( $atts );
+    if ( function_exists( 'onepaqucpro_button_shortcode_handler' ) ) {
+        return onepaqucpro_button_shortcode_handler( $atts );
     }
 
     // Fallback: build a shortcode string if handler isn’t in scope

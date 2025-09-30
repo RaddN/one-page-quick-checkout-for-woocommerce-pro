@@ -340,12 +340,12 @@ class RMENUPRO_Quick_View
         }
 
         if (!$is_return) {
-            echo '<div class="rmenupro-quick-view-overlay ' . esc_attr($button_position) . '">';
+            echo '<div class="rmenu-quick-view-overlay ' . esc_attr($button_position) . '">';
             $this->render_quick_view_button($product);
             echo '</div>';
         } else {
             ob_start();
-            echo '<div class="rmenupro-quick-view-overlay ' . esc_attr($button_position) . '">';
+            echo '<div class="rmenu-quick-view-overlay ' . esc_attr($button_position) . '">';
             $this->render_quick_view_button($product);
             echo '</div>';
 
@@ -381,7 +381,7 @@ class RMENUPRO_Quick_View
         );
 
 
-        echo wp_kses_post(apply_filters('rmenupro_quick_view_button_html', $button_html, $product));
+        echo apply_filters('rmenupro_quick_view_button_html', $button_html, $product);
     }
 
     public function button_contents()

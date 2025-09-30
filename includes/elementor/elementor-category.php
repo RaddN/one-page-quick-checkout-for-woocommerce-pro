@@ -122,9 +122,9 @@ add_action('elementor/widgets/register', function ($widgets_manager) {
 
     // NEW: One-Page Checkout widget
     require_once __DIR__ . '/onepaquc-checkout-widget.php';
-    $widgets_manager->register(new \Plugincy_OPQC_Checkout_Widget());
+    $widgets_manager->register(new \Onepaqucpro_OPQC_Checkout_Widget());
 
     // NEW: Buy Button widget
     require_once __DIR__ . '/onepaquc-buy-button-widget.php';
-    $widgets_manager->register(new \Plugincy_OPQC_Buy_Button_Widget());
+    $widgets_manager->register(new \Onepaqucpro_OPQC_Buy_Button_Widget());
 }, 10);

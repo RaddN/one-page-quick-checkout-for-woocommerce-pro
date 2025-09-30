@@ -8,7 +8,7 @@ use Elementor\Controls_Manager;
  * Elementor Widget: One-Page Checkout
  * Renders via the [onepaquc_checkout] shortcode so cart ops (auto-add, clear, etc.) are consistent.
  */
-class Plugincy_OPQC_Checkout_Widget extends Widget_Base {
+class Onepaqucpro_OPQC_Checkout_Widget extends Widget_Base {
 
 	public function get_name() {
 		return 'onepaquc_checkout';

@@ -19,7 +19,7 @@ add_action('plugins_loaded', function () {
     $plugins = get_plugins();
     foreach ($plugins as $plugin_file => $plugin_data) {
         if (
-            strpos($plugin_file, 'one-page-quick-checkout-for-woocommerce.php') !== false &&
+            strpos($plugin_file, 'one-page-quick-checkout-for-wooCommerce.php') !== false &&
             $plugin_file !== plugin_basename(__FILE__)
         ) {
             if (is_plugin_active($plugin_file)) {
@@ -37,7 +37,7 @@ add_action('plugins_loaded', function () {
 
 if (! defined('ABSPATH')) exit; // Exit if accessed directly
 
-define('ONEPAQUC_PLUGIN_URL', plugin_dir_url(__FILE__));
+define('ONEPAQUCPRO_PLUGIN_URL', plugin_dir_url(__FILE__));
 
 define("RMENUPRO_VERSION", "1.0.8.10");
 
@@ -435,7 +435,7 @@ function onepaqucpro_display_checkout_on_single_product()
 
 add_action('wp', 'onepaqucpro_display_checkout_on_single_product', 99);
 
-function onepaquc_checkout_already_rendered(): bool
+function onepaqucpro_checkout_already_rendered(): bool
 {
     return defined('ONEPAQUC_CHECKOUT_RENDERED') && ONEPAQUC_CHECKOUT_RENDERED === 1;
 }
@@ -448,7 +448,7 @@ function onepaquc_checkout_already_rendered(): bool
 function onepaqucpro_display_one_page_checkout_form(): bool
 {
 
-    if (onepaquc_checkout_already_rendered() || !function_exists('WC') || !WC()->cart || WC()->cart->is_empty()) {
+    if (onepaqucpro_checkout_already_rendered() || !function_exists('WC') || !WC()->cart || WC()->cart->is_empty()) {
         return false;
     }
 
@@ -472,7 +472,7 @@ function onepaqucpro_display_one_page_checkout_form(): bool
 function onepaqucpro_add_checkout_tab_to_product_page($tabs)
 {
     // If it's already printed somewhere, don't add the tab
-    if (onepaquc_checkout_already_rendered()) {
+    if (onepaqucpro_checkout_already_rendered()) {
         return $tabs;
     }
 

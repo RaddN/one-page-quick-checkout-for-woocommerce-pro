@@ -7,9 +7,9 @@ use Elementor\Group_Control_Typography;
 
 /**
  * Elementor Widget: OnePaQUC – Buy Now Button
- * Renders via your existing onepaquc_button_shortcode_handler().
+ * Renders via your existing onepaqucpro_button_shortcode_handler().
  */
-class Plugincy_OPQC_Buy_Button_Widget extends Widget_Base {
+class Onepaqucpro_OPQC_Buy_Button_Widget extends Widget_Base {
 
     public function get_name() {
         return 'onepaquc_buy_button';
@@ -190,7 +190,7 @@ class Plugincy_OPQC_Buy_Button_Widget extends Widget_Base {
     }
 
     protected function render() {
-        if ( ! function_exists( 'onepaquc_button_shortcode_handler' ) ) {
+        if ( ! function_exists( 'onepaqucpro_button_shortcode_handler' ) ) {
             echo '<div class="elementor-alert elementor-alert-warning">'.esc_html__( 'Renderer not available.', 'one-page-quick-checkout-for-woocommerce' ).'</div>';
             return;
         }
@@ -230,7 +230,7 @@ class Plugincy_OPQC_Buy_Button_Widget extends Widget_Base {
         ];
 
         // Render through your existing handler (echo safe HTML)
-        echo onepaquc_button_shortcode_handler( $atts );  // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+        echo onepaqucpro_button_shortcode_handler( $atts );  // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
     }
 }
 

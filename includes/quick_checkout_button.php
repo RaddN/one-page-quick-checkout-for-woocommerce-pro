@@ -395,10 +395,10 @@ function onepaqucpro_render_checkout_button(): bool
         // Remove 'single_add_to_cart_button' and 'direct-checkout-button' from classes
         $button_classes = preg_replace('/\b(direct-checkout-button)\b/', '', $button_styling['classes']);
         $button_classes = trim(preg_replace('/\s+/', ' ', $button_classes));
-        echo '<a href="#checkout-popup" class="' . esc_attr($button_classes) . '" style="' . esc_attr($button_styling['style']) . '">' . wp_kses($button_inner, $allowed_tags) . '</a>';
+        echo '<a href="#checkout-popup" class="' . esc_attr($button_classes) . ' onepaquc-checkout-btn" style="' . esc_attr($button_styling['style']) . '">' . $button_inner. '</a>';
     } else {
         // Output the button with fallback identifier
-        echo '<a href="#checkout-popup" class="' . esc_attr($button_styling['classes']) . ' onepaquc-checkout-btn" data-product-id="' . esc_attr($product_id) . '" data-product-type="' . esc_attr($product_type) . '" data-title="' . esc_html($product_title) . '" style="' . esc_attr($button_styling['style']) . '">' . wp_kses($button_inner, $allowed_tags) . '</a>';
+        echo '<a href="#checkout-popup" class="' . esc_attr($button_styling['classes']) . ' onepaquc-checkout-btn" data-product-id="' . esc_attr($product_id) . '" data-product-type="' . esc_attr($product_type) . '" data-title="' . esc_html($product_title) . '" style="' . esc_attr($button_styling['style']) . '">' . $button_inner . '</a>';
     }
 
     // Optional: a tiny marker helps debugging/JS checks, doesn’t affect layout
@@ -1068,7 +1068,7 @@ class onepaqucpro_add_checkout_button_on_archive
 // [onepaquc_button class="my-btn" style="border-radius:8px"]
 
 add_action('init', function () {
-    add_shortcode('onepaquc_button', 'onepaquc_button_shortcode_handler');
+    add_shortcode('onepaquc_button', 'onepaqucpro_button_shortcode_handler');
 });
 
 /**
@@ -1077,7 +1077,7 @@ add_action('init', function () {
  * @param array $atts
  * @return string
  */
-function onepaquc_button_shortcode_handler($atts = [])
+function onepaqucpro_button_shortcode_handler($atts = [])
 {
     // Sensible defaults
     $atts = shortcode_atts([
@@ -1143,7 +1143,7 @@ function onepaquc_button_shortcode_handler($atts = [])
     if (!empty($atts['variation_id'])) {
         $variation_id = absint($atts['variation_id']);
     } elseif ($product_type === 'variable' && $atts['detect_variation'] === '1') {
-        $variation_id = onepaquc_pick_variation_id($product);
+        $variation_id = onepaqucpro_pick_variation_id($product);
     }
 
     // Styling & icon from plugin settings (with shortcode overrides)
@@ -1271,7 +1271,7 @@ function onepaquc_button_shortcode_handler($atts = [])
  * @param WC_Product_Variable $product
  * @return int|'' variation id or empty if none suitable
  */
-function onepaquc_pick_variation_id($product)
+function onepaqucpro_pick_variation_id($product)
 {
     if (!($product instanceof WC_Product_Variable)) {
         return '';
