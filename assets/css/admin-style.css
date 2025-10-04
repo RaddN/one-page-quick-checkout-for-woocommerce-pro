@@ -708,3 +708,30 @@ table.form-table .plugincy_grid,
 .plugincy_card input[type="color"] {
   padding: 0 2px;
 }
+
+
+.tab-content .wrap .col-md-7 {
+  flex: 0 0 70%;
+  max-width: 70%;
+}
+.tab-content .wrap .col-md-5 {
+  flex: 0 0 29%;
+  max-width: 29%;
+}
+.tab-content .wrap .col-md-6 {
+  flex: 0 0 50%;
+  max-width: 46%;
+}
+.tab-content .wrap .col-md-3 {
+  flex: 0 0 25%;
+  max-width: 25%;
+}
+
+@media (max-width: 1350px) {
+  .tab-content .wrap .col-md-7,
+  .tab-content .wrap .col-md-5,
+  .tab-content .wrap .col-md-3 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}

@@ -1730,7 +1730,7 @@ if ( class_exists( 'WC_Payment_Gateways' ) ) {
             }
         });
 
-        <?php if(onepaqucpro_premium_feature()){?>
+        <?php if (function_exists('onepaqucpro_premium_feature') && onepaqucpro_premium_feature()) {?>
 
         const checkoutSetupInput = document.getElementById('checkout_setup');
         if (checkoutSetupInput) {

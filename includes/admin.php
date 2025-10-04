@@ -66,7 +66,7 @@ function onepaqucpro_cart_dashboard()
     ?>
 
     <div class="welcome-banner">
-        <div class="welcome-title">Welcome to One Page Quick Checkout for WooCommerce Pro <span class="version-tag">v1.0.8.10</span></div>
+        <div class="welcome-title">Welcome to One Page Quick Checkout for WooCommerce Pro <span class="version-tag">v1.0.8.11</span></div>
         <p style="max-width: 70%; margin:0 auto;">Thank you for installing One Page Quick Checkout for WooCommerce! Streamline your WooCommerce checkout process and boost your conversion rates with our easy-to-configure solution.</p>
         <div class="feature-grid">
             <div class="feature-item">
@@ -257,7 +257,7 @@ function onepaqucpro_cart_dashboard()
             <!-- Add nonce field for security -->
             <?php wp_nonce_field('onepaqucpro_cart_settings'); ?>
             <?php settings_fields('onepaqucpro_cart_settings'); ?>
-            <?php if (onepaqucpro_premium_feature()) {
+            <?php if (function_exists('onepaqucpro_premium_feature') && onepaqucpro_premium_feature()) {
                 $default_config = array(
                     'coupon-section' => array(
                         'visible' => true,

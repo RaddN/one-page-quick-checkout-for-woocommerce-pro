@@ -638,7 +638,7 @@ class ONEPAQUCPRO_Add_To_Cart_Handler
         }
 
         // Add quantity selector to archive pages if enabled
-        if (get_option('rmenupro_show_quantity_archive', 0) && onepaqucpro_premium_feature()) {
+        if (get_option('rmenupro_show_quantity_archive', 0) && function_exists('onepaqucpro_premium_feature') && onepaqucpro_premium_feature()) {
             add_action('woocommerce_after_shop_loop_item', array($this, 'add_quantity_field'), 9);
         }
 
@@ -715,7 +715,7 @@ class ONEPAQUCPRO_Add_To_Cart_Handler
         global $product;
 
         if ($product && $product->is_type('simple') && $product->is_purchasable() && $product->is_in_stock()) {
-            if (onepaqucpro_premium_feature()) {
+            if (function_exists('onepaqucpro_premium_feature') && onepaqucpro_premium_feature()) {
                 $default_qty = get_option('rmenupro_add_to_cart_default_qty', '1');
             } else {
                 $default_qty = 1; // Default to 1 if premium feature is not available
@@ -741,7 +741,7 @@ class ONEPAQUCPRO_Add_To_Cart_Handler
      */
     public function set_default_quantity($args, $product)
     {
-        if (onepaqucpro_premium_feature()) {
+        if (function_exists('onepaqucpro_premium_feature') && onepaqucpro_premium_feature()) {
             $default_qty = get_option('rmenupro_add_to_cart_default_qty', '1');
         } else {
             $default_qty = 1; // Default to 1 if premium feature is not available
@@ -825,7 +825,7 @@ class ONEPAQUCPRO_Add_To_Cart_Handler
     {
         if ($product && $product->is_type('simple') && $product->is_purchasable() && $product->is_in_stock()) {
             // Get default quantity from settings
-            if (onepaqucpro_premium_feature()) {
+            if (function_exists('onepaqucpro_premium_feature') && onepaqucpro_premium_feature()) {
                 $default_qty = get_option('rmenupro_add_to_cart_default_qty', '1');
             } else {
                 $default_qty = 1; // Default to 1 if premium feature is not available

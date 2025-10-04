@@ -393,7 +393,7 @@ function onepaqucpro_add_trust_badges_to_checkout()
             break;
     }
 }
-if (onepaqucpro_premium_feature()) {
+if (function_exists('onepaqucpro_premium_feature') && onepaqucpro_premium_feature()) {
     add_action('init', 'onepaqucpro_add_trust_badges_to_checkout');
 }
 
@@ -561,6 +561,6 @@ function onepaqucpro_trust_badges_styles()
     </style>
 <?php
 }
-if (onepaqucpro_premium_feature()) {
+if (function_exists('onepaqucpro_premium_feature') && onepaqucpro_premium_feature()) {
     add_action('wp_head', 'onepaqucpro_trust_badges_styles');
 }

@@ -408,7 +408,7 @@ if (get_option('rmenupro_wc_hide_select_option', 0)) {
 
 
 // Change WooCommerce checkout layout based on onepaqucpro_checkout_layout option
-if (onepaqucpro_premium_feature()) {
+if (function_exists('onepaqucpro_premium_feature') && onepaqucpro_premium_feature()) {
     add_action('wp_head', 'apply_checkout_layout_styles');
 }
 
@@ -514,7 +514,7 @@ function apply_checkout_layout_styles()
             break;
     }
 }
-if (onepaqucpro_premium_feature()) {
+if (function_exists('onepaqucpro_premium_feature') && onepaqucpro_premium_feature()) {
     // Alternative method using body class for more targeted CSS
     add_filter('body_class', 'add_checkout_layout_body_class');
 }

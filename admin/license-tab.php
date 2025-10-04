@@ -595,8 +595,8 @@ class onepaqucpro_License_Manager
                     </span>
                 </div>
             </div>
-            <div class="row" style="gap: 20px;">
-                <div class="col-md-6" style="<?php echo !$is_valid ? 'flex: 0 0 100%; max-width: 99%;':'';?>">
+            <div style="gap: 20px;display: flex;">
+                <div class="col-md-6 plugincy_card" style="<?php echo !$is_valid ? 'flex: 0 0 100%; max-width: 99%;':'';?>">
 
                     <div style="gap: 5px;align-items: center;display: flex;">
                         <div style=" background: #eee; padding: 5px; border-radius: 5px; "><span class="dashicons dashicons-lock"></span></div>
@@ -705,7 +705,7 @@ class onepaqucpro_License_Manager
                     </form>
                 </div>
                 <?php if ($is_valid && !$is_expired): ?>
-                    <div class="col-md-6 plugincy-dapfforwc-card" style="box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;">
+                    <div class="col-md-6 plugincy_card" style="box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;">
                         <div style="display: flex; align-items: center; gap: 8px; justify-content: space-between;">
                             <div style="display: flex; align-items: center; gap: 8px;">
                                 <div style="background: #f2fcf4;padding: 5px;border-radius: 5px;">
