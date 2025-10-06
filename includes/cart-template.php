@@ -153,7 +153,7 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
                                     </div>
                                 </div>
                             </div>
-                <?php }?>
+                        <?php } ?>
                     </div>
                     <!-- Coupon Section -->
                     <div class="coupon-section">
@@ -245,17 +245,17 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
                     <!-- Checkout Button -->
                     <div class="cart-actions">
                         <a href="#checkout-popup" style="display: none;flex-direction: column;justify-content: center;align-items: center;" class="checkout-button checkout-button-drawer-link">Checkout</a>
-                        <?php $rmenu_cart_checkout_behavior = get_option('rmenu_cart_checkout_behavior', 'direct_checkout'); 
+                        <?php $rmenu_cart_checkout_behavior = get_option('rmenu_cart_checkout_behavior', 'direct_checkout');
                         if ($rmenu_cart_checkout_behavior === 'popup_checkout') {
                         ?>
-                        <button class="checkout-button checkout-button-drawer" onclick="openCheckoutPopup()">
-                            <?php echo get_option("txt_checkout") ? esc_attr(get_option("txt_checkout", 'Checkout')) : "Checkout"; 
-                            ?>
-                        </button>
+                            <button class="checkout-button checkout-button-drawer" onclick="openCheckoutPopup()">
+                                <?php echo get_option("txt_checkout") ? esc_attr(get_option("txt_checkout", 'Checkout')) : "Checkout";
+                                ?>
+                            </button>
                         <?php } else { ?>
-                        <a href="<?php echo esc_url(wc_get_checkout_url()); ?>" class="checkout-button checkout-button-drawer">
-                            <?php echo get_option("txt_checkout") ? esc_attr(get_option("txt_checkout", 'Checkout')) : "Checkout"; ?>
-                        </a>
+                            <a href="<?php echo esc_url(wc_get_checkout_url()); ?>" class="checkout-button checkout-button-drawer">
+                                <?php echo get_option("txt_checkout") ? esc_attr(get_option("txt_checkout", 'Checkout')) : "Checkout"; ?>
+                            </a>
                         <?php } ?>
                     </div>
             <?php }
@@ -273,18 +273,27 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
                 --cart-top: <?php echo esc_attr(get_option('rmenu_cart_top_position', '50%')); ?>;
                 --cart-left: <?php echo esc_attr(get_option('rmenu_cart_left_position', '100%')); ?>;
                 <?php
-                    $border_radius = get_option('rmenu_cart_border_radius', '5px 0 0 5px');
-                    if ($border_radius == '50') {
-                        echo '--cart-radius: 50%;';
-                        echo '--cart-width: 50px;';
-                        echo '--cart-height: 50px;';
-                        echo '--cart-padding: 0;';
-                    } else {
-                        echo '--cart-radius: ' . esc_attr($border_radius) . ';';
-                        echo '--cart-width: auto;';
-                        echo '--cart-height: auto;';
-                        echo '--cart-padding: 15px;';
-                    }
+                $border_radius = get_option('rmenu_cart_border_radius', '5px 0 0 5px');
+
+                // Check if border_radius has a unit
+                if (!preg_match('/(px|%|em|rem|vw|vh)$/', $border_radius)) {
+                    $border_radius .= 'px'; // Append px if no unit is present
+                }
+
+                // Convert border_radius to an integer for comparison
+                $border_radius_value = intval($border_radius); // Get the numeric value
+
+                if ($border_radius_value >= 50) { // Check if the value is greater than or equal to 50
+                    echo '--cart-radius: 50%;';
+                    echo '--cart-width: 50px;';
+                    echo '--cart-height: 50px;';
+                    echo '--cart-padding: 0;';
+                } else {
+                    echo '--cart-radius: ' . esc_attr($border_radius) . ';';
+                    echo '--cart-width: auto;';
+                    echo '--cart-height: auto;';
+                    echo '--cart-padding: 15px;';
+                }
                 ?>--cart-bg: <?php echo esc_attr(get_option('rmenu_cart_bg_color', '#96588a')); ?>;
                 --cart-text: <?php echo esc_attr(get_option('rmenu_cart_text_color', '#ffffff')); ?>;
                 --cart-hover-bg: <?php echo esc_attr(get_option('rmenu_cart_hover_bg', '#f8f8f8')); ?>;
@@ -351,9 +360,8 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
             span.cart-count {
                 position: absolute;
                 top: <?php echo ($border_radius == '50') ? '-8px' : '-5px'; ?>;
-                <?php 
-                echo ($border_radius == '50') ? 'right: -8px; left: auto;' : 'left: -6px;'; ?>
-                padding: 0;
+                <?php
+                echo ($border_radius == '50') ? 'right: -8px; left: auto;' : 'left: -6px;'; ?>padding: 0;
                 border-radius: 50%;
                 background: #ff4757;
                 color: white;
@@ -362,7 +370,7 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
                 min-width: 20px;
                 text-align: center;
                 box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            aspect-ratio: 1;
+                aspect-ratio: 1;
                 width: 20px;
                 height: 20px;
                 box-sizing: border-box;
@@ -819,8 +827,7 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
                     left: auto;
                 }
 
-                <?php endif; ?>
-                .cart-drawer {
+                <?php endif; ?>.cart-drawer {
                     max-width: 100%;
                 }
 
@@ -830,4 +837,4 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
             }
         </style>
 <?php endif;
-        }
+}

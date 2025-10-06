@@ -34,10 +34,10 @@ $onepaqucpro_rcheckoutformfields = [
 ];
 
 
-global $onepaquc_allowed_tags;
+global $onepaquc_onepaqucpro_allowed_tags;
 
 
-$onepaquc_allowed_tags = array(
+$onepaquc_onepaqucpro_allowed_tags = array(
     'a' => array(
         'href' => array(),
         'title' => array(),

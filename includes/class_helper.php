@@ -1,9 +1,9 @@
 <?php
 if (! defined('ABSPATH')) exit; // Exit if accessed directly
 
-global $allowed_tags;
+global $onepaqucpro_allowed_tags;
 
-$allowed_tags = array(
+$onepaqucpro_allowed_tags = array(
     'a' => array(
         'href' => array(),
         'title' => array(),
@@ -964,13 +964,13 @@ class onepaqucpro_helper
 
     public function sec_head($headtag, $class, $icon, $title, $tooltip = '', $description = '')
     {
-        global $allowed_tags;
+        global $onepaqucpro_allowed_tags;
 
         echo '<' . esc_html($headtag) . ' class="' . esc_html($class) . '">';
 
         // Check if icon is not empty
         if (!empty($icon)) {
-            echo '<span class="plugincy_sec_icon">' . wp_kses($icon, $allowed_tags) . '</span>';
+            echo '<span class="plugincy_sec_icon">' . wp_kses($icon, $onepaqucpro_allowed_tags) . '</span>';
         }
 
         echo '<span class="plugincy_sec_title">' . esc_html($title);

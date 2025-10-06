@@ -177,9 +177,9 @@ function onepaqucpro_refresh_checkout_product_list()
     }
 
     $html = ob_get_clean();
-    global $onepaquc_allowed_tags;
+    global $onepaquc_onepaqucpro_allowed_tags;
 
-    echo wp_kses($html, $onepaquc_allowed_tags);
+    echo wp_kses($html, $onepaquc_onepaqucpro_allowed_tags);
     wp_die();
 }
 

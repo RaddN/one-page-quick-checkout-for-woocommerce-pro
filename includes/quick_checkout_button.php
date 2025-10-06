@@ -342,7 +342,7 @@ function onepaqucpro_add_checkout_button_fallback()
 
 function onepaqucpro_render_checkout_button(): bool
 {
-    global $product, $allowed_tags;
+    global $product, $onepaqucpro_allowed_tags;
 
     if (!is_product() || !$product) {
         return false;
@@ -774,7 +774,7 @@ class onepaqucpro_add_checkout_button_on_archive
             return;
         }
 
-        global $allowed_tags;
+        global $onepaqucpro_allowed_tags;
 
         // if isn't wc archive pages then return
         if (is_singular('product')) {
@@ -813,7 +813,7 @@ class onepaqucpro_add_checkout_button_on_archive
                 // Configuration variables
                 const quickCheckoutConfig = {
                     buttonPos: "<?php echo esc_attr(get_option('rmenupro_wc_direct_checkout_position', 'overlay_thumbnail_hover')); ?>",
-                    contents: '<?php echo wp_kses($button_contents['button_content'], $allowed_tags); ?>',
+                    contents: '<?php echo wp_kses($button_contents['button_content'], $onepaqucpro_allowed_tags); ?>',
                     buttonClass: "<?php echo esc_attr($button_contents['button_classes']); ?>",
                     buttonStyle: "<?php echo esc_attr($button_contents['button_style']); ?>",
                     allowedTypes: <?php echo wp_json_encode(get_option('rmenupro_show_quick_checkout_by_types', ['simple', 'variable', "grouped", "external"])); ?>
@@ -1254,13 +1254,13 @@ function onepaqucpro_button_shortcode_handler($atts = [])
     }
 
     // Allow the same sanitization rules used elsewhere in the plugin
-    global $allowed_tags;
-    if (empty($allowed_tags)) {
+    global $onepaqucpro_allowed_tags;
+    if (empty($onepaqucpro_allowed_tags)) {
         // Minimal safe default if not set by theme/plugin
-        $allowed_tags = wp_kses_allowed_html('post');
+        $onepaqucpro_allowed_tags = wp_kses_allowed_html('post');
     }
 
-    return '<a' . $attr_html . '>' . wp_kses($inner, $allowed_tags) . '</a>';
+    return '<a' . $attr_html . '>' . wp_kses($inner, $onepaqucpro_allowed_tags) . '</a>';
 }
 
 /**

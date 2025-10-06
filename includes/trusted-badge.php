@@ -39,7 +39,7 @@ function onepaqucpro_trust_badges_settings_content()
         'dashicons-shield' => esc_html__('Shield', 'one-page-quick-checkout-for-woocommerce-pro'),
         'dashicons-privacy' => esc_html__('Privacy', 'one-page-quick-checkout-for-woocommerce-pro'),
         'dashicons-cart' => esc_html__('Cart', 'one-page-quick-checkout-for-woocommerce-pro'),
-        'dashicons-credit-card' => esc_html__('Credit Card', 'one-page-quick-checkout-for-woocommerce-pro'),
+        // 'dashicons-credit-card' => esc_html__('Credit Card', 'one-page-quick-checkout-for-woocommerce-pro'),
         'dashicons-yes' => esc_html__('Checkmark', 'one-page-quick-checkout-for-woocommerce-pro'),
         'dashicons-thumbs-up' => esc_html__('Thumbs Up', 'one-page-quick-checkout-for-woocommerce-pro'),
         'dashicons-awards' => esc_html__('Award', 'one-page-quick-checkout-for-woocommerce-pro'),
