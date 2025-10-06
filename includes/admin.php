@@ -66,7 +66,7 @@ function onepaqucpro_cart_dashboard()
     ?>
 
     <div class="welcome-banner">
-        <div class="welcome-title">Welcome to One Page Quick Checkout for WooCommerce Pro <span class="version-tag">v1.0.8.12</span></div>
+        <div class="welcome-title">Welcome to One Page Quick Checkout for WooCommerce Pro <span class="version-tag">v1.0.8.13</span></div>
         <p style="max-width: 70%; margin:0 auto;">Thank you for installing One Page Quick Checkout for WooCommerce! Streamline your WooCommerce checkout process and boost your conversion rates with our easy-to-configure solution.</p>
         <div class="feature-grid">
             <div class="feature-item">
@@ -1913,9 +1913,9 @@ function onepaqucpro_cart_dashboard()
                                             </select>
                                         </td>
                                     </tr>
-                                    <tr id="rmenupro-qv-custom-css-row" style="<?php echo (get_option('rmenupro_quick_view_button_style', 'default') == 'custom') ? 'display:block;' : 'display:none;'; ?>">
+                                    <tr id="rmenupro-qv-custom-css-row" style="<?php echo (get_option('rmenupro_quick_view_button_style', 'default') == 'custom') ? 'display:flex;' : 'display:none;'; ?> flex-direction: column;align-items: flex-start;">
                                         <?php $onepaquc_helper->sec_head('th', '', '', 'Custom CSS', ''); ?>
-                                        <td class="rmenupro-settings-control">
+                                        <td class="rmenupro-settings-control" style="max-width: 100% !important;">
                                             <textarea name="rmenupro_quick_view_custom_css" class="rmenupro-textarea-code" rows="6"><?php echo esc_textarea(get_option('rmenupro_quick_view_custom_css', '')); ?></textarea>
                                             <p class="rmenupro-field-description">Add custom CSS for advanced button styling. Use the class <code>.opqvfw-btn</code> to target the button and <code>.opqvfw-modal</code> to target the modal.</p>
                                         </td>
@@ -2312,7 +2312,7 @@ function onepaqucpro_cart_dashboard()
                         // Show/hide custom size fields based on modal size selection
                         $('#rmenupro-qv-style-select').on('change', function() {
                             if ($(this).val() === 'custom') {
-                                $('#rmenupro-qv-custom-css-row').show();
+                                $('#rmenupro-qv-custom-css-row').css('display', 'flex');
                             } else {
                                 $('#rmenupro-qv-custom-css-row').hide();
                             }
@@ -2785,7 +2785,7 @@ function onepaqucpro_cart_dashboard()
 
                                     <tr class="rmenupro-settings-row rmenupro-custom-css-row" id="rmenupro-atc-custom-css-row" style="<?php echo (get_option('rmenupro_add_to_cart_style', 'default') == 'custom') ? 'display:flex;' : 'display:none;'; ?>">
                                         <th class="rmenupro-settings-label">Custom CSS</th>
-                                        <td class="rmenupro-settings-control">
+                                        <td class="rmenupro-settings-control" style="max-width: 100% !important;">
                                             <textarea name="rmenupro_add_to_cart_custom_css" class="rmenupro-textarea-code" rows="6"><?php echo esc_textarea(get_option('rmenupro_add_to_cart_custom_css', '')); ?></textarea>
                                             <p class="rmenupro-field-description">Add custom CSS for advanced button styling. Use the class <code>.product_type_simple.add_to_cart_button</code> to target the button.</p>
                                         </td>
