@@ -55,7 +55,7 @@ function onepaqucpro_apply_add_to_cart_styles()
     // Only apply custom styling if not using default WooCommerce style
     if ($button_style != 'default') {
         // Base button styles
-        $css .= '.single .product .single_add_to_cart_button,.woocommerce a.button.add_to_cart_button:not(.product_type_variable), .woocommerce button.button.add_to_cart_button:not(.product_type_variable), .woocommerce input.button.add_to_cart_button:not(.product_type_variable), .woocommerce #respond input#submit, .woocommerce a.button.alt.add_to_cart_button:not(.product_type_variable), .woocommerce button.button.alt.add_to_cart_button:not(.product_type_variable), .woocommerce input.button.alt.add_to_cart_button:not(.product_type_variable), .woocommerce #respond input#submit.alt {';
+        $css .= '.rmenupro-mobile-sticky-cart .single_add_to_cart_button.button.alt, .rmenupro-mobile-sticky-cart button[name="add-to-cart"], .single .product .single_add_to_cart_button,.woocommerce a.button.add_to_cart_button:not(.product_type_variable), .woocommerce button.button.add_to_cart_button:not(.product_type_variable), .woocommerce input.button.add_to_cart_button:not(.product_type_variable), .woocommerce #respond input#submit, .woocommerce a.button.alt.add_to_cart_button:not(.product_type_variable), .woocommerce button.button.alt.add_to_cart_button:not(.product_type_variable), .woocommerce input.button.alt.add_to_cart_button:not(.product_type_variable), .woocommerce #respond input#submit.alt {';
 
 
 
@@ -152,19 +152,6 @@ function onepaqucpro_apply_add_to_cart_styles()
     // Mobile-specific styles
     $css .= '@media (max-width: 768px) {';
 
-    // Mobile button text if set
-    if (!empty($mobile_text)) {
-        $css .= '.rmenupro-ajax-add-to-cart,.single_add_to_cart_button:not(.direct-checkout-button):not(.onepaquc-checkout-btn),.add_to_cart_button:not(.direct-checkout-button):not(.onepaquc-checkout-btn) {';
-        $css .= "font-size: 0 !important;";
-        $css .= '}';
-
-        $css .= '.rmenupro-ajax-add-to-cart:after,.single_add_to_cart_button:not(.direct-checkout-button):not(.onepaquc-checkout-btn):after,.add_to_cart_button:not(.direct-checkout-button):not(.onepaquc-checkout-btn):after {';
-        $css .= "content: '{$mobile_text}'{$important};";
-        $css .= "font-size: {$font_size}px{$important};";
-        $css .= "visibility: visible{$important};";
-        $css .= '}';
-    }
-
     // Mobile icon only
     if ($mobile_icon_only && $button_icon != 'none') {
         $css .= '.woocommerce a.button.add_to_cart_button:not(.product_type_variable) .rmenupro-btn-text, .woocommerce button.button.add_to_cart_button:not(.product_type_variable) .rmenupro-btn-text, .woocommerce input.button.add_to_cart_button:not(.product_type_variable) .rmenupro-btn-text, .single_add_to_cart_button .rmenupro-btn-text {';
@@ -198,6 +185,19 @@ function onepaqucpro_apply_add_to_cart_styles()
         $css .= '}';
     }
 
+    // Mobile button text if set
+    if (!empty($mobile_text)) {
+        $css .= '.rmenupro-ajax-add-to-cart,.single_add_to_cart_button:not(.direct-checkout-button):not(.onepaquc-checkout-btn),.add_to_cart_button:not(.direct-checkout-button):not(.onepaquc-checkout-btn) {';
+        $css .= "font-size: 0 !important;";
+        $css .= '}';
+
+        $css .= '.rmenupro-ajax-add-to-cart:after,.single_add_to_cart_button:not(.direct-checkout-button):not(.onepaquc-checkout-btn):after,.add_to_cart_button:not(.direct-checkout-button):not(.onepaquc-checkout-btn):after {';
+        $css .= "content: '{$mobile_text}'{$important};";
+        $css .= "font-size: {$font_size}px{$important};";
+        $css .= "visibility: visible{$important};";
+        $css .= '}';
+    }
+
     // Sticky add to cart on mobile
     if ($sticky_mobile) {
         $css .= '.rmenupro-mobile-sticky-cart {';
@@ -205,13 +205,10 @@ function onepaqucpro_apply_add_to_cart_styles()
         $css .= "bottom: 0{$important};";
         $css .= "left: 0{$important};";
         $css .= "right: 0{$important};";
-        $css .= "z-index: 999{$important};";
+        $css .= "z-index: 999999999999999999999999{$important};";
         $css .= "background-color: #ffffff{$important};";
-        $css .= "padding: 10px{$important};";
+        $css .= "padding: 20px{$important};";
         $css .= "box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1){$important};";
-        $css .= "display: flex{$important};";
-        $css .= "justify-content: center{$important};";
-        $css .= "align-items: center{$important};";
         $css .= '}';
 
         $css .= '.rmenupro-mobile-sticky-cart .single_add_to_cart_button {';
@@ -461,6 +458,173 @@ function rmenupro_add_sticky_mobile_cart()
     $mobile_text = get_option('rmenupro_mobile_add_to_cart_text', '');
 
 ?>
+    <style>
+        .rmenupro-mobile-sticky-cart {
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+            }
+
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        .rmenupro-mobile-sticky-cart .product-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .rmenupro-mobile-sticky-cart .product-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1a1a;
+            flex: 1;
+        }
+
+        .rmenupro-mobile-sticky-cart .quantity {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .rmenupro-mobile-sticky-cart .quantity-label,
+        .rmenupro-mobile-sticky-cart .screen-reader-text {
+            display: none;
+        }
+
+        .rmenupro-mobile-sticky-cart .quantity:before {
+            content: "Quantity";
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+            min-width: 60px;
+            clip: auto;
+            clip-path: none;
+            height: auto;
+            width: auto;
+            position: relative;
+        }
+
+        .rmenupro-mobile-sticky-cart input.qty,
+        .rmenupro-mobile-sticky-cart input.input-text.qty {
+            width: 60px;
+            height: 42px;
+            border: 2px solid #e5e5e5;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
+            -moz-appearance: textfield;
+        }
+
+        .rmenupro-mobile-sticky-cart input.qty::-webkit-outer-spin-button,
+        .rmenupro-mobile-sticky-cart input.qty::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .rmenupro-mobile-sticky-cart input.qty:focus {
+            outline: none;
+            border-color: #333;
+        }
+
+        .rmenupro-mobile-sticky-cart .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .rmenupro-mobile-sticky-cart button,
+        .rmenupro-mobile-sticky-cart .button,
+        .rmenupro-mobile-sticky-cart a.button {
+            height: 52px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            margin: 0;
+        }
+
+        .rmenupro-mobile-sticky-cart button:active,
+        .rmenupro-mobile-sticky-cart .button:active {
+            transform: scale(0.98);
+        }
+
+        .rmenupro-mobile-sticky-cart .single_add_to_cart_button.button.alt,
+        .rmenupro-mobile-sticky-cart button[name="add-to-cart"] {
+            grid-column: 1;
+            width: 100% !important;
+        }
+        .rmenupro-mobile-sticky-cart .rmenupro-ajax-add-to-cart:after, .rmenupro-mobile-sticky-cart .single_add_to_cart_button:not(.direct-checkout-button):not(.onepaquc-checkout-btn):after, .rmenupro-mobile-sticky-cart .add_to_cart_button:not(.direct-checkout-button):not(.onepaquc-checkout-btn):after{
+            display: none;
+        }
+
+        .rmenupro-mobile-sticky-cart .single_add_to_cart_button.button.alt:hover,
+        .rmenupro-mobile-sticky-cart button[name="add-to-cart"]:hover {
+            background: #e5e5e5;
+        }
+
+        .rmenupro-mobile-sticky-cart .opqcfw-btn,
+        .rmenupro-mobile-sticky-cart .onepaquc-checkout-btn {
+            grid-column: 2;
+        }
+
+        .rmenupro-mobile-sticky-cart .opqcfw-btn:hover,
+        .rmenupro-mobile-sticky-cart .onepaquc-checkout-btn:hover {
+            background: #333333 !important;
+        }
+
+        .rmenupro-mobile-sticky-cart .onepaquc-icon svg,
+        .rmenupro-mobile-sticky-cart .rmenupro-icon {
+            width: 18px;
+            height: 18px;
+        }
+
+        .rmenupro-mobile-sticky-cart .button-group.single-button {
+            grid-template-columns: 1fr;
+        }
+
+        @media (max-width: 380px) {
+            .rmenupro-mobile-sticky-cart .cart {
+                padding: 12px 16px;
+            }
+
+            .rmenupro-mobile-sticky-cart .button-group {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .rmenupro-mobile-sticky-cart button,
+            .rmenupro-mobile-sticky-cart .button {
+                height: 48px;
+                font-size: 14px;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .rmenupro-mobile-sticky-cart {
+                display: none !important;
+            }
+        }
+    </style>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const addToCartButton = document.querySelector('.single_add_to_cart_button');
@@ -474,24 +638,54 @@ function rmenupro_add_sticky_mobile_cart()
             const stickyContainer = document.createElement('div');
             stickyContainer.className = 'rmenupro-mobile-sticky-cart';
 
-            // Clone the add to cart button and any related fields
+            // Clone the add to cart form
             const productForm = document.querySelector('form.cart');
             const clonedForm = productForm.cloneNode(true);
+
+            // Wrap form content in button-group for grid layout
+            const formElements = clonedForm.children;
+            const buttonGroup = document.createElement('div');
+            buttonGroup.className = 'button-group';
+
+            // Find and move buttons to button group
+            const buttons = clonedForm.querySelectorAll('button, a.button, .opqcfw-btn, .onepaquc-checkout-btn');
+            buttons.forEach(btn => {
+                buttonGroup.appendChild(btn);
+            });
+
+            // Append button group to form
+            clonedForm.appendChild(buttonGroup);
 
             // Set custom text if provided
             const mobileText = '<?php echo esc_js($mobile_text); ?>';
             if (mobileText) {
                 const buttonText = clonedForm.querySelector('.single_add_to_cart_button');
                 if (buttonText) {
-                    buttonText.textContent = mobileText;
+                    // Check if it's a text node or has innerHTML
+                    const iconElement = buttonText.querySelector('.onepaquc-icon');
+                    if (iconElement) {
+                        // Preserve icon, just update text
+                        const textNode = Array.from(buttonText.childNodes).find(node => node.nodeType === 3);
+                        if (textNode) {
+                            textNode.textContent = ' ' + mobileText;
+                        }
+                    } else {
+                        buttonText.textContent = mobileText;
+                    }
                 }
+            }
+
+            // Add product name section
+            const productTitle = document.querySelector('.product_title, h1.entry-title');
+            if (productTitle) {
+                const productInfo = document.createElement('div');
+                productInfo.className = 'product-info';
+                productInfo.innerHTML = '<span class="product-name">' + productTitle.textContent + '</span>';
+                clonedForm.insertBefore(productInfo, clonedForm.firstChild);
             }
 
             // Add the cloned form to the sticky container
             stickyContainer.appendChild(clonedForm);
-
-            // Initially hide the sticky container
-            stickyContainer.style.display = 'none';
 
             // Add to page
             document.body.appendChild(stickyContainer);
@@ -502,30 +696,40 @@ function rmenupro_add_sticky_mobile_cart()
             // Handle visibility based on scroll position and screen size
             function handleStickyVisibility() {
                 if (mediaQuery.matches) {
-                    // On mobile
                     const scrollPosition = window.scrollY || window.pageYOffset;
                     const originalButtonPosition = addToCartButton.getBoundingClientRect().top + window.scrollY;
 
                     // Show sticky button when original is out of view
                     if (scrollPosition > originalButtonPosition + 100) {
-                        stickyContainer.style.display = 'flex';
+                        stickyContainer.classList.add('visible');
                     } else {
-                        stickyContainer.style.display = 'none';
+                        stickyContainer.classList.remove('visible');
                     }
                 } else {
                     // On desktop, always hide
-                    stickyContainer.style.display = 'none';
+                    stickyContainer.classList.remove('visible');
                 }
             }
 
             // Initial check
             handleStickyVisibility();
 
-            // Listen for scroll events
-            window.addEventListener('scroll', handleStickyVisibility);
+            // Listen for scroll events with throttle for better performance
+            let scrollTimeout;
+            window.addEventListener('scroll', function() {
+                if (scrollTimeout) {
+                    window.cancelAnimationFrame(scrollTimeout);
+                }
+                scrollTimeout = window.requestAnimationFrame(handleStickyVisibility);
+            });
 
             // Listen for screen size changes
-            mediaQuery.addListener(handleStickyVisibility);
+            if (mediaQuery.addEventListener) {
+                mediaQuery.addEventListener('change', handleStickyVisibility);
+            } else {
+                // Fallback for older browsers
+                mediaQuery.addListener(handleStickyVisibility);
+            }
 
             // Forward events from sticky button to original form
             const stickyAddToCartBtn = clonedForm.querySelector('.single_add_to_cart_button');
@@ -534,17 +738,45 @@ function rmenupro_add_sticky_mobile_cart()
                     e.preventDefault();
 
                     // Get form values from sticky form
-                    const stickyQuantity = clonedForm.querySelector('input.qty') ?
-                        clonedForm.querySelector('input.qty').value : 1;
+                    const stickyQuantity = clonedForm.querySelector('input.qty');
+                    const stickyQuantityValue = stickyQuantity ? stickyQuantity.value : 1;
+
+                    // Get variations if they exist
+                    const stickyVariations = clonedForm.querySelectorAll('select[name^="attribute_"]');
 
                     // Update original form quantity
                     const originalQuantity = productForm.querySelector('input.qty');
                     if (originalQuantity) {
-                        originalQuantity.value = stickyQuantity;
+                        originalQuantity.value = stickyQuantityValue;
+                    }
+
+                    // Update original form variations
+                    if (stickyVariations.length > 0) {
+                        stickyVariations.forEach(stickySelect => {
+                            const attrName = stickySelect.getAttribute('name');
+                            const originalSelect = productForm.querySelector('select[name="' + attrName + '"]');
+                            if (originalSelect) {
+                                originalSelect.value = stickySelect.value;
+                            }
+                        });
                     }
 
                     // Trigger click on original button
                     addToCartButton.click();
+                });
+            }
+
+            // Sync quantity changes between sticky and original forms
+            const stickyQtyInput = clonedForm.querySelector('input.qty');
+            const originalQtyInput = productForm.querySelector('input.qty');
+
+            if (stickyQtyInput && originalQtyInput) {
+                stickyQtyInput.addEventListener('change', function() {
+                    originalQtyInput.value = this.value;
+                });
+
+                originalQtyInput.addEventListener('change', function() {
+                    stickyQtyInput.value = this.value;
                 });
             }
         });

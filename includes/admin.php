@@ -66,7 +66,7 @@ function onepaqucpro_cart_dashboard()
     ?>
 
     <div class="welcome-banner">
-        <div class="welcome-title">Welcome to One Page Quick Checkout for WooCommerce Pro <span class="version-tag">v1.0.8.13</span></div>
+        <div class="welcome-title">Welcome to One Page Quick Checkout for WooCommerce Pro <span class="version-tag">v1.0.8.15</span></div>
         <p style="max-width: 70%; margin:0 auto;">Thank you for installing One Page Quick Checkout for WooCommerce! Streamline your WooCommerce checkout process and boost your conversion rates with our easy-to-configure solution.</p>
         <div class="feature-grid">
             <div class="feature-item">
@@ -3013,38 +3013,32 @@ function onepaqucpro_cart_dashboard()
                     <script>
                         document.addEventListener('DOMContentLoaded', function() {
                             const checkbox = document.querySelector('input[name="rmenupro_enable_ajax_add_to_cart"]');
-                            const settingsRows = document.querySelectorAll('#add_to_cart_behave .rmenupro-settings-row, #add_to_cart_notification .rmenupro-settings-row');
-                            const settingsInputs = document.querySelectorAll('#add_to_cart_behave .rmenupro-settings-row input, #add_to_cart_notification .rmenupro-settings-row input');
+                            const redirect_atc = document.querySelector('select[name="rmenupro_redirect_after_add"]');
+                            const settingsInputs = Array.from(document.querySelectorAll('#add_to_cart_behave input, #add_to_cart_behave select, #add_to_cart_notification input, #add_to_cart_notification select')).filter(
+                            el => !(el.name === "rmenupro_enable_ajax_add_to_cart")
+                        );
 
                             function updateSettings() {
-                                for (let i = 1; i < settingsRows.length; i++) { // Start loop at index 1 (second element)
-                                    const row = settingsRows[i];
-                                    const inputs = row.querySelectorAll('input'); // Get inputs within this row
-                                    const selects = row.querySelectorAll('select'); // Get selects within this row
+                                const enabled_checkbox = document.querySelector('input[name="rmenupro_enable_ajax_add_to_cart"]').checked;
 
-                                    if (checkbox.checked) {
-                                        inputs.forEach(input => {
-                                            toggleDisabledClass(!checkbox.checked, input);
-                                        });
-                                        selects.forEach(select => {
-                                            toggleDisabledClass(!checkbox.checked, select);
-                                        });
-                                    } else {
-                                        inputs.forEach(input => {
-                                            toggleDisabledClass(!checkbox.checked, input);
-                                        });
-                                        selects.forEach(select => {
-                                            toggleDisabledClass(!checkbox.checked, select);
-                                        });
-                                    }
-                                }
+                                toggleDisabledClass(!enabled_checkbox, settingsInputs);
+                                
+                            }
+
+                            function notificationVisibilityHandle() {
+                                const redirectAtcVal = document.querySelector('select[name="rmenupro_redirect_after_add"]').value; // Use .value
+
+                                const notiSettings = Array.from(document.querySelectorAll('#add_to_cart_notification input, #add_to_cart_notification select'));
+                                toggleDisabledClass(redirectAtcVal !== 'none', notiSettings);
                             }
 
                             // Initial update on page load
-                            updateSettings();
+                            setTimeout(updateSettings, 2000); 
+                            setTimeout(notificationVisibilityHandle, 2000); 
 
                             // Update when the checkbox changes
                             checkbox.addEventListener('change', updateSettings);
+                            redirect_atc.addEventListener('change', notificationVisibilityHandle);
                         });
                     </script>
                 </div>
@@ -3073,7 +3067,7 @@ function onepaqucpro_cart_dashboard()
                                         <select <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> name="<?php echo !onepaqucpro_premium_feature() ? 'pro_mobile_button_size' : 'rmenupro_mobile_button_size'; ?>" class="rmenupro-select">
                                             <option value="default" <?php selected(get_option('rmenupro_mobile_button_size', 'default'), 'default'); ?>>Same as Desktop</option>
                                             <option value="larger" <?php selected(get_option('rmenupro_mobile_button_size', 'default'), 'larger'); ?>>Larger</option>
-                                            <option value="smaller" <?php selected(get_option('rmenupro_mobile_button_size', 'default'), 'smaller'); ?>>Smaller</option>
+                                            <option value="smaller" <?php selected(get_option('rmenupro_mobile_button_size', 'default'), 'smaller'); ?>>Small</option>
                                             <option value="full" <?php selected(get_option('rmenupro_mobile_button_size', 'default'), 'full'); ?>>Full Width</option>
                                         </select>
                                     </td>
@@ -3092,14 +3086,22 @@ function onepaqucpro_cart_dashboard()
                             <?php $onepaquc_helper->sec_head('h3', 'plugincy_sec_head', '<span class="dashicons dashicons-welcome-widgets-menus"></span>', 'Advanced Options', ''); ?>
 
                             <table class="form-table plugincy_table">
-                                <!-- <tr class="<?php //echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
-                                    <?php //$onepaquc_helper->sec_head('th', 'rmenu-settings-label', '', 'Add to Cart Load Effect', 'Choose an animation effect while adding to cart is in progress.'); ?>
+                                <!-- <tr class="<?php //echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; 
+                                                ?>">
+                                    <?php //$onepaquc_helper->sec_head('th', 'rmenu-settings-label', '', 'Add to Cart Load Effect', 'Choose an animation effect while adding to cart is in progress.'); 
+                                    ?>
                                     <td class="rmenupro-settings-control">
-                                        <select <?php //echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> name="<?php //echo !onepaqucpro_premium_feature() ? 'pro_add_to_cart_loading_effect' : 'rmenupro_add_to_cart_loading_effect'; ?>" class="rmenupro-select">
-                                            <option value="none" <?php //selected(get_option('rmenupro_add_to_cart_loading_effect', 'spinner'), 'none'); ?>>None</option>
-                                            <option value="spinner" <?php //selected(get_option('rmenupro_add_to_cart_loading_effect', 'spinner'), 'spinner'); ?>>Spinner</option>
-                                            <option value="dots" <?php //selected(get_option('rmenupro_add_to_cart_loading_effect', 'spinner'), 'dots'); ?>>Dots</option>
-                                            <option value="pulse" <?php //selected(get_option('rmenupro_add_to_cart_loading_effect', 'spinner'), 'pulse'); ?>>Pulse</option>
+                                        <select <?php //echo !onepaqucpro_premium_feature() ? 'disabled' : ''; 
+                                                ?> name="<?php //echo !onepaqucpro_premium_feature() ? 'pro_add_to_cart_loading_effect' : 'rmenupro_add_to_cart_loading_effect'; 
+                                                            ?>" class="rmenupro-select">
+                                            <option value="none" <?php //selected(get_option('rmenupro_add_to_cart_loading_effect', 'spinner'), 'none'); 
+                                                                    ?>>None</option>
+                                            <option value="spinner" <?php //selected(get_option('rmenupro_add_to_cart_loading_effect', 'spinner'), 'spinner'); 
+                                                                    ?>>Spinner</option>
+                                            <option value="dots" <?php //selected(get_option('rmenupro_add_to_cart_loading_effect', 'spinner'), 'dots'); 
+                                                                    ?>>Dots</option>
+                                            <option value="pulse" <?php //selected(get_option('rmenupro_add_to_cart_loading_effect', 'spinner'), 'pulse'); 
+                                                                    ?>>Pulse</option>
                                         </select>
                                     </td>
                                 </tr> -->
