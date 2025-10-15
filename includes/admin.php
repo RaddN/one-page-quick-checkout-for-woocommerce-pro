@@ -66,7 +66,7 @@ function onepaqucpro_cart_dashboard()
     ?>
 
     <div class="welcome-banner">
-        <div class="welcome-title">Welcome to One Page Quick Checkout for WooCommerce Pro <span class="version-tag">v1.0.8.15</span></div>
+        <div class="welcome-title">Welcome to One Page Quick Checkout for WooCommerce Pro <span class="version-tag">v1.0.9</span></div>
         <p style="max-width: 70%; margin:0 auto;">Thank you for installing One Page Quick Checkout for WooCommerce! Streamline your WooCommerce checkout process and boost your conversion rates with our easy-to-configure solution.</p>
         <div class="feature-grid">
             <div class="feature-item">
@@ -3055,8 +3055,8 @@ function onepaqucpro_cart_dashboard()
                                     </td>
                                 </tr>
                                 <tr class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
-                                    <?php $onepaquc_helper->sec_head('th', 'rmenu-settings-label', '', 'Mobile Button Text', 'Set a different button text for mobile devices. Leave empty to use the default text.'); ?>
-                                    <td class="rmenupro-settings-control">
+                                    <?php $onepaquc_helper->sec_head('th', 'rmenu-settings-label', '', 'Mobile Button Text (Coming Soon)', 'Set a different button text for mobile devices. Leave empty to use the default text.'); ?>
+                                    <td class="rmenupro-settings-control disabled">
                                         <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="text" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_mobile_add_to_cart_text' : 'rmenupro_mobile_add_to_cart_text'; ?>" value="<?php echo esc_attr(get_option('rmenupro_mobile_add_to_cart_text', '')); ?>" class="regular-text" />
                                     </td>
                                 </tr>

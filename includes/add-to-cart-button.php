@@ -35,7 +35,7 @@ function onepaqucpro_apply_add_to_cart_styles()
 
     // Mobile-specific settings
     $sticky_mobile = !onepaqucpro_premium_feature() ? 0 : get_option('rmenupro_sticky_add_to_cart_mobile', 0);
-    $mobile_text = !onepaqucpro_premium_feature() ? '' : get_option('rmenupro_mobile_add_to_cart_text', '');
+    // $mobile_text = !onepaqucpro_premium_feature() ? '' : get_option('rmenupro_mobile_add_to_cart_text', '');
     $mobile_button_size = !onepaqucpro_premium_feature() ? 'default' : get_option('rmenupro_mobile_button_size', 'default');
     $mobile_icon_only = !onepaqucpro_premium_feature() ? 0 : get_option('rmenupro_mobile_icon_only', 0);
 
@@ -186,17 +186,17 @@ function onepaqucpro_apply_add_to_cart_styles()
     }
 
     // Mobile button text if set
-    if (!empty($mobile_text)) {
-        $css .= '.rmenupro-ajax-add-to-cart,.single_add_to_cart_button:not(.direct-checkout-button):not(.onepaquc-checkout-btn),.add_to_cart_button:not(.direct-checkout-button):not(.onepaquc-checkout-btn) {';
-        $css .= "font-size: 0 !important;";
-        $css .= '}';
+    // if (!empty($mobile_text)) {
+    //     $css .= '.rmenupro-ajax-add-to-cart,.single_add_to_cart_button:not(.direct-checkout-button):not(.onepaquc-checkout-btn),.add_to_cart_button:not(.direct-checkout-button):not(.onepaquc-checkout-btn) {';
+    //     $css .= "font-size: 0 !important;";
+    //     $css .= '}';
 
-        $css .= '.rmenupro-ajax-add-to-cart:after,.single_add_to_cart_button:not(.direct-checkout-button):not(.onepaquc-checkout-btn):after,.add_to_cart_button:not(.direct-checkout-button):not(.onepaquc-checkout-btn):after {';
-        $css .= "content: '{$mobile_text}'{$important};";
-        $css .= "font-size: {$font_size}px{$important};";
-        $css .= "visibility: visible{$important};";
-        $css .= '}';
-    }
+    //     $css .= '.rmenupro-ajax-add-to-cart:after,.single_add_to_cart_button:not(.direct-checkout-button):not(.onepaquc-checkout-btn):after,.add_to_cart_button:not(.direct-checkout-button):not(.onepaquc-checkout-btn):after {';
+    //     $css .= "content: '{$mobile_text}'{$important};";
+    //     $css .= "font-size: {$font_size}px{$important};";
+    //     $css .= "visibility: visible{$important};";
+    //     $css .= '}';
+    // }
 
     // Sticky add to cart on mobile
     if ($sticky_mobile) {
@@ -455,7 +455,7 @@ function rmenupro_add_sticky_mobile_cart()
         return;
     }
 
-    $mobile_text = get_option('rmenupro_mobile_add_to_cart_text', '');
+    // $mobile_text = get_option('rmenupro_mobile_add_to_cart_text', '');
 
 ?>
     <style>
@@ -657,23 +657,23 @@ function rmenupro_add_sticky_mobile_cart()
             clonedForm.appendChild(buttonGroup);
 
             // Set custom text if provided
-            const mobileText = '<?php echo esc_js($mobile_text); ?>';
-            if (mobileText) {
-                const buttonText = clonedForm.querySelector('.single_add_to_cart_button');
-                if (buttonText) {
-                    // Check if it's a text node or has innerHTML
-                    const iconElement = buttonText.querySelector('.onepaquc-icon');
-                    if (iconElement) {
-                        // Preserve icon, just update text
-                        const textNode = Array.from(buttonText.childNodes).find(node => node.nodeType === 3);
-                        if (textNode) {
-                            textNode.textContent = ' ' + mobileText;
-                        }
-                    } else {
-                        buttonText.textContent = mobileText;
-                    }
-                }
-            }
+            // const mobileText = '<?php //echo esc_js($mobile_text); ?>';
+            // if (mobileText) {
+            //     const buttonText = clonedForm.querySelector('.single_add_to_cart_button');
+            //     if (buttonText) {
+            //         // Check if it's a text node or has innerHTML
+            //         const iconElement = buttonText.querySelector('.onepaquc-icon');
+            //         if (iconElement) {
+            //             // Preserve icon, just update text
+            //             const textNode = Array.from(buttonText.childNodes).find(node => node.nodeType === 3);
+            //             if (textNode) {
+            //                 textNode.textContent = ' ' + mobileText;
+            //             }
+            //         } else {
+            //             buttonText.textContent = mobileText;
+            //         }
+            //     }
+            // }
 
             // Add product name section
             const productTitle = document.querySelector('.product_title, h1.entry-title');
