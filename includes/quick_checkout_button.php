@@ -390,15 +390,18 @@ function onepaqucpro_render_checkout_button(): bool
 
     $one_page_checkout = get_post_meta($product_id, '_one_page_checkout', true);
     $onpage_checkout_cart_add = get_option('onpage_checkout_cart_add', "1");
+    $checkout_method = get_option('rmenupro_wc_checkout_method', 'direct_checkout');
+    $cart_page_url = wc_get_cart_url();
+    $checkout_page_url = wc_get_checkout_url();
 
     // if ($one_page_checkout === 'yes' && $onpage_checkout_cart_add === "1") {
     //     // Remove 'single_add_to_cart_button' and 'direct-checkout-button' from classes
     //     $button_classes = preg_replace('/\b(direct-checkout-button)\b/', '', $button_styling['classes']);
     //     $button_classes = trim(preg_replace('/\s+/', ' ', $button_classes));
-    //     echo '<a href="#checkout-popup" class="' . esc_attr($button_classes) . ' onepaquc-checkout-btn" style="' . esc_attr($button_styling['style']) . '">' . $button_inner. '</a>';
+    //     echo '<a class="' . esc_attr($button_classes) . ' onepaquc-checkout-btn" style="' . esc_attr($button_styling['style']) . '">' . $button_inner. '</a>';
     // } else {
         // Output the button with fallback identifier
-        echo '<a href="#checkout-popup" class="' . esc_attr($button_styling['classes']) . ' onepaquc-checkout-btn" data-product-id="' . esc_attr($product_id) . '" data-product-type="' . esc_attr($product_type) . '" data-title="' . esc_html($product_title) . '" style="' . esc_attr($button_styling['style']) . '">' . $button_inner . '</a>';
+        echo '<a class="' . esc_attr($button_styling['classes']) . ' onepaquc-checkout-btn" data-product-id="' . esc_attr($product_id) . '" data-product-type="' . esc_attr($product_type) . '" data-title="' . esc_html($product_title) . '" style="' . esc_attr($button_styling['style']) . '">' . $button_inner . '</a>';
     // }
 
     // Optional: a tiny marker helps debugging/JS checks, doesn’t affect layout
@@ -471,10 +474,10 @@ function onepaqucpro_add_js_fallback()
                 var buttonHtml = '';
                 // <?php //if ($one_page_checkout === 'yes' && $onpage_checkout_cart_add === "1"): ?>
                 //     var buttonClasses = '<?php //echo esc_js(preg_replace('/\b(direct-checkout-button)\b/', '', trim(preg_replace('/\s+/', ' ', $button_styling['classes'])))); ?>';
-                //     buttonHtml = '<a href="#checkout-popup" class="' + buttonClasses + ' onepaquc-checkout-btn" style="<?php //echo esc_js($button_styling['style']); ?>"><?php //echo $button_inner; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped 
+                //     buttonHtml = '<a class="' + buttonClasses + ' onepaquc-checkout-btn" style="<?php //echo esc_js($button_styling['style']); ?>"><?php //echo $button_inner; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped 
                 //                                                                                                                                                         ?></a>';
                 // <?php //else: ?>
-                    buttonHtml = '<a href="#checkout-popup" class="<?php echo esc_js($button_styling['classes']); ?> onepaquc-checkout-btn" data-product-id="<?php echo esc_js($product_id); ?>" data-product-type="<?php echo esc_js($product_type); ?>" data-title="<?php echo esc_js($product_title); ?>" style="<?php echo esc_js($button_styling['style']); ?>"><?php echo $button_inner; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped 
+                    buttonHtml = '<a class="<?php echo esc_js($button_styling['classes']); ?> onepaquc-checkout-btn" data-product-id="<?php echo esc_js($product_id); ?>" data-product-type="<?php echo esc_js($product_type); ?>" data-title="<?php echo esc_js($product_title); ?>" style="<?php echo esc_js($button_styling['style']); ?>"><?php echo $button_inner; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped 
                                                                                                                                                                                                                                                                                                                                                                         ?></a>';
                 <?php //endif; ?>
 
@@ -681,7 +684,7 @@ function onepaqucpro_add_checkout_button_to_add_to_cart_shortcode($link, $produc
     }
 
     // Final button HTML
-    $checkout_button = '<a href="#checkout-popup" class="' . esc_attr($button_styling['classes']) . '" data-product-id="' . esc_attr($product_id) . '" data-product-type="' . esc_attr($product_type) . '" data-title="' . esc_html($product_title) . '" style="' . esc_attr($button_styling['style']) . '">' . $button_inner . '</a>';
+    $checkout_button = '<a class="' . esc_attr($button_styling['classes']) . '" data-product-id="' . esc_attr($product_id) . '" data-product-type="' . esc_attr($product_type) . '" data-title="' . esc_html($product_title) . '" style="' . esc_attr($button_styling['style']) . '">' . $button_inner . '</a>';
 
     // Apply the position setting
     switch ($position) {
@@ -846,7 +849,7 @@ class onepaqucpro_add_checkout_button_on_archive
                         if (quickCheckoutConfig.allowedTypes.includes(product_type) && product_id) {
                             $this.append(
                                 `<div class='plugincy-quick-checkout ${quickCheckoutConfig.buttonPos}' style='text-align:center;'>
-                        <a href="#checkout-popup" class="${quickCheckoutConfig.buttonClass}" 
+                        <a class="${quickCheckoutConfig.buttonClass}" 
                            data-product-id="${product_id}" 
                            data-product-type="${product_type}" 
                            data-title="" 
@@ -955,7 +958,7 @@ class onepaqucpro_add_checkout_button_on_archive
         }
 
         // Final button HTML
-        // $checkout_button = '<a href="#checkout-popup" class="' . esc_attr($button_styling['classes']) . '" data-product-id="' . esc_attr($product_id) . '" data-product-type="' . esc_attr($product_type) . '" data-title="' . esc_html($product_title) . '" style="' . esc_attr($button_styling['style']) . '">' . $button_inner . '</a>';
+        // $checkout_button = '<a class="' . esc_attr($button_styling['classes']) . '" data-product-id="' . esc_attr($product_id) . '" data-product-type="' . esc_attr($product_type) . '" data-title="' . esc_html($product_title) . '" style="' . esc_attr($button_styling['style']) . '">' . $button_inner . '</a>';
 
         return [
             "button_classes" => $button_styling['classes'],
@@ -1029,10 +1032,10 @@ class onepaqucpro_add_checkout_button_on_archive
         //     // Remove 'single_add_to_cart_button' and 'direct-checkout-button' from classes
         //     $button_classes = preg_replace('/\b(direct-checkout-button)\b/', '', $button_styling['classes']);
         //     $button_classes = trim(preg_replace('/\s+/', ' ', $button_classes));
-        //     echo '<a href="#checkout-popup" class="' . esc_attr($button_classes) . '" style="' . esc_attr($button_styling['style']) . '">' . $button_inner . '</a>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+        //     echo '<a class="' . esc_attr($button_classes) . '" style="' . esc_attr($button_styling['style']) . '">' . $button_inner . '</a>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
         // } else {
             // Output the button
-            echo '<a href="#checkout-popup" class="' . esc_attr($button_styling['classes']) . '" data-product-id="' . esc_attr($product_id) . '" data-product-type="' . esc_attr($product_type) . '" data-title="' . esc_html($product_title) . '" style="' . esc_attr($button_styling['style']) . '">' . $button_inner . '</a>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+            echo '<a class="' . esc_attr($button_styling['classes']) . '" data-product-id="' . esc_attr($product_id) . '" data-product-type="' . esc_attr($product_type) . '" data-title="' . esc_html($product_title) . '" style="' . esc_attr($button_styling['style']) . '">' . $button_inner . '</a>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
         // }
     }
 }
@@ -1233,7 +1236,6 @@ function onepaqucpro_button_shortcode_handler($atts = [])
     // }
 
     $attrs = [
-        'href'            => '#checkout-popup',
         'class'           => $classes . ' onepaquc-checkout-btn',
         'data-product-id' => $product_id,
         'data-product-type' => esc_attr($product_type),

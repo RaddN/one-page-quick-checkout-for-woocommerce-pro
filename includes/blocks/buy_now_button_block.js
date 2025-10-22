@@ -133,7 +133,6 @@
             'a',
             Object.assign(
                 {
-                    href: '#checkout-popup',
                     className: cls,
                     style: styleObj,
                     onClick: (e) => e.preventDefault(), // don’t navigate in editor

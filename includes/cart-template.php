@@ -244,7 +244,7 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
 
                     <!-- Checkout Button -->
                     <div class="cart-actions">
-                        <a href="#checkout-popup" style="display: none;flex-direction: column;justify-content: center;align-items: center;" class="checkout-button checkout-button-drawer-link">Checkout</a>
+                        <a style="display: none;flex-direction: column;justify-content: center;align-items: center;" class="checkout-button checkout-button-drawer-link">Checkout</a>
                         <?php $rmenu_cart_checkout_behavior = get_option('rmenu_cart_checkout_behavior', 'direct_checkout');
                         if ($rmenu_cart_checkout_behavior === 'popup_checkout') {
                         ?>

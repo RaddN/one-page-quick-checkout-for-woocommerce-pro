@@ -209,7 +209,7 @@ class onepaqucpro_cart_anaylytics
             $plugin_basename = plugin_basename($plugin_file);
             $plugin_slug = dirname($plugin_basename);
 ?>
-            <div id="plugin-deactivation-feedback" style="display:none;">
+            <div id="onepaqucpro-plugin-deactivation-feedback" style="display:none;">
                 <div class="feedback-overlay">
                     <div class="feedback-modal">
                         <div class="modal-header">
@@ -249,7 +249,7 @@ class onepaqucpro_cart_anaylytics
                         </div>
                         <div class="modal-body">
                             <p>If you have a moment, please share why you are deactivating <?php echo esc_html($this->plugin_name); ?>:</p>
-                            <form id="deactivation-feedback-form">
+                            <form id="onepaqucpro-deactivation-feedback-form">
                                 <div class="feedback-options">
                                     <label class="feedback-option">
                                         <input type="radio" name="reason" value="temporary">
@@ -520,7 +520,7 @@ class onepaqucpro_cart_anaylytics
                         $(selector).on('click', function(e) {
                             e.preventDefault();
                             deactivateUrl = $(this).attr('href');
-                            $('#plugin-deactivation-feedback').show();
+                            $('#onepaqucpro-plugin-deactivation-feedback').show();
                         });
                     });
 
@@ -531,13 +531,13 @@ class onepaqucpro_cart_anaylytics
                             $(this).on('click', function(e) {
                                 e.preventDefault();
                                 deactivateUrl = $(this).attr('href');
-                                $('#plugin-deactivation-feedback').show();
+                                $('#onepaqucpro-plugin-deactivation-feedback').show();
                             });
                         }
                     });
 
                     // Handle feedback form submission
-                    $('#deactivation-feedback-form').on('submit', function(e) {
+                    $('#onepaqucpro-deactivation-feedback-form').on('submit', function(e) {
                         e.preventDefault();
 
                         var reason = $('input[name="reason"]:checked').val();
@@ -554,13 +554,24 @@ class onepaqucpro_cart_anaylytics
                             url: '<?php echo esc_url(admin_url('admin-ajax.php')); ?>',
                             type: 'POST',
                             data: {
-                                action: 'send_deactivation_feedback',
+                                action: 'onepaqucpro_send_deactivation_feedback',
                                 reason: reason || 'no-reason-provided',
                                 nonce: '<?php echo esc_js(wp_create_nonce('deactivation_feedback')); ?>'
                             },
-                            complete: function() {
-                                // Proceed with deactivation
-                                window.location.href = deactivateUrl;
+                            success: function(response) {
+                                // Wait a moment to ensure the request completed
+                                setTimeout(function() {
+                                    window.location.href = deactivateUrl;
+                                }, 500);
+                            },
+                            error: function(xhr, status, error) {
+                                console.error('Feedback send failed:', status, error);
+                                console.error('Response:', xhr.responseText);
+
+                                // Even if feedback fails, proceed with deactivation
+                                setTimeout(function() {
+                                    window.location.href = deactivateUrl;
+                                }, 500);
                             }
                         });
                     });
@@ -576,20 +587,20 @@ class onepaqucpro_cart_anaylytics
 
                     // Handle close button
                     $('.close-button').click(function() {
-                        $('#plugin-deactivation-feedback').hide();
+                        $('#onepaqucpro-plugin-deactivation-feedback').hide();
                     });
 
                     // Handle overlay click to close
                     $('.feedback-overlay').click(function(e) {
                         if (e.target === this) {
-                            $('#plugin-deactivation-feedback').hide();
+                            $('#onepaqucpro-plugin-deactivation-feedback').hide();
                         }
                     });
 
                     // Handle escape key
                     $(document).keyup(function(e) {
                         if (e.keyCode === 27) { // ESC key
-                            $('#plugin-deactivation-feedback').hide();
+                            $('#onepaqucpro-plugin-deactivation-feedback').hide();
                         }
                     });
                 });

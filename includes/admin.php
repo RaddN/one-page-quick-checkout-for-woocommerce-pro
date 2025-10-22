@@ -66,7 +66,7 @@ function onepaqucpro_cart_dashboard()
     ?>
 
     <div class="welcome-banner">
-        <div class="welcome-title">Welcome to One Page Quick Checkout for WooCommerce Pro <span class="version-tag">v1.0.9</span></div>
+        <div class="welcome-title">Welcome to One Page Quick Checkout for WooCommerce Pro <span class="version-tag">v1.0.9.8</span></div>
         <p style="max-width: 70%; margin:0 auto;">Thank you for installing One Page Quick Checkout for WooCommerce! Streamline your WooCommerce checkout process and boost your conversion rates with our easy-to-configure solution.</p>
         <div class="feature-grid">
             <div class="feature-item">
@@ -3015,14 +3015,14 @@ function onepaqucpro_cart_dashboard()
                             const checkbox = document.querySelector('input[name="rmenupro_enable_ajax_add_to_cart"]');
                             const redirect_atc = document.querySelector('select[name="rmenupro_redirect_after_add"]');
                             const settingsInputs = Array.from(document.querySelectorAll('#add_to_cart_behave input, #add_to_cart_behave select, #add_to_cart_notification input, #add_to_cart_notification select')).filter(
-                            el => !(el.name === "rmenupro_enable_ajax_add_to_cart")
-                        );
+                                el => !(el.name === "rmenupro_enable_ajax_add_to_cart")
+                            );
 
                             function updateSettings() {
                                 const enabled_checkbox = document.querySelector('input[name="rmenupro_enable_ajax_add_to_cart"]').checked;
 
                                 toggleDisabledClass(!enabled_checkbox, settingsInputs);
-                                
+
                             }
 
                             function notificationVisibilityHandle() {
@@ -3033,8 +3033,8 @@ function onepaqucpro_cart_dashboard()
                             }
 
                             // Initial update on page load
-                            setTimeout(updateSettings, 2000); 
-                            setTimeout(notificationVisibilityHandle, 2000); 
+                            setTimeout(updateSettings, 2000);
+                            setTimeout(notificationVisibilityHandle, 2000);
 
                             // Update when the checkbox changes
                             checkbox.addEventListener('change', updateSettings);

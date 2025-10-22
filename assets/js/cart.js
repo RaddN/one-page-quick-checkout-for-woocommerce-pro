@@ -512,7 +512,7 @@ jQuery(document).ready(function ($) {
                     $button.removeClass('loading').prop('disabled', false);
 
                     if ($isonepagewidget) {
-                        const element = document.getElementById('checkout-form');
+                        const element = document.getElementById('checkout-popup');
                         if (element) {
                             element.scrollIntoView({ behavior: 'smooth' });
                         }
@@ -521,9 +521,9 @@ jQuery(document).ready(function ($) {
             });
         }
 
-        $redirecturlparams = `?add-to-cart=${product_id}&quantity=${quantity}`;
+        $redirecturlparams = `?onepaqucpro_add-to-cart=${product_id}&onepaqucpro_quantity=${quantity}`;
         if ($variation_id && $variation_id != 0) {
-            $redirecturlparams += `&variation_id=${$variation_id}`;
+            $redirecturlparams += `&onepaqucpro_variation_id=${$variation_id}`;
         }
 
         // If clear cart is enabled, clear the cart before proceeding
