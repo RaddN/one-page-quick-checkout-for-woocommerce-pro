@@ -858,7 +858,7 @@ function onepaqucpro_check_for_plugin_updates($transient, $license_manager)
     }
 
     $plugin_file = plugin_basename(__FILE__); // This will automatically get the correct path
-    $current_version = defined('RMENUPRO_VERSION') ? RMENUPRO_VERSION : '1.0.0';
+    $current_version = defined('RMENUPRO_VERSION') ? RMENUPRO_VERSION : '1.0.9.8';
 
     $update_info = $license_manager->check_for_updates();
 
@@ -1469,3 +1469,14 @@ function onepaqucpro_validate_cart_item($passed, $product_id, $quantity) {
     
     return $passed;
 }
+
+
+// Allow checkout page access even when the cart is empty
+add_action('template_redirect', function () {
+    if (is_checkout() && !is_wc_endpoint_url()) {
+        remove_action('template_redirect', 'wc_redirect_empty_cart_to_cart');
+    }
+}, 1);
+
+// Let users access checkout even if the cart is empty
+add_filter( 'woocommerce_checkout_redirect_empty_cart', '__return_false' );
