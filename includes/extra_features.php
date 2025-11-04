@@ -162,7 +162,9 @@ class onepaqucpro_add_variation_buttons_on_archive
     {
         global $product;
 
-        if (!$product || !$product->is_type('variable')) {
+        global $onepaqucpro_variation_buttons_on_archive;
+
+        if (!$product || !$product->is_type('variable') || $onepaqucpro_variation_buttons_on_archive) {
             return;
         }
 
@@ -171,6 +173,8 @@ class onepaqucpro_add_variation_buttons_on_archive
         if (empty($available_variations)) {
             return;
         }
+
+        $onepaqucpro_variation_buttons_on_archive = true;
 
         $position = get_option("rmenupro_wc_direct_checkout_position", "after_product");
         $layout       = get_option('rmenu_variation_layout', 'separate'); // 'combine' | 'separate'
