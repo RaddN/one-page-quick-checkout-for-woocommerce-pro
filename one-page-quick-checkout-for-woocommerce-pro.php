@@ -553,7 +553,8 @@ add_filter('woocommerce_checkout_cart_item_quantity', 'onepaqucpro_custom_quanti
  */
 add_filter('woocommerce_is_checkout', 'onepaqucpro_force_woocommerce_checkout_mode', 999);
 
-function onepaqucpro_force_woocommerce_checkout_mode($is_checkout) {
+function onepaqucpro_force_woocommerce_checkout_mode($is_checkout)
+{
     // Don't affect wp-admin (except AJAX calls)
     if (is_admin() && !(defined('DOING_AJAX') && DOING_AJAX)) {
         return $is_checkout;
@@ -589,7 +590,7 @@ function onepaqucpro_force_woocommerce_checkout_mode($is_checkout) {
     if (
         $has_opc_shortcode
         || $is_popup_checkout
-        || ( $is_single_product && ( $enable_all_opc || $per_product_enabled ) )
+        || ($is_single_product && ($enable_all_opc || $per_product_enabled))
     ) {
         return true;
     }
@@ -600,7 +601,8 @@ function onepaqucpro_force_woocommerce_checkout_mode($is_checkout) {
 /**
  * Check if the current queried page content contains a shortcode.
  */
-function onepaqucpro_page_has_shortcode($shortcode_tag) {
+function onepaqucpro_page_has_shortcode($shortcode_tag)
+{
     if (empty($shortcode_tag)) return false;
 
     // Check global $post first
@@ -1213,7 +1215,7 @@ class onepaqucpro_cart_analytics_main
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
     }
 
-    
+
 
     public function init()
     {
@@ -1249,7 +1251,6 @@ class onepaqucpro_cart_analytics_main
 
         // Ensure jQuery is loaded
         wp_enqueue_script('jquery');
-
     }
 
     public function handle_deactivation_feedback()
@@ -1337,137 +1338,170 @@ add_action('wp_enqueue_scripts', function () {
 
 add_action('template_redirect', 'onepaqucpro_handle_url_add_to_cart', 20);
 
-function onepaqucpro_handle_url_add_to_cart() {
-    // Check if add-to-cart parameter exists
+function onepaqucpro_handle_url_add_to_cart()
+{
     if (!isset($_GET['onepaqucpro_add-to-cart'])) {
         return;
     }
 
-    // Sanitize product ID
+    // Ensure cart is available
+    if (null === WC()->cart) {
+        wc_load_cart();
+    }
+
     $product_id = absint($_GET['onepaqucpro_add-to-cart']);
-    
     if ($product_id <= 0) {
         wc_add_notice(__('Invalid product ID.', 'woocommerce'), 'error');
         return;
     }
 
-    // Get product object
     $product = wc_get_product($product_id);
-    
     if (!$product) {
         wc_add_notice(__('Product not found.', 'woocommerce'), 'error');
         return;
     }
-
-    // Check if product is purchasable
     if (!$product->is_purchasable()) {
         wc_add_notice(__('This product cannot be purchased.', 'woocommerce'), 'error');
         return;
     }
 
-    // Get quantity (default to 1)
-    $quantity = isset($_GET['onepaqucpro_quantity']) ? absint($_GET['onepaqucpro_quantity']) : 1;
-    
-    if ($quantity <= 0) {
-        $quantity = 1;
-    }
+    $quantity = isset($_GET['onepaqucpro_quantity']) ? max(1, absint($_GET['onepaqucpro_quantity'])) : 1;
 
-    // Initialize variables
-    $variation_id = 0;
-    $variation = array();
+    $variation_id   = isset($_GET['onepaqucpro_variation_id']) ? absint($_GET['onepaqucpro_variation_id']) : 0;
+    $variation      = array();
     $cart_item_data = array();
 
-    // Handle variable products
+    // Variable product handling
     if ($product->is_type('variable')) {
-        $variation_id = isset($_GET['onepaqucpro_variation_id']) ? absint($_GET['onepaqucpro_variation_id']) : 0;
-        
+
+        // 1) JSON blob: onepaqucpro_variations={"attribute_pa_brand":"dell"}
+        if (!empty($_GET['onepaqucpro_variations'])) {
+            $json_raw = wp_unslash($_GET['onepaqucpro_variations']);
+            $decoded  = json_decode($json_raw, true);
+            if (!is_array($decoded)) {
+                // handle URL-encoded JSON
+                $decoded = json_decode(urldecode($json_raw), true);
+            }
+            if (is_array($decoded)) {
+                foreach ($decoded as $k => $v) {
+                    $variation[onepaqucpro_normalize_attr_key($k)] = onepaqucpro_normalize_attr_value($v);
+                }
+            }
+        }
+
+        // 2) Param form: onepaqucpro_attribute_pa_color=blue
+        foreach ($_GET as $key => $value) {
+            if (strpos($key, 'onepaqucpro_attribute_') === 0) {
+                $attr_key = substr($key, strlen('onepaqucpro_attribute_'));
+                $variation[onepaqucpro_normalize_attr_key($attr_key)] = onepaqucpro_normalize_attr_value($value);
+            }
+        }
+
         if ($variation_id <= 0) {
             wc_add_notice(__('Please select product options before adding to cart.', 'woocommerce'), 'error');
             return;
         }
 
-        // Verify variation belongs to parent product
         $variation_product = wc_get_product($variation_id);
-        
         if (!$variation_product || $variation_product->get_parent_id() !== $product_id) {
             wc_add_notice(__('Invalid variation selected.', 'woocommerce'), 'error');
             return;
         }
 
-        // Collect variation attributes from URL
-        foreach ($_GET as $key => $value) {
-            if (strpos($key, 'onepaqucpro_attribute_') === 0) {
-                $attribute_key = str_replace('onepaqucpro_attribute_', '', $key);
-                $variation[$attribute_key] = sanitize_text_field($value);
+        // Ensure all attributes required by the variation are present
+        $required = $variation_product->get_variation_attributes(); // e.g. ['attribute_pa_color'=>'blue']
+        foreach ($required as $req_key => $req_val) {
+            if (empty($variation[$req_key])) {
+                $variation[$req_key] = $req_val;
             }
-        }
-
-        // If no attributes provided, get them from the variation
-        if (empty($variation) && $variation_product) {
-            $variation = $variation_product->get_variation_attributes();
         }
     }
 
-    // Handle grouped products (redirect to product page)
+    // Grouped products -> send to product page
     if ($product->is_type('grouped')) {
         wc_add_notice(__('Please select products from the group to add to cart.', 'woocommerce'), 'notice');
         wp_safe_redirect($product->get_permalink());
         exit;
     }
 
-    // Validate stock availability
-    if (!$product->has_enough_stock($quantity)) {
+    // Stock check on actual purchasable
+    $stock_product = ($variation_id > 0) ? wc_get_product($variation_id) : $product;
+    if (!$stock_product || !$stock_product->has_enough_stock($quantity)) {
         wc_add_notice(
-            sprintf(
-                __('Sorry, we do not have enough "%s" in stock.', 'woocommerce'),
-                $product->get_name()
-            ),
+            sprintf(__('Sorry, we do not have enough "%s" in stock.', 'woocommerce'), $stock_product ? $stock_product->get_name() : $product->get_name()),
             'error'
         );
         return;
     }
 
-    // Add to cart
     try {
         $added = false;
-        
+
         if ($variation_id > 0) {
-            // Add variable product
-            $added = WC()->cart->add_to_cart(
-                $product_id,
-                $quantity,
-                $variation_id,
-                $variation,
-                $cart_item_data
-            );
+            $added = WC()->cart->add_to_cart($product_id, $quantity, $variation_id, $variation, $cart_item_data);
         } else {
-            // Add simple or other product types
-            $added = WC()->cart->add_to_cart(
-                $product_id,
-                $quantity,
-                0,
-                array(),
-                $cart_item_data
-            );
+            $added = WC()->cart->add_to_cart($product_id, $quantity, 0, array(), $cart_item_data);
         }
 
         if ($added) {
-            // Success message
             wc_add_to_cart_message(array($product_id => $quantity), true);
-            
-            // Get redirect URL
-            $redirect_url = onepaqucpro_get_cart_redirect_url();
-            
-            // Redirect to cart or custom URL
+
+            // Always redirect to a clean /checkout/ (strip all onepaqucpro_* and attribute params)
+            $redirect_url = onepaqucpro_get_clean_checkout_url();
             wp_safe_redirect($redirect_url);
             exit;
         } else {
             wc_add_notice(__('Unable to add product to cart.', 'woocommerce'), 'error');
         }
-        
     } catch (Exception $e) {
         wc_add_notice($e->getMessage(), 'error');
     }
+}
+
+/**
+ * Normalize attribute key to Woo format (must start with 'attribute_').
+ */
+function onepaqucpro_normalize_attr_key($key)
+{
+    $key = wc_clean(wp_unslash($key));
+    $key = strtolower($key);
+    if (strpos($key, 'attribute_') !== 0) {
+        $key = 'attribute_' . $key;
+    }
+    return $key;
+}
+
+/**
+ * Normalize attribute value to the slug Woo expects (e.g. "Deep Blue" -> "deep-blue").
+ */
+function onepaqucpro_normalize_attr_value($value)
+{
+    return sanitize_title(wc_clean(wp_unslash($value)));
+}
+
+/**
+ * Build a clean checkout URL without any onepaqucpro_* params, preventing re-add on refresh.
+ */
+function onepaqucpro_get_clean_checkout_url()
+{
+    $checkout_url = wc_get_checkout_url();
+
+    $remove = array(
+        'onepaqucpro_add-to-cart',
+        'onepaqucpro_quantity',
+        'onepaqucpro_variation_id',
+        'onepaqucpro_variations',
+    );
+
+    if (!empty($_GET)) {
+        foreach (array_keys($_GET) as $k) {
+            if (strpos($k, 'onepaqucpro_attribute_') === 0) {
+                $remove[] = $k;
+            }
+        }
+    }
+
+    return remove_query_arg(array_unique($remove), $checkout_url);
 }
 
 /**
@@ -1475,10 +1509,11 @@ function onepaqucpro_handle_url_add_to_cart() {
  * 
  * @return string Redirect URL
  */
-function onepaqucpro_get_cart_redirect_url() {
+function onepaqucpro_get_cart_redirect_url()
+{
     // Get the current URL without query parameters
     $current_url = home_url(add_query_arg(array(), wp_unslash($_SERVER['REQUEST_URI'])));
-    
+
     // Remove all onepaqucpro parameters
     $redirect_url = remove_query_arg(
         array(
@@ -1488,7 +1523,7 @@ function onepaqucpro_get_cart_redirect_url() {
         ),
         $current_url
     );
-    
+
     // Remove attribute parameters
     $parsed_url = parse_url($current_url);
     if (isset($parsed_url['query'])) {
@@ -1499,7 +1534,7 @@ function onepaqucpro_get_cart_redirect_url() {
             }
         }
     }
-    
+
     // Stay on the same page (cart, checkout, or wherever they were)
     return $redirect_url;
 }
@@ -1510,17 +1545,18 @@ function onepaqucpro_get_cart_redirect_url() {
  */
 add_filter('woocommerce_add_cart_item_data', 'onepaqucpro_add_custom_cart_item_data', 10, 3);
 
-function onepaqucpro_add_custom_cart_item_data($cart_item_data, $product_id, $variation_id) {
+function onepaqucpro_add_custom_cart_item_data($cart_item_data, $product_id, $variation_id)
+{
     // Check if this was added via our URL handler
     if (isset($_GET['onepaqucpro_add-to-cart'])) {
         // Add custom data here if needed
         // Example: $cart_item_data['custom_field'] = 'custom_value';
-        
+
         // Add a unique identifier to prevent duplicate cart items from being merged
         // Remove this if you want products to merge in cart
         // $cart_item_data['unique_key'] = md5(microtime() . rand());
     }
-    
+
     return $cart_item_data;
 }
 
@@ -1529,10 +1565,11 @@ function onepaqucpro_add_custom_cart_item_data($cart_item_data, $product_id, $va
  */
 add_filter('woocommerce_add_to_cart_validation', 'onepaqucpro_validate_cart_item', 10, 3);
 
-function onepaqucpro_validate_cart_item($passed, $product_id, $quantity) {
+function onepaqucpro_validate_cart_item($passed, $product_id, $quantity)
+{
     // Add custom validation rules here
     // Example: Check if user is logged in for certain products
-    
+
     return $passed;
 }
 
@@ -1545,4 +1582,4 @@ add_action('template_redirect', function () {
 }, 1);
 
 // Let users access checkout even if the cart is empty
-add_filter( 'woocommerce_checkout_redirect_empty_cart', '__return_false' );
+add_filter('woocommerce_checkout_redirect_empty_cart', '__return_false');

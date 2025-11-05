@@ -104,11 +104,9 @@ if (get_option('rmenupro_link_product', 0)) {
  */
 if (get_option('rmenupro_variation_show_archive', 1)  && (get_option("rmenupro_wc_direct_checkout_position", "after_add_to_cart") === "after_add_to_cart" || get_option("rmenupro_wc_direct_checkout_position", "after_add_to_cart") === "bottom_add_to_cart" || get_option("rmenupro_wc_direct_checkout_position", "after_add_to_cart") === "before_add_to_cart" || get_option("rmenupro_wc_direct_checkout_position", "after_add_to_cart") === "replace_add_to_cart")) {
     global $onepaqucpro_variation_buttons_on_archive;
-    $onepaqucpro_variation_buttons_on_archive = false;
+    $onepaqucpro_variation_buttons_on_archive = array();
     add_filter('woocommerce_loop_add_to_cart_link', 'onepaqucpro_add_variation_buttons_to_loop', 100, 2);
-    if (! $onepaqucpro_variation_buttons_on_archive) {
-        new onepaqucpro_add_variation_buttons_on_archive();
-    }
+    new onepaqucpro_add_variation_buttons_on_archive();
 } else {
     new onepaqucpro_add_variation_buttons_on_archive();
 }
@@ -164,7 +162,13 @@ class onepaqucpro_add_variation_buttons_on_archive
 
         global $onepaqucpro_variation_buttons_on_archive;
 
-        if (!$product || !$product->is_type('variable') || $onepaqucpro_variation_buttons_on_archive) {
+        $product_id = $product->get_id();
+
+        if (!$product || !$product->is_type('variable')) {
+            return;
+        }
+
+        if(isset($onepaqucpro_variation_buttons_on_archive[$product_id])){
             return;
         }
 
@@ -174,7 +178,7 @@ class onepaqucpro_add_variation_buttons_on_archive
             return;
         }
 
-        $onepaqucpro_variation_buttons_on_archive = true;
+        $onepaqucpro_variation_buttons_on_archive[$product_id] = true;
 
         $position = get_option("rmenupro_wc_direct_checkout_position", "after_product");
         $layout       = get_option('rmenu_variation_layout', 'separate'); // 'combine' | 'separate'
@@ -277,7 +281,7 @@ class onepaqucpro_add_variation_buttons_on_archive
                     $attrs  = [];
                     foreach ($combo as $k => $opt) {
                         $labels[]  = $opt['label'];
-                        $attrs[$k] = $opt['slug'];
+                        $attrs['attribute_'.$k] = $opt['slug'];
                     }
 
                     echo '<button type="button" class="variation-button" data-id="' . esc_attr($vid) . '" data-attrs="' . esc_attr(wp_json_encode($attrs)) . '">'
@@ -410,11 +414,17 @@ class onepaqucpro_add_variation_buttons_on_archive
 function onepaqucpro_add_variation_buttons_to_loop($link, $product)
 {
     global $onepaqucpro_variation_buttons_on_archive;
-    $onepaqucpro_variation_buttons_on_archive = true;
+    $product_id = $product->get_id();
 
     if (!$product || !$product->is_type('variable')) {
         return $link;
     }
+
+    if(isset($onepaqucpro_variation_buttons_on_archive[$product_id])){
+        return $link;
+    }
+
+    $onepaqucpro_variation_buttons_on_archive[$product_id] = true;
 
     $available_variations = $product->get_available_variations();
 
@@ -516,7 +526,7 @@ function onepaqucpro_add_variation_buttons_to_loop($link, $product)
                 $attrs  = [];
                 foreach ($combo as $k => $opt) {
                     $labels[]  = $opt['label'];
-                    $attrs[$k] = $opt['slug'];
+                    $attrs['attribute_'.$k] = $opt['slug'];
                 }
 
                 echo '<button type="button" class="variation-button" data-id="' . esc_attr($vid) . '" data-attrs="' . esc_attr(wp_json_encode($attrs)) . '">'
