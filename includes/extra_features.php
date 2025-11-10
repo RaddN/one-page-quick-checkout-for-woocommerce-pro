@@ -770,9 +770,9 @@ function apply_checkout_layout_styles()
                         width: 48% !important;
                         margin: 0 !important;
                     }
-                    .onepagecheckoutwidget #order_review_heading {
-                        display: none;
-                    }
+                    // .onepagecheckoutwidget #order_review_heading {
+                    //     display: none;
+                    // }
                 }
                 </style>
                 ';
