@@ -537,7 +537,8 @@ function onepaqucpro_add_variation_buttons_to_loop($link, $product)
 
         // Keep the hidden input as before
         echo '<input type="hidden" class="variation_id" value="">';
-    } else {
+    } 
+    else {
         $attributes_terms   = [];
         $attr_keys_indexed  = [];
         $variations_for_js  = [];
