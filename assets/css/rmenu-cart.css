@@ -2053,9 +2053,9 @@ button#place_order {
 
 /* themewise css */
 
-:has(.archive-variations-container) {
+/* :has(.archive-variations-container) {
   flex-wrap: wrap;
-}
+} */
 
 .direct-checkout-button {
   min-width: fit-content !important;
