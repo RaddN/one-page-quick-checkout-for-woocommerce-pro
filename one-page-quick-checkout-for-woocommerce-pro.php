@@ -4,7 +4,7 @@
  * Plugin Name: One Page Quick Checkout for WooCommerce Pro
  * Plugin URI:  https://plugincy.com/one-page-quick-checkout-for-woocommerce-pro/
  * Description: Enhance WooCommerce with popup checkout, cart drawer, and flexible checkout templates to boost conversions.
- * Version: 1.1.0.7
+ * Version: 1.1.3
  * Author: plugincy
  * Author URI: https://plugincy.com
  * license: GPL2
@@ -24,6 +24,11 @@ add_action('plugins_loaded', function () {
         ) {
             if (is_plugin_active($plugin_file)) {
                 deactivate_plugins($plugin_file);
+                // Redirect after deactivation
+                add_action('admin_init', function () {
+                    wp_redirect(admin_url('admin.php?page=onepaqucpro_cart'));
+                    exit;
+                });
                 add_action('admin_notices', function () use ($plugin_data) {
                     echo '<div class="notice notice-warning is-dismissible"><p>';
                     esc_html_e('One Page Quick Checkout for WooCommerce (free version) has been deactivated. Please use only the Pro version.', 'one-page-quick-checkout-for-woocommerce-pro');
@@ -39,7 +44,7 @@ if (! defined('ABSPATH')) exit; // Exit if accessed directly
 
 define('ONEPAQUCPRO_PLUGIN_URL', plugin_dir_url(__FILE__));
 
-define("RMENUPRO_VERSION", "1.1.0.7");
+define("RMENUPRO_VERSION", "1.1.3");
 
 require_once plugin_dir_path(__FILE__) . 'admin/license-tab.php';
 
@@ -207,10 +212,12 @@ function onepaqucpro_cart_enqueue_scripts()
         }
     }
 
-    wp_enqueue_style('rmenupro-cart-style', plugin_dir_url(__FILE__) . 'assets/css/rmenu-cart.css', array(), "1.1.0.7");
-    wp_enqueue_style('checkout-form-two-column', plugin_dir_url(__FILE__) . 'assets/css/checkout-form-two-column.css', array(), "1.1.0.7");
-    wp_enqueue_script('rmenupro-cart-script', plugin_dir_url(__FILE__) . 'assets/js/rmenu-cart.js', array('jquery'), "1.1.0.7", true);
-    wp_enqueue_script('cart-script', plugin_dir_url(__FILE__) . 'assets/js/cart.js', array('jquery'), "1.1.0.7", true);
+    wp_enqueue_style('rmenupro-cart-style', plugin_dir_url(__FILE__) . 'assets/css/rmenu-cart.css', array(), "1.1.3");
+    if (get_option('onepaqucpro_checkout_layout', 'two_column') === "two_column") {
+        wp_enqueue_style('checkout-form-two-column', plugin_dir_url(__FILE__) . 'assets/css/checkout-form-two-column.css', array(), "1.1.3");
+    }
+    wp_enqueue_script('rmenupro-cart-script', plugin_dir_url(__FILE__) . 'assets/js/rmenu-cart.js', array('jquery'), "1.1.3", true);
+    wp_enqueue_script('cart-script', plugin_dir_url(__FILE__) . 'assets/js/cart.js', array('jquery'), "1.1.3", true);
     $direct_checkout_behave = [
         'rmenupro_wc_checkout_method' => get_option('rmenupro_wc_checkout_method', 'direct_checkout'),
         'rmenupro_wc_clear_cart' => get_option('rmenupro_wc_clear_cart', 0),
@@ -273,12 +280,12 @@ add_action('admin_enqueue_scripts', 'onepaqucpro_cart_admin_styles');
 function onepaqucpro_cart_admin_styles($hook)
 {
     if ($hook === 'toplevel_page_onepaqucpro_cart') {
-        wp_enqueue_style('onepaqucpro_cart_admin_css', plugin_dir_url(__FILE__) . 'assets/css/admin-style.css', array(), "1.1.0.7");
-        wp_enqueue_style('select2-css', plugin_dir_url(__FILE__) . 'assets/css/select2.min.css', array(), "1.1.0.7");
-        wp_enqueue_script('select2-js', plugin_dir_url(__FILE__) . 'assets/js/select2.min.js', array('jquery'), "1.1.0.7", true);
+        wp_enqueue_style('onepaqucpro_cart_admin_css', plugin_dir_url(__FILE__) . 'assets/css/admin-style.css', array(), "1.1.3");
+        wp_enqueue_style('select2-css', plugin_dir_url(__FILE__) . 'assets/css/select2.min.css', array(), "1.1.3");
+        wp_enqueue_script('select2-js', plugin_dir_url(__FILE__) . 'assets/js/select2.min.js', array('jquery'), "1.1.3", true);
     }
-    wp_enqueue_style('onepaqucpro_cart_admin_css', plugin_dir_url(__FILE__) . 'assets/css/admin-documentation.css', array(), "1.1.0.7");
-    wp_enqueue_script('rmenupro-admin-script', plugin_dir_url(__FILE__) . 'assets/js/admin-documentation.js', array('jquery'), "1.1.0.7", true);
+    wp_enqueue_style('onepaqucpro_cart_admin_css', plugin_dir_url(__FILE__) . 'assets/css/admin-documentation.css', array(), "1.1.3");
+    wp_enqueue_script('rmenupro-admin-script', plugin_dir_url(__FILE__) . 'assets/js/admin-documentation.js', array('jquery'), "1.1.3", true);
     wp_enqueue_editor();
 }
 
@@ -304,7 +311,7 @@ function onepaqucpro_editor_script()
         'onepaquc_editor_script',
         plugin_dir_url(__FILE__) . 'includes/blocks/editor.js',
         array('wp-blocks', 'wp-element', 'wp-edit-post', 'wp-dom-ready', 'wp-plugins'),
-        '1.1.0.7',
+        '1.1.3',
         true
     );
 }
@@ -322,7 +329,7 @@ require_once plugin_dir_path(__FILE__) . 'includes/blocks/one-page-checkout.php'
 function onepaqucpro_rmenupro_checkout_popup($isonepagewidget = false)
 {
     // Return if this is the cart or checkout page
-    if (is_cart() || is_checkout()) {
+    if (is_cart() || !$GLOBALS['is_checkout_by_plugincy']) {
         return;
     }
 
@@ -356,6 +363,10 @@ function onepaqucpro_display_checkout_on_single_product()
 
     $product_id = get_the_ID();
     $product = wc_get_product($product_id);
+
+    if (!$product->is_purchasable() || (!$product->is_in_stock() && !$product->is_on_backorder())) {
+        return;
+    }
 
     if (!$product || !is_a($product, 'WC_Product')) {
         global $post;
@@ -395,6 +406,8 @@ function onepaqucpro_display_checkout_on_single_product()
                 // Simple, downloadable, etc.
                 WC()->cart->add_to_cart($product_id, 1);
             }
+        } else {
+            add_action('wp_footer', 'onepaqucpro_cart_add_disabled_notice');
         }
 
         add_action('wp_enqueue_scripts', 'onepaqucpro_add_checkout_inline_styles', 99);
@@ -448,6 +461,122 @@ function onepaqucpro_display_checkout_on_single_product()
 }
 
 add_action('wp', 'onepaqucpro_display_checkout_on_single_product', 99);
+
+/**
+ * Display admin notice when "Add to Cart on Page Load" is disabled
+ * Shows in wp_footer for logged-in administrators on product pages
+ */
+function onepaqucpro_cart_add_disabled_notice()
+{
+    // Only show to administrators
+    if (!current_user_can('manage_options')) {
+        return;
+    }
+
+    // Only show on single product pages
+    if (!is_product()) {
+        return;
+    }
+
+?>
+    <div id="onepaquc-admin-notice" style="
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        max-width: 400px;
+        background: linear-gradient(135deg, #fff5e6 0%, #ffffff 100%);
+        border-left: 5px solid #f39c12;
+        border-radius: 8px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        padding: 20px;
+        z-index: 999999;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        animation: slideInRight 0.5s ease-out;
+    ">
+        <button onclick="document.getElementById('onepaquc-admin-notice').style.display='none'" style="
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: transparent;
+            border: none;
+            font-size: 20px;
+            color: #999;
+            cursor: pointer;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            line-height: 1;
+        " title="Dismiss">×</button>
+
+        <div style="display: flex; align-items: start; gap: 12px;">
+            <div style="
+                background: #f39c12;
+                color: white;
+                border-radius: 50%;
+                width: 36px;
+                height: 36px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                font-size: 20px;
+                font-weight: bold;
+            ">⚠</div>
+
+            <div style="flex: 1;">
+                <h4 style="
+                    margin: 0 0 8px 0;
+                    font-size: 16px;
+                    font-weight: 600;
+                    color: #333;
+                ">Add to Cart is Disabled</h4>
+
+                <p style="
+                    margin: 0 0 12px 0;
+                    font-size: 13px;
+                    line-height: 1.5;
+                    color: #555;
+                ">
+                    <strong>One page checkout is enabled </strong> for this product but Current product will not be added to cart automatically.
+                    <strong>One Page Checkout will not respond properly.</strong>
+                </p>
+
+                <div style="
+                    background: rgba(243, 156, 18, 0.1);
+                    border-radius: 4px;
+                    padding: 10px;
+                    font-size: 12px;
+                    line-height: 1.4;
+                    color: #666;
+                    border-left: 3px solid #f39c12;
+                ">
+                    <strong style="color: #f39c12;">📌 Action Required:</strong><br>
+                    Enable <em>"Add to Cart on Page Load"</em> in<br>
+                    <strong>onpage checkout -> One Page Checkout Settings</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        #onepaquc-admin-notice button:hover {
+            color: #333 !important;
+        }
+    </style>
+<?php
+}
 
 function onepaqucpro_checkout_already_rendered(): bool
 {
@@ -566,8 +695,13 @@ add_filter('woocommerce_is_checkout', 'onepaqucpro_force_woocommerce_checkout_mo
 
 function onepaqucpro_force_woocommerce_checkout_mode($is_checkout)
 {
+
     // Don't affect wp-admin (except AJAX calls)
     if (is_admin() && !(defined('DOING_AJAX') && DOING_AJAX)) {
+        return $is_checkout;
+    }
+
+    if ($is_checkout) {
         return $is_checkout;
     }
 
@@ -603,6 +737,9 @@ function onepaqucpro_force_woocommerce_checkout_mode($is_checkout)
         || $is_popup_checkout
         || ($is_single_product && ($enable_all_opc || $per_product_enabled))
     ) {
+
+        $GLOBALS['is_checkout_by_plugincy'] = true;
+
         return true;
     }
 
@@ -936,7 +1073,7 @@ function onepaqucpro_check_for_plugin_updates($transient, $license_manager)
     }
 
     $plugin_file = plugin_basename(__FILE__); // This will automatically get the correct path
-    $current_version = defined('RMENUPRO_VERSION') ? RMENUPRO_VERSION : '1.1.0.7';
+    $current_version = defined('RMENUPRO_VERSION') ? RMENUPRO_VERSION : '1.1.3';
 
     $update_info = $license_manager->check_for_updates();
 
@@ -1205,7 +1342,7 @@ class onepaqucpro_cart_analytics_main
         $this->analytics = new onepaqucpro_cart_anaylytics(
             '03',
             'https://plugincy.com/wp-json/product-analytics/v1',
-            "1.1.0.7",
+            "1.1.3",
             'One Page Quick Checkout for WooCommerce',
             __FILE__ // Pass the main plugin file
         );
@@ -1494,7 +1631,8 @@ function onepaqucpro_normalize_attr_value($value)
  */
 function onepaqucpro_get_clean_checkout_url()
 {
-    $checkout_url = wc_get_checkout_url();
+    // Base checkout URL
+    $checkout_url = get_option('rmenupro_wc_checkout_method', 'direct_checkout') === "direct_checkout" ? wc_get_checkout_url() : wc_get_cart_url();
 
     $remove = array(
         'onepaqucpro_add-to-cart',

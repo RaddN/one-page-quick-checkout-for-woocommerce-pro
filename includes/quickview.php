@@ -403,16 +403,21 @@ class RMENUPRO_Quick_View
     private function render_quick_view_button($product)
     {
         static $displayed_products = array();
+        
 
         // Use product ID to track if we already displayed button for this product
         $product_id = $product->get_id();
 
-        if (isset($displayed_products[$product_id])) {
+        static $loop_counter = 0;
+        $loop_counter++;
+        $context_key = $product_id . '_' . $loop_counter;
+
+        if (isset($displayed_products[$context_key])) {
             return; // Already displayed for this product
         }
 
         // Mark as displayed
-        $displayed_products[$product_id] = true;
+        $displayed_products[$context_key] = true;
 
         $button_contents = $this->button_contents();
 
@@ -502,12 +507,16 @@ class RMENUPRO_Quick_View
 
         $product_id = $product->get_id();
 
-        if (isset($displayed_product_data[$product_id])) {
+        static $loop_counter = 0;
+        $loop_counter++;
+        $context_key = $product_id . '_' . $loop_counter;
+
+        if (isset($displayed_product_data[$context_key])) {
             return; // Already displayed for this product
         }
 
         // Mark as displayed
-        $displayed_product_data[$product_id] = true;
+        $displayed_product_data[$context_key] = true;
 
         // Get elements to display
         $elements = get_option('rmenupro_quick_view_content_elements', ['image', 'title', 'rating', 'price', 'excerpt', 'add_to_cart', 'meta']);

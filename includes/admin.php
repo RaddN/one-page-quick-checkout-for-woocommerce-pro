@@ -549,7 +549,7 @@ function onepaqucpro_cart_dashboard()
                             <tr valign="top">
                                 <?php $onepaquc_helper->sec_head('th', '', '', 'Add to Cart on Page Load', 'Automatically add the product to cart when the page loads.'); ?>
                                 <td>
-                                    <?php $onepaquc_helper->switcher('onepaqucpro_checkout_cart_add'); ?>
+                                    <?php $onepaquc_helper->switcher('onepaqucpro_checkout_cart_add', 1, "If you turn it off one page checkout will not work properly."); ?>
                                 </td>
                             </tr>
                             <tr valign="top">
@@ -876,10 +876,11 @@ function onepaqucpro_cart_dashboard()
                                         <span class="rmenupro-checkbox-label">Grouped Products (Coming Soon)</span>
                                     </label> -->
 
-                                        <label class="rmenupro-checkbox-container">
-                                            <input type="checkbox" name="rmenupro_show_quick_checkout_by_types[]" value="external" <?php checked(in_array('external', $product_types_option)); ?> />
+                                        <!-- <label class="rmenupro-checkbox-container">
+                                            <input type="checkbox" name="rmenupro_show_quick_checkout_by_types[]" value="external" <?php //checked(in_array('external', $product_types_option)); 
+                                                                                                                                    ?> />
                                             <span class="rmenupro-checkbox-label">External/Affiliate Products</span>
-                                        </label>
+                                        </label> -->
                                     </div>
                                 </div>
                             </div>
@@ -926,7 +927,7 @@ function onepaqucpro_cart_dashboard()
                                         </div>
 
                                         <div class="rmenupro-checkbox-column">
-                                            <h4>Other Pages</h4>
+                                            <h4>Others</h4>
                                             <label class="rmenupro-checkbox-container">
                                                 <input type="checkbox" name="rmenupro_show_quick_checkout_by_page[]" value="featured-products" <?php checked(in_array('featured-products', $product_types_option)); ?> />
                                                 <span class="rmenupro-checkbox-label">Featured Products</span>
@@ -941,18 +942,10 @@ function onepaqucpro_cart_dashboard()
                                                 <input type="checkbox" name="rmenupro_show_quick_checkout_by_page[]" value="recent" <?php checked(in_array('recent', $product_types_option)); ?> />
                                                 <span class="rmenupro-checkbox-label">Recent Products</span>
                                             </label>
-                                        </div>
-
-                                        <div class="rmenupro-checkbox-column">
-                                            <h4>Widgets & Shortcodes</h4>
-                                            <label class="rmenupro-checkbox-container">
-                                                <input type="checkbox" name="rmenupro_show_quick_checkout_by_page[]" value="widgets" <?php checked(in_array('widgets', $product_types_option)); ?> />
-                                                <span class="rmenupro-checkbox-label">Widgets</span>
-                                            </label>
 
                                             <label class="rmenupro-checkbox-container">
                                                 <input type="checkbox" name="rmenupro_show_quick_checkout_by_page[]" value="shortcodes" <?php checked(in_array('shortcodes', $product_types_option)); ?> />
-                                                <span class="rmenupro-checkbox-label">Shortcodes</span>
+                                                <span class="rmenupro-checkbox-label">Other Pages</span>
                                             </label>
                                         </div>
                                     </div>
@@ -1231,7 +1224,11 @@ function onepaqucpro_cart_dashboard()
                                         const variationTitleSwitch = document.querySelector('input[name="rmenu_show_variation_title"]');
 
                                         // Initial check
-                                        toggleDisabledClass(variationLayoutSelect.value === 'combine', variationTitleSwitch);
+                                        setTimeout(() => {
+                                            toggleDisabledClass(variationLayoutSelect.value === 'combine', variationTitleSwitch);
+                                            variationLayoutSelect.dispatchEvent(new Event('change'));
+                                        }, 1000);
+
 
                                         // Event listener for dropdown change
                                         variationLayoutSelect.addEventListener('change', function() {
@@ -1246,6 +1243,22 @@ function onepaqucpro_cart_dashboard()
                                     </td>
                                 </tr>
                             </table>
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    // if the "Enable One Page Checkout" checkbox is checked, enable the "Checkout Layout" select
+                                    const enableCheckout = document.querySelector('div#tab-4 input[name="rmenupro_variation_show_archive"]');
+
+                                    const allinputFields = Array.from(document.querySelectorAll('div#tab-4 table:nth-of-type(1) input, div#tab-4 table:nth-of-type(1) select')).filter(
+                                        el => !(el.name === "rmenupro_variation_show_archive")
+                                    ).filter(
+                                        el => !(el.name === "rmenupro_wc_hide_select_option")
+                                    );
+                                    toggleDisabledClass(!enableCheckout.checked, allinputFields); // Set initial state
+                                    enableCheckout.addEventListener('change', function() {
+                                        toggleDisabledClass(!this.checked, allinputFields);
+                                    });
+                                });
+                            </script>
                         </div>
 
                         <div class="rmenupro-settings-section plugincy_card plugincy_col-5">

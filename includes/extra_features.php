@@ -164,11 +164,15 @@ class onepaqucpro_add_variation_buttons_on_archive
 
         $product_id = $product->get_id();
 
+        static $loop_counter = 0;
+        $loop_counter++;
+        $context_key = $product_id . '_' . $loop_counter;
+
         if (!$product || !$product->is_type('variable')) {
             return;
         }
 
-        if(isset($onepaqucpro_variation_buttons_on_archive[$product_id])){
+        if (isset($onepaqucpro_variation_buttons_on_archive[$context_key])) {
             return;
         }
 
@@ -178,7 +182,7 @@ class onepaqucpro_add_variation_buttons_on_archive
             return;
         }
 
-        $onepaqucpro_variation_buttons_on_archive[$product_id] = true;
+        $onepaqucpro_variation_buttons_on_archive[$context_key] = true;
 
         $position = get_option("rmenupro_wc_direct_checkout_position", "after_product");
         $layout       = get_option('rmenu_variation_layout', 'separate'); // 'combine' | 'separate'
@@ -281,7 +285,7 @@ class onepaqucpro_add_variation_buttons_on_archive
                     $attrs  = [];
                     foreach ($combo as $k => $opt) {
                         $labels[]  = $opt['label'];
-                        $attrs['attribute_'.$k] = $opt['slug'];
+                        $attrs['attribute_' . $k] = $opt['slug'];
                     }
 
                     echo '<button type="button" class="variation-button" data-id="' . esc_attr($vid) . '" data-attrs="' . esc_attr(wp_json_encode($attrs)) . '">'
@@ -416,15 +420,19 @@ function onepaqucpro_add_variation_buttons_to_loop($link, $product)
     global $onepaqucpro_variation_buttons_on_archive;
     $product_id = $product->get_id();
 
+    static $loop_counter = 0;
+    $loop_counter++;
+    $context_key = $product_id . '_' . $loop_counter;
+
     if (!$product || !$product->is_type('variable')) {
         return $link;
     }
 
-    if(isset($onepaqucpro_variation_buttons_on_archive[$product_id])){
+    if (isset($onepaqucpro_variation_buttons_on_archive[$context_key])) {
         return $link;
     }
 
-    $onepaqucpro_variation_buttons_on_archive[$product_id] = true;
+    $onepaqucpro_variation_buttons_on_archive[$context_key] = true;
 
     $available_variations = $product->get_available_variations();
 
@@ -526,7 +534,7 @@ function onepaqucpro_add_variation_buttons_to_loop($link, $product)
                 $attrs  = [];
                 foreach ($combo as $k => $opt) {
                     $labels[]  = $opt['label'];
-                    $attrs['attribute_'.$k] = $opt['slug'];
+                    $attrs['attribute_' . $k] = $opt['slug'];
                 }
 
                 echo '<button type="button" class="variation-button" data-id="' . esc_attr($vid) . '" data-attrs="' . esc_attr(wp_json_encode($attrs)) . '">'
@@ -537,8 +545,7 @@ function onepaqucpro_add_variation_buttons_to_loop($link, $product)
 
         // Keep the hidden input as before
         echo '<input type="hidden" class="variation_id" value="">';
-    } 
-    else {
+    } else {
         $attributes_terms   = [];
         $attr_keys_indexed  = [];
         $variations_for_js  = [];
@@ -782,14 +789,32 @@ function apply_checkout_layout_styles()
 }
 if (function_exists('onepaqucpro_premium_feature') && onepaqucpro_premium_feature()) {
     // Alternative method using body class for more targeted CSS
-    add_filter('body_class', 'add_checkout_layout_body_class');
+    add_filter('body_class', 'onepaqucpro_add_checkout_layout_body_class');
 }
 
-function add_checkout_layout_body_class($classes)
+function onepaqucpro_add_checkout_layout_body_class($classes)
 {
     if (is_checkout()) {
         $layout = get_option('onepaqucpro_checkout_layout', 'two_column');
         $classes[] = 'checkout-layout-' . $layout;
     }
+    return $classes;
+}
+
+
+add_filter('woocommerce_post_class', 'onepaqucpro_add_non_purchasable_product_class', 10, 2);
+
+function onepaqucpro_add_non_purchasable_product_class($classes, $product)
+{
+    // Check if product object exists
+    if (! is_object($product)) {
+        $product = wc_get_product(get_the_ID());
+    }
+
+    // Check if product is not purchasable
+    if ($product && ! $product->is_purchasable()) {
+        $classes[] = 'plugincy-not-purchaseable';
+    }
+
     return $classes;
 }

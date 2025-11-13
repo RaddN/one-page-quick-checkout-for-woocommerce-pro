@@ -990,10 +990,10 @@ class onepaqucpro_helper
         echo '</' . esc_html($headtag) . '>';
     }
 
-    public function switcher($name, $default = 1)
+    public function switcher($name, $default = 1, $notice = "")
     { ?>
         <label class="switch">
-            <input type="checkbox" name="<?php echo esc_attr($name); ?>" value="1" <?php checked(1, get_option($name, $default), true); ?> />
+            <input data-notice="<?php echo esc_html($notice); ?>" type="checkbox" name="<?php echo esc_attr($name); ?>" value="1" <?php checked(1, get_option($name, $default), true); ?> />
             <span class="slider round"></span>
         </label>
 <?php

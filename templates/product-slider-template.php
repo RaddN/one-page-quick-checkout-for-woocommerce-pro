@@ -2,8 +2,8 @@
 if (!defined('ABSPATH')) exit;
 // Shortcode: [plugincy_one_page_checkout product_ids="" template="product-slider"]
 
-wp_enqueue_style( 'owl-carousel', plugin_dir_url(__FILE__) . '../assets/css/owl.carousel.min.css', array(), "1.1.0.7");
-wp_enqueue_style( 'owl-theme', plugin_dir_url(__FILE__) . '../assets/css/owl.theme.default.css', array(), "1.1.0.7" );
+wp_enqueue_style( 'owl-carousel', plugin_dir_url(__FILE__) . '../assets/css/owl.carousel.min.css', array(), "1.1.3");
+wp_enqueue_style( 'owl-theme', plugin_dir_url(__FILE__) . '../assets/css/owl.theme.default.css', array(), "1.1.3" );
 ?>
 
 <div class="product-slider-template">
