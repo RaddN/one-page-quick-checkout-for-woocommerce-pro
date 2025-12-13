@@ -1385,7 +1385,7 @@ function onepaqucpro_pick_variation_id($product)
     }
 
     $default_attrs = array_filter((array) $product->get_default_attributes());
-    $variations    = $product->get_available_variations();
+    $variations    = onepaqucpro_get_validated_variations( $product );
 
     // Normalize default keys to 'attribute_{taxonomy}' style
     $normalized_defaults = [];

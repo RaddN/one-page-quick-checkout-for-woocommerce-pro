@@ -50,7 +50,7 @@ function onepaqucpro_plugincy_cart_elementor_widget()
          */
         public function get_custom_help_url()
         {
-            return 'https://plugincy.com/one-page-quick-checkout-for-woocommerce-pro/';
+            return 'https://plugincy.com/one-page-quick-checkout-for-woocommerce';
         }
 
         /**

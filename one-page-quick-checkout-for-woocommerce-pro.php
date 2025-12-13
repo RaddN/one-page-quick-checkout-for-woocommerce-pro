@@ -2,9 +2,9 @@
 
 /**
  * Plugin Name: One Page Quick Checkout for WooCommerce Pro
- * Plugin URI:  https://plugincy.com/one-page-quick-checkout-for-woocommerce-pro/
+ * Plugin URI:  https://plugincy.com/one-page-quick-checkout-for-woocommerce/
  * Description: Enhance WooCommerce with popup checkout, cart drawer, and flexible checkout templates to boost conversions.
- * Version: 1.1.3.1
+ * Version: 1.1.4.10
  * Author: plugincy
  * Author URI: https://plugincy.com
  * license: GPL2
@@ -44,7 +44,7 @@ if (! defined('ABSPATH')) exit; // Exit if accessed directly
 
 define('ONEPAQUCPRO_PLUGIN_URL', plugin_dir_url(__FILE__));
 
-define("RMENUPRO_VERSION", "1.1.3.1");
+define("RMENUPRO_VERSION", "1.1.4.10");
 
 require_once plugin_dir_path(__FILE__) . 'admin/license-tab.php';
 
@@ -212,12 +212,12 @@ function onepaqucpro_cart_enqueue_scripts()
         }
     }
 
-    wp_enqueue_style('rmenupro-cart-style', plugin_dir_url(__FILE__) . 'assets/css/rmenu-cart.css', array(), "1.1.3.1");
+    wp_enqueue_style('rmenupro-cart-style', plugin_dir_url(__FILE__) . 'assets/css/rmenu-cart.css', array(), "1.1.4.10");
     if (get_option('onepaqucpro_checkout_layout', 'two_column') === "two_column") {
-        wp_enqueue_style('checkout-form-two-column', plugin_dir_url(__FILE__) . 'assets/css/checkout-form-two-column.css', array(), "1.1.3.1");
+        wp_enqueue_style('checkout-form-two-column', plugin_dir_url(__FILE__) . 'assets/css/checkout-form-two-column.css', array(), "1.1.4.10");
     }
-    wp_enqueue_script('rmenupro-cart-script', plugin_dir_url(__FILE__) . 'assets/js/rmenu-cart.js', array('jquery'), "1.1.3.1", true);
-    wp_enqueue_script('cart-script', plugin_dir_url(__FILE__) . 'assets/js/cart.js', array('jquery'), "1.1.3.1", true);
+    wp_enqueue_script('rmenupro-cart-script', plugin_dir_url(__FILE__) . 'assets/js/rmenu-cart.js', array('jquery'), "1.1.4.10", true);
+    wp_enqueue_script('cart-script', plugin_dir_url(__FILE__) . 'assets/js/cart.js', array('jquery'), "1.1.4.10", true);
     $direct_checkout_behave = [
         'rmenupro_wc_checkout_method' => get_option('rmenupro_wc_checkout_method', 'direct_checkout'),
         'rmenupro_wc_clear_cart' => get_option('rmenupro_wc_clear_cart', 0),
@@ -280,12 +280,12 @@ add_action('admin_enqueue_scripts', 'onepaqucpro_cart_admin_styles');
 function onepaqucpro_cart_admin_styles($hook)
 {
     if ($hook === 'toplevel_page_onepaqucpro_cart') {
-        wp_enqueue_style('onepaqucpro_cart_admin_css', plugin_dir_url(__FILE__) . 'assets/css/admin-style.css', array(), "1.1.3.1");
-        wp_enqueue_style('select2-css', plugin_dir_url(__FILE__) . 'assets/css/select2.min.css', array(), "1.1.3.1");
-        wp_enqueue_script('select2-js', plugin_dir_url(__FILE__) . 'assets/js/select2.min.js', array('jquery'), "1.1.3.1", true);
+        wp_enqueue_style('onepaqucpro_cart_admin_css', plugin_dir_url(__FILE__) . 'assets/css/admin-style.css', array(), "1.1.4.10");
+        wp_enqueue_style('select2-css', plugin_dir_url(__FILE__) . 'assets/css/select2.min.css', array(), "1.1.4.10");
+        wp_enqueue_script('select2-js', plugin_dir_url(__FILE__) . 'assets/js/select2.min.js', array('jquery'), "1.1.4.10", true);
     }
-    wp_enqueue_style('onepaqucpro_cart_admin_css', plugin_dir_url(__FILE__) . 'assets/css/admin-documentation.css', array(), "1.1.3.1");
-    wp_enqueue_script('rmenupro-admin-script', plugin_dir_url(__FILE__) . 'assets/js/admin-documentation.js', array('jquery'), "1.1.3.1", true);
+    wp_enqueue_style('onepaqucpro_cart_admin_css', plugin_dir_url(__FILE__) . 'assets/css/admin-documentation.css', array(), "1.1.4.10");
+    wp_enqueue_script('rmenupro-admin-script', plugin_dir_url(__FILE__) . 'assets/js/admin-documentation.js', array('jquery'), "1.1.4.10", true);
     wp_enqueue_editor();
 }
 
@@ -311,7 +311,7 @@ function onepaqucpro_editor_script()
         'onepaquc_editor_script',
         plugin_dir_url(__FILE__) . 'includes/blocks/editor.js',
         array('wp-blocks', 'wp-element', 'wp-edit-post', 'wp-dom-ready', 'wp-plugins'),
-        '1.1.3.1',
+        '1.1.4.10',
         true
     );
 }
@@ -329,7 +329,15 @@ require_once plugin_dir_path(__FILE__) . 'includes/blocks/one-page-checkout.php'
 function onepaqucpro_rmenupro_checkout_popup($isonepagewidget = false)
 {
     // Return if this is the cart or checkout page
-    if (is_cart() || !$GLOBALS['is_checkout_by_plugincy']) {
+    if (is_cart()) {
+        return;
+    }
+
+    // Global setting: popup checkout
+    $checkout_method   = get_option('rmenupro_wc_checkout_method', 'direct_checkout');
+    $is_popup_checkout = ($checkout_method === 'popup_checkout');
+
+    if(onepaqucpro_is_checkout_rendered() || !$is_popup_checkout){
         return;
     }
 
@@ -387,7 +395,7 @@ function onepaqucpro_display_checkout_on_single_product()
 
         if (get_option("onepaqucpro_checkout_cart_add", "1") === "1") {
             if ($product->is_type('variable')) {
-                $available_variations = $product->get_available_variations();
+                $available_variations = onepaqucpro_get_validated_variations($product);
                 if (!empty($available_variations)) {
                     $variation = $available_variations[0];
                     $variation_id = $variation['variation_id'];
@@ -524,6 +532,13 @@ function onepaqucpro_cart_add_disabled_notice()
             ">⚠</div>
 
             <div style="flex: 1;">
+                <div style="
+                align-self: center;
+                font-size: 12px;
+                font-weight: 600;
+                color: #f39c12;
+                white-space: nowrap;
+            ">This notice is only visible to administrators.</div>
                 <h4 style="
                     margin: 0 0 8px 0;
                     font-size: 16px;
@@ -705,27 +720,56 @@ function onepaqucpro_force_woocommerce_checkout_mode($is_checkout)
         return $is_checkout;
     }
 
-    // (1) Current page has [plugincy_one_page_checkout] shortcode
-    $has_opc_shortcode = onepaqucpro_page_has_shortcode('plugincy_one_page_checkout');
-
-    // (2) Global setting: popup checkout
+    // Global setting: popup checkout
     $checkout_method   = get_option('rmenupro_wc_checkout_method', 'direct_checkout');
     $is_popup_checkout = ($checkout_method === 'popup_checkout');
+
+
+    if(onepaqucpro_is_checkout_rendered() || $is_popup_checkout){
+        return true;
+    }
+    
+
+    return $is_checkout;
+}
+
+function onepaqucpro_is_checkout_rendered(){
+    $post_id = 0;
+    if (function_exists('get_queried_object_id')) {
+        $post_id = (int) get_queried_object_id();
+    }
+    if (!$post_id && isset($GLOBALS['post']->ID)) {
+        $post_id = (int) $GLOBALS['post']->ID;
+    }
+
+    // (1) Current page has [plugincy_one_page_checkout] shortcode
+    $has_opc_shortcode = onepaqucpro_page_has_shortcode('plugincy_one_page_checkout');
+    $has_opcs_shortcode = onepaqucpro_page_has_shortcode('onepaquc_checkout');
+    $has_checkout_block = false;
+    if (function_exists('has_block')) {
+        $has_checkout_block = has_block('plugincy/one-page-checkout', $post_id ?: null) || has_block('wc/one-page-checkout', $post_id ?: null);
+    }
+
+    $has_elementor_widget = false;
+    if ($post_id && function_exists('get_post_meta')) {
+        $elementor_data = get_post_meta($post_id, '_elementor_data', true);
+        if (is_string($elementor_data) && $elementor_data !== '') {
+            $has_elementor_widget = (strpos($elementor_data, '"widgetType":"onepaquc_checkout"') !== false) || (strpos($elementor_data, '"widgetType":"plugincy"') !== false);
+        }
+    }
+    
+
+    
 
     // (3) Single product page & (global enable-all OR per-product enabled)
     $enable_all_opc    = (bool) get_option('onepaqucpro_checkout_enable_all', 0);
     $is_single_product = function_exists('is_product') && is_product();
+    
 
     $per_product_enabled = false;
     if ($is_single_product && !$enable_all_opc) {
         // Resolve current product ID safely
-        $product_id = 0;
-        if (function_exists('get_queried_object_id')) {
-            $product_id = (int) get_queried_object_id();
-        }
-        if (!$product_id && isset($GLOBALS['post']->ID)) {
-            $product_id = (int) $GLOBALS['post']->ID;
-        }
+        $product_id = $post_id;
         if ($product_id) {
             $per_product_enabled = (bool) get_post_meta($product_id, '_one_page_checkout', true);
         }
@@ -734,17 +778,17 @@ function onepaqucpro_force_woocommerce_checkout_mode($is_checkout)
     // Apply your OR conditions
     if (
         $has_opc_shortcode
-        || $is_popup_checkout
+        || $has_opcs_shortcode
+        || $has_checkout_block
+        || $has_elementor_widget
         || ($is_single_product && ($enable_all_opc || $per_product_enabled))
     ) {
-
-        $GLOBALS['is_checkout_by_plugincy'] = true;
-
         return true;
     }
 
-    return $is_checkout;
+    return false;
 }
+
 
 /**
  * Check if the current queried page content contains a shortcode.
@@ -752,6 +796,8 @@ function onepaqucpro_force_woocommerce_checkout_mode($is_checkout)
 function onepaqucpro_page_has_shortcode($shortcode_tag)
 {
     if (empty($shortcode_tag)) return false;
+
+    
 
     // Check global $post first
     if (isset($GLOBALS['post']->post_content) && function_exists('has_shortcode')) {
@@ -1073,7 +1119,7 @@ function onepaqucpro_check_for_plugin_updates($transient, $license_manager)
     }
 
     $plugin_file = plugin_basename(__FILE__); // This will automatically get the correct path
-    $current_version = defined('RMENUPRO_VERSION') ? RMENUPRO_VERSION : '1.1.3.1';
+    $current_version = defined('RMENUPRO_VERSION') ? RMENUPRO_VERSION : '1.1.4.10';
 
     $update_info = $license_manager->check_for_updates();
 
@@ -1342,7 +1388,7 @@ class onepaqucpro_cart_analytics_main
         $this->analytics = new onepaqucpro_cart_anaylytics(
             '03',
             'https://plugincy.com/wp-json/product-analytics/v1',
-            "1.1.3.1",
+            "1.1.4.10",
             'One Page Quick Checkout for WooCommerce',
             __FILE__ // Pass the main plugin file
         );
