@@ -896,7 +896,7 @@ class onepaqucpro_add_checkout_button_on_archive
 
         if (in_array('shop-page', $allowed_pages) && is_shop()) {
             $display = true;
-        } elseif (in_array('category-archives', $allowed_pages) && is_product_category()) {
+        } elseif (in_array('category-archives', $allowed_pages) && (is_product_category() || (is_product_taxonomy() && !is_product_tag()))) {
             $display = true;
         } elseif (in_array('tag-archives', $allowed_pages) && is_product_tag()) {
             $display = true;
@@ -935,8 +935,14 @@ class onepaqucpro_add_checkout_button_on_archive
                     container.find(".product").each(function() {
                         let $this = $(this);
 
-                        // Skip if this product already has a quick checkout button
-                        if ($this.has(".plugincy-quick-checkout").length || $this.has(".outofstock").length || $this[0].classList.contains("outofstock") || $this[0].classList.contains("plugincy-not-purchaseable")) {
+                        // Skip if this product already has a quick checkout button or is not purchasable
+                        if (
+                            $this.has(".plugincy-quick-checkout").length ||
+                            $this.find(".direct-checkout-button, .opqcfw-btn, .onepaqucpro-checkout-btn, .onepaquc-checkout-btn").length ||
+                            $this.has(".outofstock").length ||
+                            $this[0].classList.contains("outofstock") ||
+                            $this[0].classList.contains("plugincy-not-purchaseable")
+                        ) {
                             return;
                         }
 
@@ -950,24 +956,95 @@ class onepaqucpro_add_checkout_button_on_archive
                         let product_type = productTypeMatch ? productTypeMatch[1] :
                             ($this.find(".button").length ? $this.find(".button").data("product-type") : null);
 
+                        // Pull a readable product title when available
+                        let product_title = $.trim(
+                            $this
+                                .find(".woocommerce-loop-product__title, .product-title, .woocommerce-loop-product__link .woocommerce-loop-product__title")
+                                .first()
+                                .text()
+                        );
+
                         // Only add button if product type is allowed and we have a product ID
                         if (quickCheckoutConfig.allowedTypes.includes(product_type) && product_id) {
-                            $this.append(
-                                `<div class='plugincy-quick-checkout ${quickCheckoutConfig.buttonPos}' style='text-align:center;'>
-                        <a class="${quickCheckoutConfig.buttonClass}" 
-                           data-product-id="${product_id}" 
-                           data-product-type="${product_type}" 
-                           data-title="" 
-                           style="${quickCheckoutConfig.buttonStyle}">
-                            ${quickCheckoutConfig.contents}
-                        </a>
-                    </div>`
-                            );
+                            const $button = $("<a/>", {
+                                class: quickCheckoutConfig.buttonClass,
+                                "data-product-id": product_id,
+                                "data-product-type": product_type,
+                                "data-title": product_title,
+                                style: quickCheckoutConfig.buttonStyle,
+                                html: quickCheckoutConfig.contents
+                            });
+
+                            const $wrapper = $("<div/>", {
+                                class: "plugincy-quick-checkout " + quickCheckoutConfig.buttonPos,
+                                style: "text-align:center;"
+                            }).append($button);
+
+                            if (!placeButtonBySetting($this, $wrapper)) {
+                                $this.append($wrapper);
+                            }
                         }
                     });
 
                     // Clean up any orphaned quick checkout buttons
                     cleanupOrphanedButtons();
+                }
+
+                /**
+                 * Place the button wrapper based on the selected position, with sensible fallbacks.
+                 * @param {jQuery} $product
+                 * @param {jQuery} $wrapper
+                 * @returns {boolean} true when inserted somewhere
+                 */
+                function placeButtonBySetting($product, $wrapper) {
+                    const pos = quickCheckoutConfig.buttonPos;
+                    const $title = $product.find(".woocommerce-loop-product__title, .product-title, .woocommerce-loop-product__link .woocommerce-loop-product__title").first();
+                    const $price = $product.find(".price, .woocommerce-Price-amount").first();
+                    const $rating = $product.find(".star-rating, .woocommerce-product-rating").first();
+                    const $excerpt = $product.find(".woocommerce-product-details__short-description, .product-excerpt, .woocommerce-loop-product__description, .woocommerce-product-summary__description, .description").first();
+
+                    switch (pos) {
+                        case "before_product_title":
+                            if ($title.length) {
+                                $title.before($wrapper);
+                                return true;
+                            }
+                            break;
+                        case "after_product_title":
+                            if ($title.length) {
+                                $title.after($wrapper);
+                                return true;
+                            }
+                            break;
+                        case "after_product_rating":
+                            if ($rating.length) {
+                                $rating.after($wrapper);
+                                return true;
+                            }
+                            if ($price.length) {
+                                $price.after($wrapper);
+                                return true;
+                            }
+                            break;
+                        case "after_product_price":
+                            if ($price.length) {
+                                $price.after($wrapper);
+                                return true;
+                            }
+                            break;
+                        case "after_product_excerpt":
+                            if ($excerpt.length) {
+                                $excerpt.after($wrapper);
+                                return true;
+                            }
+                            break;
+                        default:
+                            // overlay_thumbnail, overlay_thumbnail_hover, after_product and other positions
+                            $product.append($wrapper);
+                            return true;
+                    }
+
+                    return false;
                 }
 
                 /**
