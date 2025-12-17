@@ -163,8 +163,6 @@ class Onepaqucpro_OPQC_Checkout_Widget extends Widget_Base {
 			return;
 		}
 
-		// Safe HTML from your renderer + Woo templates.
-		global $onepaquc_onepaqucpro_allowed_tags;
-		echo wp_kses( $html, $onepaquc_onepaqucpro_allowed_tags );
+		echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 }

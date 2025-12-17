@@ -147,7 +147,7 @@ function onepaqucpro_trust_badges_settings_content()
                     <p>
                         <label>
                             <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="checkbox" id="show-custom-html" name="show_custom_html" value="1"
-                                <?php checked(1, !empty(get_option('onepaqucpro_trust_badge_custom_html', 0)), true); ?> />
+                                <?php checked(1, !empty(get_option('show_custom_html', 0)), true); ?> />
                             <?php esc_html_e('I want to use custom HTML instead', 'one-page-quick-checkout-for-woocommerce-pro'); ?>
                         </label>
                     </p>

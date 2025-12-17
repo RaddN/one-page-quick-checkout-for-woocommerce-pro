@@ -706,9 +706,9 @@ jQuery(document).ready(function ($) {
         const productId = this.dataset.productId;
 
         const data = {
-            action: 'onepaquc_ajax_add_to_cart',
+            action: 'onepaqucpro_ajax_add_to_cart',
             product_id: productId,
-            nonce: onepaqucpro_wc_cart_params.rmenu_ajax_nonce
+            nonce: onepaqucpro_wc_cart_params.nonce || '',
         };
 
         jQuery.post(onepaqucpro_wc_cart_params.ajax_url, data, function (response) {

@@ -448,7 +448,7 @@ class onepaqucpro_add_variation_buttons_on_archive
                 add_action('woocommerce_after_shop_loop_item_title', array($this, 'onepaquc_variation_buttons'), 6);
                 break;
             case 'after_product_price':
-                add_action('woocommerce_after_shop_loop_item_title', array($this, 'onepaquc_variation_buttons'), 14);
+                add_action('woocommerce_after_shop_loop_item_title', array($this, 'onepaquc_variation_buttons'), 15);
                 break;
         }
     }
@@ -493,7 +493,7 @@ class onepaqucpro_add_variation_buttons_on_archive
             $container_class .= ' bottom-48';
         }
 
-        echo '<div class="' . esc_attr($container_class) . '" data-layout="' . esc_attr($layout) . '">';
+        echo '<a href="#"></a><div class="' . esc_attr($container_class) . '" data-layout="' . esc_attr($layout) . '">';
 
         if ($layout === 'combine') {
             foreach ($available_variations as $variation) {
@@ -721,7 +721,7 @@ function onepaqucpro_add_variation_buttons_to_loop($link, $product)
     $loop_counter++;
     $context_key = $product_id . '_' . $loop_counter;
 
-    if (!$product || !$product->is_type('variable')) {
+    if (!$product || !$product->is_type('variable') || $product->is_type("grouped")) {
         return $link;
     }
 
