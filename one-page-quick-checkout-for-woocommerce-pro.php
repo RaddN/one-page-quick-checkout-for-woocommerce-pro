@@ -223,6 +223,13 @@ function onepaqucpro_cart_enqueue_scripts()
     }
     wp_enqueue_script('rmenupro-cart-script', plugin_dir_url(__FILE__) . 'assets/js/rmenu-cart.js', array('jquery'), "1.1.6.7", true);
     wp_enqueue_script('cart-script', plugin_dir_url(__FILE__) . 'assets/js/cart.js', array('jquery'), "1.1.6.7", true);
+    wp_enqueue_script(
+        'onepaqucpro-checkout-customizer-compat',
+        plugin_dir_url(__FILE__) . 'assets/js/checkout-customizer-compat.js',
+        array('rmenupro-cart-script'),
+        "1.1.6.14",
+        true
+    );
     $direct_checkout_behave = [
         'rmenupro_wc_checkout_method' => get_option('rmenupro_wc_checkout_method', 'direct_checkout'),
         'rmenupro_wc_clear_cart' => get_option('rmenupro_wc_clear_cart', 0),
