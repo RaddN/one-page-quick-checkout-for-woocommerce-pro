@@ -328,49 +328,64 @@ function onepaqucpro_trust_badges_settings_content()
 }
 
 /**
- * Render trust badges on frontend
+ * Build trust badges HTML for frontend output.
  */
-function onepaqucpro_display_trust_badges()
+function onepaqucpro_get_trust_badges_html()
 {
     // Check if trust badges are enabled
     if (!get_option('onepaqucpro_trust_badges_enabled', 0)) {
-        return;
+        return '';
     }
 
     // Only use custom HTML when explicitly enabled.
     $show_custom_html = '1' === (string) get_option('show_custom_html', '0');
     $custom_html = get_option('onepaqucpro_trust_badge_custom_html', '');
     if ($show_custom_html && !empty($custom_html)) {
-        echo $custom_html;
-        return;
+        return (string) $custom_html;
     }
 
     // Otherwise, build the badges from settings
     $badges = get_option('onepaqucpro_my_trust_badges_items', array());
     $style = get_option('onepaqucpro_trust_badge_style', 'horizontal');
 
-    if (empty($badges)) {
-        return;
+    if (empty($badges) || !is_array($badges)) {
+        return '';
     }
 
-    echo '<div class="onepaquc-trust-badges style-' . esc_attr($style) . '">';
+    $html = '<div class="onepaquc-trust-badges style-' . esc_attr($style) . '">';
 
     foreach ($badges as $badge) {
         if (empty($badge['enabled'])) {
             continue;
         }
 
-        echo '<div class="trust-badge">';
+        $html .= '<div class="trust-badge">';
         if (!empty($badge['icon'])) {
-            echo '<i class="dashicons ' . esc_attr($badge['icon']) . '"></i>';
+            $html .= '<i class="dashicons ' . esc_attr($badge['icon']) . '"></i>';
         }
         if (!empty($badge['text'])) {
-            echo '<span>' . esc_html($badge['text']) . '</span>';
+            $html .= '<span>' . esc_html($badge['text']) . '</span>';
         }
-        echo '</div>';
+        $html .= '</div>';
     }
 
-    echo '</div>';
+    $html .= '</div>';
+
+    return $html;
+}
+
+/**
+ * Render trust badges on frontend
+ */
+function onepaqucpro_display_trust_badges()
+{
+    $html = onepaqucpro_get_trust_badges_html();
+    if ('' === trim($html)) {
+        return;
+    }
+
+    // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Custom HTML is intentionally allowed for this feature.
+    echo $html;
 }
 
 /**
@@ -397,6 +412,219 @@ function onepaqucpro_add_trust_badges_to_checkout()
 }
 if (function_exists('onepaqucpro_premium_feature') && onepaqucpro_premium_feature()) {
     add_action('init', 'onepaqucpro_add_trust_badges_to_checkout');
+}
+
+/**
+ * Add trust badges to WooCommerce Checkout Block output.
+ *
+ * Note: Blocks do not trigger classic checkout hooks like
+ * woocommerce_before_checkout_form / woocommerce_after_checkout_form.
+ */
+function onepaqucpro_add_trust_badges_to_checkout_block($block_content, $block)
+{
+    if (is_admin() && !wp_doing_ajax()) {
+        return $block_content;
+    }
+
+    if (!is_array($block) || empty($block['blockName']) || 'woocommerce/checkout' !== $block['blockName']) {
+        return $block_content;
+    }
+
+    if (false !== strpos($block_content, 'onepaquc-trust-badges-block-hook')) {
+        return $block_content;
+    }
+
+    $badges_html = onepaqucpro_get_trust_badges_html();
+    if ('' === trim($badges_html)) {
+        return $block_content;
+    }
+
+    $position = get_option('onepaqucpro_trust_badge_position', 'below_checkout');
+    $wrapped_badges_html = '<div class="onepaquc-trust-badges-block-hook">' . $badges_html . '</div>';
+
+    if ('above_checkout' === $position) {
+        return $wrapped_badges_html . $block_content;
+    }
+
+    if ('below_checkout' === $position) {
+        return $block_content . $wrapped_badges_html;
+    }
+
+    if ('payment_section' === $position) {
+        static $source_index = 0;
+        $source_index++;
+
+        // Keep source outside payment block and mount it into the payment section via JS.
+        $source_html = '<div class="onepaquc-trust-badges-payment-source" data-onepaquc-trust-badges-payment-source="1" data-onepaquc-source-id="' . esc_attr((string) $source_index) . '" style="display:none;">' . $badges_html . '</div>';
+        return $block_content . $source_html;
+    }
+
+    // order_summary is not exposed as a stable server-side hook point in Checkout Blocks.
+    return $block_content . $wrapped_badges_html;
+}
+if (function_exists('onepaqucpro_premium_feature') && onepaqucpro_premium_feature()) {
+    add_filter('render_block_woocommerce/checkout', 'onepaqucpro_add_trust_badges_to_checkout_block', 20, 2);
+}
+
+/**
+ * Move trust badges into the payment section for Checkout Blocks.
+ */
+function onepaqucpro_trust_badges_blocks_payment_section_script()
+{
+    if (is_admin()) {
+        return;
+    }
+
+    if (!function_exists('is_checkout') || !is_checkout()) {
+        return;
+    }
+
+    if (!get_option('onepaqucpro_trust_badges_enabled', 0)) {
+        return;
+    }
+
+    if ('payment_section' !== get_option('onepaqucpro_trust_badge_position', 'below_checkout')) {
+        return;
+    }
+?>
+    <script>
+        (function() {
+            function findPaymentTarget(root) {
+                if (!root) {
+                    return null;
+                }
+
+                var selectors = [
+                    '.wc-block-components-checkout-step--payment-methods .wc-block-components-checkout-step__container',
+                    '.wc-block-components-checkout-step--payment .wc-block-components-checkout-step__container',
+                    '.wc-block-components-checkout-step--payment-methods',
+                    '.wc-block-components-checkout-step--payment',
+                    '.wc-block-components-checkout-payment-methods',
+                    '.wc-block-components-payment-methods',
+                    '.wc-block-checkout__payment-methods',
+                    '.wp-block-woocommerce-checkout-payment-block'
+                ];
+
+                for (var i = 0; i < selectors.length; i++) {
+                    var target = root.querySelector(selectors[i]);
+                    if (target) {
+                        return target;
+                    }
+                }
+
+                return null;
+            }
+
+            function createOrGetMount(root, sourceId, sourceHtml) {
+                if (!root) {
+                    return null;
+                }
+
+                var selector = '.onepaquc-trust-badges-block-hook--payment-section[data-onepaquc-source-id="' + sourceId + '"]';
+                var mount = root.querySelector(selector);
+
+                if (!mount) {
+                    mount = document.createElement('div');
+                    mount.className = 'onepaquc-trust-badges-block-hook onepaquc-trust-badges-block-hook--payment-section';
+                    mount.setAttribute('data-onepaquc-source-id', sourceId);
+                    mount.innerHTML = sourceHtml;
+                }
+
+                return mount;
+            }
+
+            function mountSources() {
+                var sources = document.querySelectorAll('[data-onepaquc-trust-badges-payment-source="1"]');
+                var mountedAny = false;
+
+                for (var i = 0; i < sources.length; i++) {
+                    var source = sources[i];
+                    var sourceId = source.getAttribute('data-onepaquc-source-id') || String(i + 1);
+
+                    var checkoutRoot = source.previousElementSibling;
+                    if (!checkoutRoot || !checkoutRoot.matches('.wp-block-woocommerce-checkout, .wc-block-checkout, .wc-block-components-checkout')) {
+                        checkoutRoot = document.querySelector('.wp-block-woocommerce-checkout, .wc-block-checkout, .wc-block-components-checkout');
+                    }
+
+                    if (!checkoutRoot) {
+                        continue;
+                    }
+
+                    var paymentTarget = findPaymentTarget(checkoutRoot);
+                    if (!paymentTarget) {
+                        continue;
+                    }
+
+                    var mount = createOrGetMount(checkoutRoot, sourceId, source.innerHTML);
+                    if (!mount) {
+                        continue;
+                    }
+
+                    if (mount.parentNode !== paymentTarget) {
+                        paymentTarget.appendChild(mount);
+                    }
+
+                    source.setAttribute('data-onepaquc-mounted', '1');
+                    mountedAny = true;
+                }
+
+                return mountedAny;
+            }
+
+            function fallbackBelowCheckout() {
+                var sources = document.querySelectorAll('[data-onepaquc-trust-badges-payment-source="1"]');
+                for (var i = 0; i < sources.length; i++) {
+                    var source = sources[i];
+                    if ('1' === source.getAttribute('data-onepaquc-mounted')) {
+                        continue;
+                    }
+
+                    var checkoutRoot = source.previousElementSibling;
+                    if (!checkoutRoot || !checkoutRoot.matches('.wp-block-woocommerce-checkout, .wc-block-checkout, .wc-block-components-checkout')) {
+                        continue;
+                    }
+
+                    var sourceId = source.getAttribute('data-onepaquc-source-id') || String(i + 1);
+                    var mount = document.createElement('div');
+                    mount.className = 'onepaquc-trust-badges-block-hook onepaquc-trust-badges-block-hook--payment-fallback';
+                    mount.setAttribute('data-onepaquc-source-id', sourceId);
+                    mount.innerHTML = source.innerHTML;
+                    checkoutRoot.parentNode.insertBefore(mount, checkoutRoot.nextSibling);
+                    source.setAttribute('data-onepaquc-mounted', '1');
+                }
+            }
+
+            function init() {
+                mountSources();
+
+                var observer = new MutationObserver(function() {
+                    mountSources();
+                });
+
+                observer.observe(document.body, {
+                    childList: true,
+                    subtree: true
+                });
+
+                window.setTimeout(function() {
+                    observer.disconnect();
+                    if (!mountSources()) {
+                        fallbackBelowCheckout();
+                    }
+                }, 12000);
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+        })();
+    </script>
+<?php
+}
+if (function_exists('onepaqucpro_premium_feature') && onepaqucpro_premium_feature()) {
+    add_action('wp_footer', 'onepaqucpro_trust_badges_blocks_payment_section_script', 99);
 }
 
 /**
