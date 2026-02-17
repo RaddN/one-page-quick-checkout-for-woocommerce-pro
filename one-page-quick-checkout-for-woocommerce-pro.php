@@ -224,6 +224,13 @@ function onepaqucpro_cart_enqueue_scripts()
     wp_enqueue_script('rmenupro-cart-script', plugin_dir_url(__FILE__) . 'assets/js/rmenu-cart.js', array('jquery'), "1.1.6.7", true);
     wp_enqueue_script('cart-script', plugin_dir_url(__FILE__) . 'assets/js/cart.js', array('jquery'), "1.1.6.7", true);
     wp_enqueue_script(
+        'onepaqucpro-checkout-blocks-script',
+        plugin_dir_url(__FILE__) . 'assets/js/checkout-blocks.js',
+        array('jquery', 'cart-script'),
+        "1.1.6.15",
+        true
+    );
+    wp_enqueue_script(
         'onepaqucpro-checkout-customizer-compat',
         plugin_dir_url(__FILE__) . 'assets/js/checkout-customizer-compat.js',
         array('rmenupro-cart-script'),
@@ -244,6 +251,12 @@ function onepaqucpro_cart_enqueue_scripts()
         'remove_cart_item' => esc_js(wp_create_nonce('remove_cart_item')),
         'onepaqucpro_refresh_checkout_product_list' => esc_js(wp_create_nonce('onepaqucpro_refresh_checkout_product_list')),
         'get_variations_nonce' => esc_js(wp_create_nonce('get_variations_nonce')), // Add this line
+        'blocks_quantity_control' => get_option("rmenupro_quantity_control", "1"),
+        'blocks_remove_product' => get_option("rmenupro_remove_product", "1"),
+        'blocks_link_product' => get_option("rmenupro_link_product", "0"),
+        'i18n_remove_item' => esc_html__('Remove this item', 'one-page-quick-checkout-for-woocommerce-pro'),
+        'i18n_decrease_quantity' => esc_html__('Decrease quantity', 'one-page-quick-checkout-for-woocommerce-pro'),
+        'i18n_increase_quantity' => esc_html__('Increase quantity', 'one-page-quick-checkout-for-woocommerce-pro'),
         'direct_checkout_behave' => $direct_checkout_behave,
         'checkout_url' => wc_get_checkout_url(),
         'cart_url'     => wc_get_cart_url(),

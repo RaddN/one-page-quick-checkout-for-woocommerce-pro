@@ -19,6 +19,15 @@ jQuery(document).ready(function ($) {
     let isUpdatingCart = false;
     let isUpdatingCheckout = false;
     $isonepagewidget = ($('.checkout-popup,#checkout-popup').length) ? $('.checkout-popup,#checkout-popup').data('isonepagewidget') : false;
+
+    function hasCheckoutFormOnPage() {
+        return !!(
+            $('form.checkout.woocommerce-checkout').length ||
+            $('.wp-block-woocommerce-checkout, .wc-block-checkout, .wc-block-components-checkout').length ||
+            $('.one-page-checkout-container form.checkout.woocommerce-checkout').length
+        );
+    }
+
     // Function to fetch and update cart contents
     function updateCartContent(isdrawer = true) {
         if (isUpdatingCart) return;
@@ -40,7 +49,7 @@ jQuery(document).ready(function ($) {
             success: function (response) {
                 if (response.success) {
                     $('.rmenupro-cart').html(response.data.cart_html);
-                    if (isdrawer && response.data.cart_count !== 0) {
+                    if (isdrawer && response.data.cart_count !== 0 && !hasCheckoutFormOnPage()) {
                         window.openCartDrawer();
                     }
                     isUpdatingCart = false;
@@ -80,6 +89,7 @@ jQuery(document).ready(function ($) {
     // Event handler for adding/removing items from the cart
     $(document.body).on('added_to_cart removed_from_cart', function () {
         const cartDrawer = document.querySelector('.cart-drawer');
+        const canOpenDrawer = !hasCheckoutFormOnPage();
         if (cartDrawer && cartDrawer.length && cartDrawer.classList.contains('open')) {
             window.createCheckoutIframe();
             window.refreshCheckoutIframe();
@@ -87,7 +97,7 @@ jQuery(document).ready(function ($) {
             window.createCheckoutIframe();
             window.refreshCheckoutIframe();
             // window.updateCartCount();
-            debouncedUpdate();
+            debouncedUpdate(canOpenDrawer);
         }
     });
 
@@ -116,11 +126,15 @@ jQuery(document).ready(function ($) {
     }
 
     function debouncedUpdate(showdrawer = true) {
+        if (hasCheckoutFormOnPage()) {
+            showdrawer = false;
+        }
+
         $is_drawerOpen = ($('.cart-drawer').length && $('.cart-drawer').hasClass('open')) ? true : false;
-        if ($isonepagewidget && !$is_drawerOpen) {
+        if (!showdrawer || ($isonepagewidget && !$is_drawerOpen)) {
             updateCartContent(false);
         } else {
-            updateCartContent();
+            updateCartContent(true);
         }
         updateCheckoutForm();
     }

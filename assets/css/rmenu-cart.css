@@ -1199,6 +1199,67 @@ table.one-page-checkout-product-table td {
   gap: 15px;
 }
 
+/* WooCommerce Blocks checkout order-summary controls */
+.wc-block-components-order-summary-item .onepaquc-blocks-controls {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.wc-block-components-order-summary-item .onepaquc-blocks-qty {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid #dcdcdc;
+  border-radius: 4px;
+  padding: 2px;
+  background: #fff;
+}
+
+.wc-block-components-order-summary-item .onepaquc-blocks-qty button {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: #f5f5f5;
+  border-radius: 3px;
+  line-height: 1;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.wc-block-components-order-summary-item .onepaquc-blocks-qty-input {
+  width: 56px;
+  text-align: center;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  margin: 0;
+  padding: 0;
+}
+
+.wc-block-components-order-summary-item .onepaquc-blocks-remove {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 3px;
+  background: #ffe8e8;
+  color: #c0392b;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.wc-block-components-order-summary-item .onepaquc-blocks-product-link {
+  text-decoration: underline;
+}
+
+.wc-block-components-order-summary-item.onepaquc-blocks-item-updating {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
 .product-accordion-template .opc-product-image img {
   width: 80px;
   height: auto;
