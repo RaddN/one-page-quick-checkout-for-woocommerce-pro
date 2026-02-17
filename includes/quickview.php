@@ -92,11 +92,69 @@ class RMENUPRO_Quick_View
     }
 
     /**
-     * Treat non-tag product taxonomies (attributes, brands, etc.) as archive pages.
+     * Default page targets for Quick View.
+     */
+    private function get_default_allowed_pages()
+    {
+        return array('shop-page', 'category-archives', 'tag-archives', 'brand-archives', 'attribute-archives', 'single-product', 'search', 'featured-products', 'on-sale', 'recent', 'widgets', 'shortcodes');
+    }
+
+    /**
+     * Get allowed page targets from settings.
+     */
+    private function get_allowed_pages()
+    {
+        $allowed_pages = get_option('rmenupro_show_quick_view_by_page', $this->get_default_allowed_pages());
+
+        return is_array($allowed_pages) ? $allowed_pages : array();
+    }
+
+    /**
+     * Check product category archive context.
      */
     private function is_category_archive_context()
     {
-        return is_product_category() || (function_exists('is_product_taxonomy') && is_product_taxonomy() && !is_product_tag());
+        return is_product_category();
+    }
+
+    /**
+     * Check product brand archive context.
+     */
+    private function is_brand_archive_context()
+    {
+        $brand_taxonomies = array('product_brand', 'pwb-brand', 'yith_product_brand', 'berocket_brand', 'br_product_brand', 'brand');
+
+        $product_taxonomies = get_object_taxonomies('product', 'names');
+        if (is_array($product_taxonomies)) {
+            foreach ($product_taxonomies as $taxonomy) {
+                if (false !== stripos($taxonomy, 'brand')) {
+                    $brand_taxonomies[] = $taxonomy;
+                }
+            }
+        }
+
+        $brand_taxonomies = apply_filters('rmenupro_quick_view_brand_taxonomies', $brand_taxonomies);
+
+        if (function_exists('wc_get_attribute_taxonomy_names')) {
+            $brand_taxonomies = array_diff((array) $brand_taxonomies, wc_get_attribute_taxonomy_names());
+        }
+
+        $brand_taxonomies = array_values(array_filter(array_unique((array) $brand_taxonomies), 'taxonomy_exists'));
+
+        return !empty($brand_taxonomies) && is_tax($brand_taxonomies);
+    }
+
+    /**
+     * Check product attribute archive context.
+     */
+    private function is_attribute_archive_context()
+    {
+        if (!function_exists('wc_get_attribute_taxonomy_names')) {
+            return false;
+        }
+
+        $attribute_taxonomies = wc_get_attribute_taxonomy_names();
+        return !empty($attribute_taxonomies) && is_tax($attribute_taxonomies);
     }
 
     /**
@@ -112,7 +170,19 @@ class RMENUPRO_Quick_View
             return true;
         }
 
+        if (in_array('brand-archives', $allowed_pages, true) && $this->is_brand_archive_context()) {
+            return true;
+        }
+
+        if (in_array('attribute-archives', $allowed_pages, true) && $this->is_attribute_archive_context()) {
+            return true;
+        }
+
         if (in_array('tag-archives', $allowed_pages, true) && is_product_tag()) {
+            return true;
+        }
+
+        if (in_array('single-product', $allowed_pages, true) && is_product()) {
             return true;
         }
 
@@ -136,7 +206,7 @@ class RMENUPRO_Quick_View
             return true;
         }
 
-        if (in_array('shortcodes', $allowed_pages, true) && is_singular()) {
+        if (in_array('shortcodes', $allowed_pages, true) && is_singular() && !is_product()) {
             return true;
         }
 
@@ -157,7 +227,7 @@ class RMENUPRO_Quick_View
         $this->is_btn_add_hook_works = true;
 
         // Check if current page is allowed
-        $allowed_pages = get_option('rmenupro_show_quick_view_by_page', ['shop-page', 'category-archives', "tag-archives", 'search', "featured-products", "on-sale", "recent", "widgets", "shortcodes"]);
+        $allowed_pages = $this->get_allowed_pages();
 
         if (!$this->should_display_quick_view_on_current_page($allowed_pages)) {
             return $link;
@@ -186,14 +256,10 @@ class RMENUPRO_Quick_View
 
         global $onepaquc_onepaquc_onepaqucpro_allowed_tags;
 
-        if (is_singular('product')) {
-            return;
-        }
-
         $button_contents = $this->button_contents();
 
         // Check if current page is allowed
-        $allowed_pages = get_option('rmenupro_show_quick_view_by_page', ['shop-page', 'category-archives', "tag-archives", 'search', "featured-products", "on-sale", "recent", "widgets", "shortcodes"]);
+        $allowed_pages = $this->get_allowed_pages();
 
         if (!$this->should_display_quick_view_on_current_page($allowed_pages)) {
             return;
@@ -216,6 +282,11 @@ class RMENUPRO_Quick_View
                 function initQuickViewButtons(container = $(document)) {
                     container.find(".product").each(function() {
                         let $this = $(this);
+
+                        // On single product pages, target related/upsell/cross-sell loop products only.
+                        if ($('body').hasClass('single-product') && !$this.closest('ul.products, .wc-block-grid__products, section.related, section.upsells, .cross-sells').length) {
+                            return;
+                        }
 
                         // Skip if this product already has a quick view button or conflicting plugin button
                         if ($this.has(".rmenu-quick-view-overlay").length || $this.has(".opqvfw-btn").length) {
@@ -345,7 +416,7 @@ class RMENUPRO_Quick_View
         $this->is_btn_add_hook_works = true;
 
         // Check if current page is allowed
-        $allowed_pages = get_option('rmenupro_show_quick_view_by_page', ['shop-page', 'category-archives', "tag-archives", 'search', "featured-products", "on-sale", "recent", "widgets", "shortcodes"]);
+        $allowed_pages = $this->get_allowed_pages();
 
         if (!$this->should_display_quick_view_on_current_page($allowed_pages)) {
             return;
@@ -368,7 +439,7 @@ class RMENUPRO_Quick_View
 
         // Same checks as display_quick_view_button
         $allowed_types = get_option('rmenupro_show_quick_view_by_types', ['simple', 'variable', "grouped", "external"]);
-        if (!in_array($product->get_type(), $allowed_types)) {
+        if (!in_array($product->get_type(), $allowed_types, true)) {
             return;
         }
 
@@ -642,7 +713,7 @@ class RMENUPRO_Quick_View
 
         if ($load_scripts === 'all') {
             $load = true;
-        } elseif ($load_scripts === 'wc-only' && (is_shop() || $this->is_category_archive_context() || is_product_tag() || is_product() || is_cart() || is_checkout())) {
+        } elseif ($load_scripts === 'wc-only' && (is_shop() || $this->is_category_archive_context() || $this->is_brand_archive_context() || $this->is_attribute_archive_context() || is_product_tag() || is_product() || is_cart() || is_checkout())) {
             $load = true;
         } elseif ($load_scripts === 'specific') {
             $specific_pages = get_option('rmenupro_quick_view_specific_pages', '');
