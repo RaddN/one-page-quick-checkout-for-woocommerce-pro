@@ -91,6 +91,58 @@ class RMENUPRO_Quick_View
         }
     }
 
+    /**
+     * Treat non-tag product taxonomies (attributes, brands, etc.) as archive pages.
+     */
+    private function is_category_archive_context()
+    {
+        return is_product_category() || (function_exists('is_product_taxonomy') && is_product_taxonomy() && !is_product_tag());
+    }
+
+    /**
+     * Check whether quick view should be shown on current page.
+     */
+    private function should_display_quick_view_on_current_page($allowed_pages)
+    {
+        if (in_array('shop-page', $allowed_pages, true) && is_shop()) {
+            return true;
+        }
+
+        if (in_array('category-archives', $allowed_pages, true) && $this->is_category_archive_context()) {
+            return true;
+        }
+
+        if (in_array('tag-archives', $allowed_pages, true) && is_product_tag()) {
+            return true;
+        }
+
+        if (in_array('search', $allowed_pages, true) && is_search()) {
+            return true;
+        }
+
+        if (in_array('featured-products', $allowed_pages, true) && wc_get_loop_prop('is_featured')) {
+            return true;
+        }
+
+        if (in_array('on-sale', $allowed_pages, true) && wc_get_loop_prop('is_on_sale')) {
+            return true;
+        }
+
+        if (in_array('recent', $allowed_pages, true) && wc_get_loop_prop('is_recent')) {
+            return true;
+        }
+
+        if (in_array('widgets', $allowed_pages, true) && (is_active_widget(false, false, 'woocommerce_products', true) || is_active_widget(false, false, 'woocommerce_top_rated_products', true))) {
+            return true;
+        }
+
+        if (in_array('shortcodes', $allowed_pages, true) && is_singular()) {
+            return true;
+        }
+
+        return false;
+    }
+
 
     public function onepaquc_display_quick_view_button_to_add_to_cart($link, $product)
     {
@@ -98,7 +150,7 @@ class RMENUPRO_Quick_View
         $displayed_quick_view_buttons = true;
         // Check if product type is allowed
         $allowed_types = get_option('rmenupro_show_quick_view_by_types', ['simple', 'variable', "grouped", "external"]);
-        if (!in_array($product->get_type(), $allowed_types)) {
+        if (!in_array($product->get_type(), $allowed_types, true)) {
             return $link;
         }
 
@@ -106,29 +158,8 @@ class RMENUPRO_Quick_View
 
         // Check if current page is allowed
         $allowed_pages = get_option('rmenupro_show_quick_view_by_page', ['shop-page', 'category-archives', "tag-archives", 'search', "featured-products", "on-sale", "recent", "widgets", "shortcodes"]);
-        $display = false;
 
-        if (in_array('shop-page', $allowed_pages) && is_shop()) {
-            $display = true;
-        } elseif (in_array('category-archives', $allowed_pages) && is_product_category()) {
-            $display = true;
-        } elseif (in_array('tag-archives', $allowed_pages) && is_product_tag()) {
-            $display = true;
-        } elseif (in_array('search', $allowed_pages) && is_search()) {
-            $display = true;
-        } elseif (in_array('featured-products', $allowed_pages) && wc_get_loop_prop('is_featured')) {
-            $display = true;
-        } elseif (in_array('on-sale', $allowed_pages) && wc_get_loop_prop('is_on_sale')) {
-            $display = true;
-        } elseif (in_array('recent', $allowed_pages) && wc_get_loop_prop('is_recent')) {
-            $display = true;
-        } elseif (in_array('widgets', $allowed_pages) && (is_active_widget(false, false, 'woocommerce_products', true) || is_active_widget(false, false, 'woocommerce_top_rated_products', true))) {
-            $display = true;
-        } elseif (in_array('shortcodes', $allowed_pages) && is_singular()) {
-            $display = true;
-        }
-
-        if (!$display) {
+        if (!$this->should_display_quick_view_on_current_page($allowed_pages)) {
             return $link;
         }
 
@@ -163,29 +194,8 @@ class RMENUPRO_Quick_View
 
         // Check if current page is allowed
         $allowed_pages = get_option('rmenupro_show_quick_view_by_page', ['shop-page', 'category-archives', "tag-archives", 'search', "featured-products", "on-sale", "recent", "widgets", "shortcodes"]);
-        $display = false;
 
-        if (in_array('shop-page', $allowed_pages) && is_shop()) {
-            $display = true;
-        } elseif (in_array('category-archives', $allowed_pages) && is_product_category()) {
-            $display = true;
-        } elseif (in_array('tag-archives', $allowed_pages) && is_product_tag()) {
-            $display = true;
-        } elseif (in_array('search', $allowed_pages) && is_search()) {
-            $display = true;
-        } elseif (in_array('featured-products', $allowed_pages) && wc_get_loop_prop('is_featured')) {
-            $display = true;
-        } elseif (in_array('on-sale', $allowed_pages) && wc_get_loop_prop('is_on_sale')) {
-            $display = true;
-        } elseif (in_array('recent', $allowed_pages) && wc_get_loop_prop('is_recent')) {
-            $display = true;
-        } elseif (in_array('widgets', $allowed_pages) && (is_active_widget(false, false, 'woocommerce_products', true) || is_active_widget(false, false, 'woocommerce_top_rated_products', true))) {
-            $display = true;
-        } elseif (in_array('shortcodes', $allowed_pages) && is_singular()) {
-            $display = true;
-        }
-
-        if (!$display) {
+        if (!$this->should_display_quick_view_on_current_page($allowed_pages)) {
             return;
         }
 ?>
@@ -328,7 +338,7 @@ class RMENUPRO_Quick_View
 
         // Check if product type is allowed
         $allowed_types = get_option('rmenupro_show_quick_view_by_types', ['simple', 'variable', "grouped", "external"]);
-        if (!in_array($product->get_type(), $allowed_types)) {
+        if (!in_array($product->get_type(), $allowed_types, true)) {
             return;
         }
 
@@ -336,29 +346,8 @@ class RMENUPRO_Quick_View
 
         // Check if current page is allowed
         $allowed_pages = get_option('rmenupro_show_quick_view_by_page', ['shop-page', 'category-archives', "tag-archives", 'search', "featured-products", "on-sale", "recent", "widgets", "shortcodes"]);
-        $display = false;
 
-        if (in_array('shop-page', $allowed_pages) && is_shop()) {
-            $display = true;
-        } elseif (in_array('category-archives', $allowed_pages) && is_product_category()) {
-            $display = true;
-        } elseif (in_array('tag-archives', $allowed_pages) && is_product_tag()) {
-            $display = true;
-        } elseif (in_array('search', $allowed_pages) && is_search()) {
-            $display = true;
-        } elseif (in_array('featured-products', $allowed_pages) && wc_get_loop_prop('is_featured')) {
-            $display = true;
-        } elseif (in_array('on-sale', $allowed_pages) && wc_get_loop_prop('is_on_sale')) {
-            $display = true;
-        } elseif (in_array('recent', $allowed_pages) && wc_get_loop_prop('is_recent')) {
-            $display = true;
-        } elseif (in_array('widgets', $allowed_pages) && (is_active_widget(false, false, 'woocommerce_products', true) || is_active_widget(false, false, 'woocommerce_top_rated_products', true))) {
-            $display = true;
-        } elseif (in_array('shortcodes', $allowed_pages) && is_singular()) {
-            $display = true;
-        }
-
-        if (!$display) {
+        if (!$this->should_display_quick_view_on_current_page($allowed_pages)) {
             return;
         }
 
@@ -653,7 +642,7 @@ class RMENUPRO_Quick_View
 
         if ($load_scripts === 'all') {
             $load = true;
-        } elseif ($load_scripts === 'wc-only' && (is_shop() || is_product_category() || is_product_tag() || is_product() || is_cart() || is_checkout())) {
+        } elseif ($load_scripts === 'wc-only' && (is_shop() || $this->is_category_archive_context() || is_product_tag() || is_product() || is_cart() || is_checkout())) {
             $load = true;
         } elseif ($load_scripts === 'specific') {
             $specific_pages = get_option('rmenupro_quick_view_specific_pages', '');
