@@ -202,15 +202,15 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
 
                                         $product = wc_get_product($related_product);
 
-                                        // Check if product exists and is a simple product
-                                        if ($product && $product->get_type() === 'simple') {
+                                        // Show only simple products that can be purchased right now
+                                        if ($product && $product->get_type() === 'simple' && $product->is_purchasable() && $product->is_in_stock()) {
                                             echo '<div class="recommended-product">';
                                             echo '<a href="' . esc_url($product->get_permalink()) . '">';
                                             echo wp_kses_post($product->get_image());
                                             echo '<h4>' . esc_html($product->get_name()) . '</h4>';
                                             echo '<span class="price">' . wp_kses_post($product->get_price_html()) . '</span>';
                                             echo '</a>';
-                                            echo '<button class="add-to-cart-button" data-product-id="' . esc_attr($product->get_id()) . '">Add to Cart</button>';
+                                            echo '<button type="button" class="add-to-cart-button" data-product-id="' . esc_attr($product->get_id()) . '">' . esc_html($product->add_to_cart_text()) . '</button>';
                                             echo '</div>';
 
                                             $simple_products_shown++;

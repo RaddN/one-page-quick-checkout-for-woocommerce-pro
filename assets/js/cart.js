@@ -691,19 +691,31 @@ jQuery(document).ready(function ($) {
                 .prop('disabled', true)
                 .text('Adding...');
         } else {
+            var originalText = $button.data('original-text') || 'Add to Cart';
             $button
                 .removeClass("loading")
                 .prop('disabled', false)
-                .text('Add to Cart');
+                .text(originalText);
         }
     }
 
     $(document).on('click', '.add-to-cart-button', function (e) {
+        e.preventDefault();
         var $button = $(this);
         setbtnLoadingState($button, true);
         const couponMessage = document.getElementById('coupon-message');
 
         const productId = this.dataset.productId;
+
+        if (!productId) {
+            if (couponMessage) {
+                couponMessage.textContent = 'Unable to add product. Invalid product ID.';
+                couponMessage.className = 'coupon-message error';
+                couponMessage.style.display = "block";
+            }
+            setbtnLoadingState($button, false);
+            return;
+        }
 
         const data = {
             action: 'onepaqucpro_ajax_add_to_cart',
@@ -711,36 +723,72 @@ jQuery(document).ready(function ($) {
             nonce: onepaqucpro_wc_cart_params.nonce || '',
         };
 
-        jQuery.post(onepaqucpro_wc_cart_params.ajax_url, data, function (response) {
-            if (response.success) {
-                const cart_items = document.querySelector('.cart-items');
-                if (cart_items && response.cart_items_html) {
-                    cart_items.innerHTML = response.cart_items_html; // Use innerHTML
+        jQuery.post(onepaqucpro_wc_cart_params.ajax_url, data)
+            .done(function (response) {
+                if (typeof response === 'string') {
+                    try {
+                        response = JSON.parse(response);
+                    } catch (error) {
+                        response = { success: false, message: 'Unexpected server response.' };
+                    }
                 }
 
+                if (response && response.success) {
+                    const cart_items = document.querySelector('.cart-items');
+                    if (cart_items && response.cart_items_html) {
+                        cart_items.innerHTML = response.cart_items_html; // Use innerHTML
+                    }
+
+                    // Update cart count
+                    const cartCount = document.querySelector('span.cart-count');
+                    if (cartCount) {
+                        cartCount.textContent = response.cart_count;
+                    }
+
+                    // Show success message
+                    if (couponMessage) {
+                        couponMessage.textContent = 'Product added to cart!';
+                        couponMessage.className = 'coupon-message success';
+                        couponMessage.style.display = "block";
+                    }
+
+                    // Trigger WooCommerce hook
+                    $(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash]);
+
+                    debouncedUpdate();
+
+                    // Clear message after delay
+                    setTimeout(() => {
+                        if (couponMessage) {
+                            couponMessage.textContent = '';
+                            couponMessage.className = 'coupon-message';
+                            couponMessage.style.display = "none";
+                        }
+                    }, 3000);
+                } else {
+                    const errorMessage = (response && response.message) ? response.message : 'Could not add product to cart.';
+                    if (couponMessage) {
+                        couponMessage.textContent = errorMessage;
+                        couponMessage.className = 'coupon-message error';
+                        couponMessage.style.display = "block";
+                    } else {
+                        alert(errorMessage);
+                    }
+                }
+            })
+            .fail(function () {
+                const errorMessage = 'Failed to add product to cart. Please try again.';
+                if (couponMessage) {
+                    couponMessage.textContent = errorMessage;
+                    couponMessage.className = 'coupon-message error';
+                    couponMessage.style.display = "block";
+                } else {
+                    alert(errorMessage);
+                }
+            })
+            .always(function () {
                 setbtnLoadingState($button, false);
-
-                // Update cart count
-                document.querySelector('span.cart-count').textContent = response.cart_count;
-
-                // Show success message
-                couponMessage.textContent = 'Product added to cart!';
-                couponMessage.className = 'coupon-message success';
-                couponMessage.style.display = "block";
-
-                // Trigger WooCommerce hook
-                $(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash]);
-
-                debouncedUpdate();
-
-                // Clear message after delay
-                setTimeout(() => {
-                    couponMessage.textContent = '';
-                    couponMessage.className = 'coupon-message';
-                    couponMessage.style.display = "none";
-                }, 3000);
-            }
-        });
+            });
 
     });
 

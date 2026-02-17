@@ -208,16 +208,22 @@ function onepaqucpro_ajax_add_to_cart()
 
     // Get default quantity from settings if quantity is not provided
     if (function_exists('onepaqucpro_premium_feature') && onepaqucpro_premium_feature()) {
-        $default_qty = get_option('rmenupro_add_to_cart_default_qty', '1');
+        $default_qty = absint(get_option('rmenupro_add_to_cart_default_qty', '1'));
     } else {
         $default_qty = 1; // Default to 1 if premium feature is not available
     }
 
-    // Use posted quantity if available, otherwise use default
-    $quantity = empty($_POST['quantity']) ? $default_qty : (int) sanitize_text_field(wp_unslash($_POST['quantity']));
+    if ($default_qty < 1) {
+        $default_qty = 1;
+    }
+
+    // Use posted quantity if available, otherwise use default. Always keep quantity >= 1.
+    $posted_quantity = isset($_POST['quantity']) ? absint(wp_unslash($_POST['quantity'])) : 0;
+    $quantity = $posted_quantity > 0 ? $posted_quantity : $default_qty;
 
     $variation_id = empty($_POST['variation_id']) ? 0 : absint($_POST['variation_id']);
-    $variations = !empty($_POST['variations']) ? array_map('sanitize_text_field', wp_unslash($_POST['variations'])) : array();
+    $raw_variations = isset($_POST['variations']) ? wp_unslash($_POST['variations']) : array();
+    $variations = is_array($raw_variations) ? array_map('sanitize_text_field', $raw_variations) : array();
 
     $product_status = get_post_status($product_id);
 
@@ -316,6 +322,7 @@ function onepaqucpro_ajax_add_to_cart()
         wp_send_json($response);
     } else {
         $data = array(
+            'success' => false,
             'error' => true,
             'message' => esc_html__('Error adding product to cart', 'one-page-quick-checkout-for-woocommerce-pro')
         );

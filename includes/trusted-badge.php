@@ -83,7 +83,7 @@ function onepaqucpro_trust_badges_settings_content()
                 </td>
             </tr>
 
-            <tr valign="top">
+            <tr valign="top" class="badge-style-row" style="<?php echo $show_custom_html ? 'display:none;' : ''; ?>">
                 <th scope="row"><?php esc_html_e('Badge Style', 'one-page-quick-checkout-for-woocommerce-pro'); ?></th>
                 <td>
                     <select <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> name="<?php echo !onepaqucpro_premium_feature() ? 'pro_trust_badge_style' : 'onepaqucpro_trust_badge_style'; ?>">
@@ -93,7 +93,7 @@ function onepaqucpro_trust_badges_settings_content()
                     </select>
                 </td>
             </tr>
-            <tr valign="top">
+            <tr valign="top" class="badge-items-row" style="<?php echo $show_custom_html ? 'display:none;' : ''; ?>">
                 <th scope="row"><?php esc_html_e('Trust Badge Items', 'one-page-quick-checkout-for-woocommerce-pro'); ?></th>
                 <td>
                     <div class="trust-badges-container">
@@ -248,19 +248,37 @@ function onepaqucpro_trust_badges_settings_content()
         jQuery(document).ready(function($) {
 
 
-            // Toggle custom HTML editor visibility
-            $('#show-custom-html').on('change', function() {
-                if ($(this).is(':checked')) {
-                    $('.badge-items-wrapper').closest('tr').hide();
-                    $('#custom-html-editor').slideDown();
+            function onepaqucproToggleCustomHtmlMode(isChecked, animate) {
+                var badgeItemsRow = $('.badge-items-row');
+                var badgeStyleRow = $('.badge-style-row');
+                var customHtmlEditor = $('#custom-html-editor');
+
+                if (isChecked) {
+                    badgeItemsRow.hide();
+                    badgeStyleRow.hide();
+
+                    if (animate) {
+                        customHtmlEditor.stop(true, true).slideDown();
+                    } else {
+                        customHtmlEditor.show();
+                    }
                 } else {
-                    $('#custom-html-editor').slideUp();
-                    $('.badge-items-wrapper').closest('tr').show();
+                    badgeItemsRow.show();
+                    badgeStyleRow.show();
+
+                    if (animate) {
+                        customHtmlEditor.stop(true, true).slideUp();
+                    } else {
+                        customHtmlEditor.hide();
+                    }
                 }
+            }
+
+            $('#show-custom-html').on('change', function() {
+                onepaqucproToggleCustomHtmlMode($(this).is(':checked'), true);
             });
 
-            // initialilly trigger on change to set visibility
-            $('#show-custom-html').trigger('change');
+            onepaqucproToggleCustomHtmlMode($('#show-custom-html').is(':checked'), false);
 
             // if onepaqucpro_trust_badges_enabled is not checked, disable all fields use on change
             $('input[name="onepaqucpro_trust_badges_enabled"]').on('change', function() {
@@ -314,14 +332,6 @@ function onepaqucpro_trust_badges_settings_content()
                 $(this).next('.preview-icon').html('<i class="dashicons ' + iconClass + '"></i>');
             });
 
-            // Toggle custom HTML section
-            $('#show-custom-html').on('change', function() {
-                if ($(this).is(':checked')) {
-                    $('#custom-html-editor').slideDown();
-                } else {
-                    $('#custom-html-editor').slideUp();
-                }
-            });
         });
     </script>
 <?php
