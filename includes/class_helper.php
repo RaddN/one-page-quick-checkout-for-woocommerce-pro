@@ -14,13 +14,13 @@ class onepaqucpro_helper
 
     public function sec_head($headtag, $class, $icon, $title, $tooltip = '', $description = '')
     {
-        global $onepaquc_onepaqucpro_allowed_tags;
+        global $onepaquc_onepaquc_onepaqucpro_allowed_tags;
 
         echo '<' . esc_html($headtag) . ' class="' . esc_html($class) . '">';
 
         // Check if icon is not empty
         if (!empty($icon)) {
-            echo '<span class="plugincy_sec_icon">' . wp_kses($icon, $onepaquc_onepaqucpro_allowed_tags) . '</span>';
+            echo '<span class="plugincy_sec_icon">' . wp_kses($icon, $onepaquc_onepaquc_onepaqucpro_allowed_tags) . '</span>';
         }
 
         echo '<span class="plugincy_sec_title">' . esc_html($title);
