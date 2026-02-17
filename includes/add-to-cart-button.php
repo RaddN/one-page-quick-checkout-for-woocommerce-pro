@@ -910,7 +910,7 @@ class ONEPAQUCPRO_Add_To_Cart_Handler
         // Get checkout URL
         $checkout_url = function_exists('wc_get_checkout_url') ? wc_get_checkout_url() : WC()->cart->get_checkout_url();
 
-        $redirect_option = get_option('rmenu_redirect_after_add', 'none');
+        $redirect_option = get_option('rmenupro_redirect_after_add', 'none');
         $redirect_url = 'none';
 
         if ($redirect_option === 'cart') {
