@@ -744,7 +744,7 @@ function onepaqucpro_force_woocommerce_checkout_mode($is_checkout)
     return $is_checkout;
 }
 
-function onepaqucpro_is_checkout_rendered(){
+function onepaqucpro_is_checkout_rendered($include_single_product_context = true){
     $post_id = 0;
     if (function_exists('get_queried_object_id')) {
         $post_id = (int) get_queried_object_id();
@@ -792,7 +792,7 @@ function onepaqucpro_is_checkout_rendered(){
         || $has_opcs_shortcode
         || $has_checkout_block
         || $has_elementor_widget
-        || ($is_single_product && ($enable_all_opc || $per_product_enabled))
+        || ($include_single_product_context && $is_single_product && ($enable_all_opc || $per_product_enabled))
     ) {
         return true;
     }
@@ -829,6 +829,99 @@ function onepaqucpro_page_has_shortcode($shortcode_tag)
 
     return false;
 }
+
+/**
+ * Decide if this request should bypass page cache.
+ *
+ * We only disable cache on front-end pages where this plugin renders
+ * an on-page checkout form via shortcode/block/Elementor widget.
+ *
+ * @return bool
+ */
+function onepaqucpro_should_disable_page_cache()
+{
+    static $should_disable = null;
+
+    if (null !== $should_disable) {
+        return $should_disable;
+    }
+
+    // Avoid caching a false negative before front-end query context is ready.
+    if (!did_action('wp') && !did_action('template_redirect')) {
+        return false;
+    }
+
+    if (
+        (is_admin() && !wp_doing_ajax())
+        || is_feed()
+        || is_trackback()
+        || is_robots()
+        || (defined('REST_REQUEST') && REST_REQUEST)
+    ) {
+        $should_disable = false;
+        return $should_disable;
+    }
+
+    // Cache bypass should apply only when checkout is embedded via our block/widget/shortcode.
+    $should_disable = onepaqucpro_is_checkout_rendered(false);
+    return $should_disable;
+}
+
+/**
+ * Mark checkout-form requests as uncacheable for popular cache plugins.
+ */
+function onepaqucpro_prevent_cache_for_checkout_form_pages()
+{
+    if (!onepaqucpro_should_disable_page_cache()) {
+        return;
+    }
+
+    // Widely supported no-cache flags used by many WordPress cache plugins.
+    if (!defined('DONOTCACHEPAGE')) define('DONOTCACHEPAGE', true);
+    if (!defined('DONOTCACHEDB')) define('DONOTCACHEDB', true);
+    if (!defined('DONOTCACHEOBJECT')) define('DONOTCACHEOBJECT', true);
+    if (!defined('DONOTMINIFY')) define('DONOTMINIFY', true);
+    if (!defined('DONOTCDN')) define('DONOTCDN', true);
+
+    // LiteSpeed Cache specific constant.
+    if (!defined('LSCACHE_NO_CACHE')) define('LSCACHE_NO_CACHE', true);
+
+    // LiteSpeed Cache runtime no-cache signal (safe even if LiteSpeed is inactive).
+    do_action('litespeed_control_set_nocache', 'onepaqucpro_checkout_form_page');
+}
+add_action('wp', 'onepaqucpro_prevent_cache_for_checkout_form_pages', 1);
+
+/**
+ * Send explicit no-cache headers for checkout-form pages.
+ */
+function onepaqucpro_send_nocache_headers_for_checkout_form_pages()
+{
+    if (!onepaqucpro_should_disable_page_cache() || headers_sent()) {
+        return;
+    }
+
+    nocache_headers();
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0', true);
+    header('Pragma: no-cache', true);
+    header('Expires: Wed, 11 Jan 1984 05:00:00 GMT', true);
+}
+add_action('send_headers', 'onepaqucpro_send_nocache_headers_for_checkout_form_pages', 1);
+
+/**
+ * Extra compatibility: disable WP Rocket cache file generation for these pages.
+ *
+ * @param bool $should_generate Whether WP Rocket should generate cache files.
+ * @return bool
+ */
+function onepaqucpro_disable_wp_rocket_cache_generation($should_generate)
+{
+    if (onepaqucpro_should_disable_page_cache()) {
+        return false;
+    }
+
+    return $should_generate;
+}
+add_filter('do_rocket_generate_caching_files', 'onepaqucpro_disable_wp_rocket_cache_generation');
 
 
 require_once plugin_dir_path(__FILE__) . 'includes/extra_features.php';
