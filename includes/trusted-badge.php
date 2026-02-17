@@ -32,6 +32,7 @@ function onepaqucpro_trust_badges_settings_content()
             'enabled' => 1
         )
     ));
+    $show_custom_html = '1' === (string) get_option('show_custom_html', '0');
 
     // Get available dashicons for selection
     $dashicons = array(
@@ -147,12 +148,12 @@ function onepaqucpro_trust_badges_settings_content()
                     <p>
                         <label>
                             <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="checkbox" id="show-custom-html" name="show_custom_html" value="1"
-                                <?php checked(1, !empty(get_option('show_custom_html', 0)), true); ?> />
+                                <?php checked(true, $show_custom_html, true); ?> />
                             <?php esc_html_e('I want to use custom HTML instead', 'one-page-quick-checkout-for-woocommerce-pro'); ?>
                         </label>
                     </p>
 
-                    <div id="custom-html-editor" style="<?php echo empty(get_option('onepaqucpro_trust_badge_custom_html')) ? 'display:none;' : ''; ?>">
+                    <div id="custom-html-editor" style="<?php echo $show_custom_html ? '' : 'display:none;'; ?>">
                         <textarea <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> name="onepaqucpro_trust_badge_custom_html" rows="6" class="large-text code"><?php echo esc_textarea(get_option('onepaqucpro_trust_badge_custom_html', '')); ?></textarea>
                         <p class="description"><?php esc_html_e('Custom HTML for trust badges. You can use dashicons or include your own images.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
                     </div>
@@ -336,9 +337,10 @@ function onepaqucpro_display_trust_badges()
         return;
     }
 
-    // Check if we're using custom HTML
+    // Only use custom HTML when explicitly enabled.
+    $show_custom_html = '1' === (string) get_option('show_custom_html', '0');
     $custom_html = get_option('onepaqucpro_trust_badge_custom_html', '');
-    if (!empty($custom_html)) {
+    if ($show_custom_html && !empty($custom_html)) {
         echo $custom_html;
         return;
     }
