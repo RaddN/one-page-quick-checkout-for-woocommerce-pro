@@ -34,10 +34,10 @@ $onepaqucpro_rcheckoutformfields = [
 ];
 
 
-global $onepaquc_onepaqucpro_allowed_tags;
+global $onepaquc_onepaquc_onepaqucpro_allowed_tags;
 
 
-$onepaquc_onepaqucpro_allowed_tags = array(
+$onepaquc_onepaquc_onepaqucpro_allowed_tags = array(
     'a' => array(
         'href' => array(),
         'title' => array(),
@@ -764,6 +764,14 @@ $onepaquc_onepaqucpro_allowed_tags = array(
         'version' => array(),
         'x' => array(),
         'y' => array(),
+        'fill' => array(),
+        'stroke' => array(),
+        'stroke-width' => array(),
+        'stroke-linecap' => array(),
+        'stroke-linejoin' => array(),
+        'role' => array(),
+        'aria-hidden' => array(),
+        'aria-label' => array(),
     ),
     'g' => array(
         'class' => array(),

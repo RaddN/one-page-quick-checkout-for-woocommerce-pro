@@ -343,7 +343,7 @@ function onepaqucpro_add_icons_to_buttons()
 ?>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const addToCartButtons = document.querySelectorAll('.add_to_cart_button:not(.product_type_variable), .single_add_to_cart_button:not(.product_type_variable)');
+            const addToCartButtons = document.querySelectorAll('.add_to_cart_button:not(.product_type_variable):not(.product_type_grouped):not(.product_type_external):not(.ast-select-options-trigger), .single_add_to_cart_button:not(.product_type_variable):not(.product_type_grouped):not(.product_type_external):not(.ast-select-options-trigger)');
             const svgIcon = `<?php echo $svg_icon; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                                 ?>`;
             const iconPosition = '<?php echo esc_attr($icon_position); ?>';

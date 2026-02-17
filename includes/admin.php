@@ -1089,6 +1089,49 @@ function onepaqucpro_cart_dashboard()
                                             <input type="color" name="rmenupro_wc_checkout_text_color" value="<?php echo esc_attr(get_option('rmenupro_wc_checkout_text_color', '#ffffff')); ?>" class="rmenupro-color-picker" />
                                         </td>
                                     </tr>
+                                    <tr>
+                                        <th class="rmenupro-settings-label">Hover Background Color</th>
+                                        <td class="rmenupro-settings-control">
+                                            <input type="color" name="rmenupro_wc_checkout_hover_bg_color" value="<?php echo esc_attr(get_option('rmenupro_wc_checkout_hover_bg_color', '#222222')); ?>" class="rmenupro-color-picker" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th class="rmenupro-settings-label">Hover Text Color</th>
+                                        <td class="rmenupro-settings-control">
+                                            <input type="color" name="rmenupro_wc_checkout_hover_text_color" value="<?php echo esc_attr(get_option('rmenupro_wc_checkout_hover_text_color', '#ffffff')); ?>" class="rmenupro-color-picker" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th class="rmenupro-settings-label">Border Radius</th>
+                                        <td class="rmenupro-settings-control">
+                                            <input type="number" name="rmenupro_wc_checkout_border_radius" value="<?php echo esc_attr(get_option('rmenupro_wc_checkout_border_radius', '4')); ?>" class="small-text" min="0" max="50" step="1" />
+                                            <span class="rmenupro-unit">px</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th class="rmenupro-settings-label">Button Font Size</th>
+                                        <td class="rmenupro-settings-control">
+                                            <input type="number" name="rmenupro_wc_checkout_font_size" value="<?php echo esc_attr(get_option('rmenupro_wc_checkout_font_size', '14')); ?>" class="small-text" min="10" max="30" step="1" />
+                                            <span class="rmenupro-unit">px</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th class="rmenupro-settings-label">Button Width</th>
+                                        <td class="rmenupro-settings-control">
+                                            <select name="rmenupro_wc_checkout_width" class="rmenupro-select">
+                                                <option value="auto" <?php selected(get_option('rmenupro_wc_checkout_width', 'auto'), 'auto'); ?>>Auto</option>
+                                                <option value="full" <?php selected(get_option('rmenupro_wc_checkout_width', 'auto'), 'full'); ?>>Full Width</option>
+                                                <option value="custom" <?php selected(get_option('rmenupro_wc_checkout_width', 'auto'), 'custom'); ?>>Custom Width</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <tr id="rmenupro-checkout-custom-width-row" style="<?php echo (get_option('rmenupro_wc_checkout_width', 'auto') == 'custom') ? 'display:flex;' : 'display:none;'; ?>">
+                                        <th class="rmenupro-settings-label">Custom Width Value</th>
+                                        <td class="rmenupro-settings-control">
+                                            <input type="number" name="rmenupro_wc_checkout_custom_width" value="<?php echo esc_attr(get_option('rmenupro_wc_checkout_custom_width', '220')); ?>" class="small-text" min="50" max="500" step="1" />
+                                            <span class="rmenupro-unit">px</span>
+                                        </td>
+                                    </tr>
 
 
                                     <tr class="rmenupro-settings-row rmenupro-custom-css-row" id="rmenupro-custom-css-row" style="<?php echo (get_option('rmenupro_wc_checkout_style', 'default') == 'custom') ? 'display:flex;' : 'display:none;'; ?> grid-row: span 2;">
@@ -1134,6 +1177,19 @@ function onepaqucpro_cart_dashboard()
 
                             const buttonStyleSection = document.querySelector('.rmenupro-settings-section.direct-button-style-section  table tbody');
                             const allFields = Array.from(buttonStyleSection ? buttonStyleSection.children : []).slice(1);
+                            const checkoutWidthField = document.querySelector('select[name="rmenupro_wc_checkout_width"]');
+                            const checkoutCustomWidthRow = document.getElementById('rmenupro-checkout-custom-width-row');
+
+                            function toggleCheckoutCustomWidthRow() {
+                                if (!checkoutWidthField || !checkoutCustomWidthRow) {
+                                    return;
+                                }
+
+                                const isCustomWidth = checkoutWidthField.value === 'custom';
+                                const hasCustomStyleEnabled = button_style && button_style.value !== 'default';
+                                checkoutCustomWidthRow.style.display = (hasCustomStyleEnabled && isCustomWidth) ? 'flex' : 'none';
+                            }
+
                             // if rmenupro_wc_checkout_icon is 'none', disable the icon position field
                             const iconSelect = document.querySelector('select[name="rmenupro_wc_checkout_icon"]');
                             const iconPositionField = document.querySelector('select[name="rmenupro_wc_checkout_icon_position"]');
@@ -1154,14 +1210,23 @@ function onepaqucpro_cart_dashboard()
                                     if (this.value !== 'default') {
                                         allFields.forEach(field => field.style.display = 'flex');
                                         document.querySelector('#rmenupro-custom-css-row').style.display = (this.value === 'custom') ? 'flex' : 'none';
+                                        toggleCheckoutCustomWidthRow();
                                     } else {
                                         allFields.forEach(field => field.style.display = 'none');
+                                        if (checkoutCustomWidthRow) {
+                                            checkoutCustomWidthRow.style.display = 'none';
+                                        }
                                     }
                                 });
 
                                 // Trigger change event on page load to set initial visibility
                                 button_style.dispatchEvent(new Event('change'));
 
+                            }
+
+                            if (checkoutWidthField) {
+                                checkoutWidthField.addEventListener('change', toggleCheckoutCustomWidthRow);
+                                checkoutWidthField.dispatchEvent(new Event('change'));
                             }
 
                             // if rmenupro_wc_checkout_color (which is bg color) & rmenupro_wc_checkout_text_color (which is text color) both are dark or light, show a warning message
@@ -1177,6 +1242,21 @@ function onepaqucpro_cart_dashboard()
 
                                 // Initial check on page load
                                 checkColors(checkoutColor, checkoutTextColor, button_style && button_style.value !== 'default');
+                            }
+
+                            // if rmenupro_wc_checkout_hover_bg_color (which is bg color) & rmenupro_wc_checkout_hover_text_color (which is text color) both are dark or light, show a warning message
+                            const checkoutHoverColor = document.querySelector('input[name="rmenupro_wc_checkout_hover_bg_color"]');
+                            const checkoutHoverTextColor = document.querySelector('input[name="rmenupro_wc_checkout_hover_text_color"]');
+                            if (checkoutHoverColor && checkoutHoverTextColor) {
+                                checkoutHoverColor.addEventListener('change', function() {
+                                    checkColors(checkoutHoverColor, checkoutHoverTextColor, button_style && button_style.value !== 'default');
+                                });
+                                checkoutHoverTextColor.addEventListener('change', function() {
+                                    checkColors(checkoutHoverColor, checkoutHoverTextColor, button_style && button_style.value !== 'default');
+                                });
+
+                                // Initial check on page load
+                                checkColors(checkoutHoverColor, checkoutHoverTextColor, button_style && button_style.value !== 'default');
                             }
 
                         });
@@ -2754,47 +2834,29 @@ function onepaqucpro_cart_dashboard()
                                             <span class="rmenupro-unit">px</span>
                                         </td>
                                     </tr>
-
-                                    <!-- <div class="rmenupro-settings-row rmenupro-settings-row-columns">
-                            <div class="rmenupro-settings-column">
-                                <div class="rmenupro-settings-field">
-                                    <label class="rmenupro-settings-label">Button Icon</label>
-                                    <div class="rmenupro-settings-control">
-                                        <select name="rmenupro_add_to_cart_icon" class="rmenupro-select">
-                                            <option value="none" <?php //selected(get_option('rmenupro_add_to_cart_icon', 'none'), 'none'); 
-                                                                    ?>>No Icon</option>
-                                            <option value="cart" <?php //selected(get_option('rmenupro_add_to_cart_icon', 'none'), 'cart'); 
-                                                                    ?>>Cart Icon</option>
-                                            <option value="plus" <?php //selected(get_option('rmenupro_add_to_cart_icon', 'none'), 'plus'); 
-                                                                    ?>>Plus Icon</option>
-                                            <option value="bag" <?php //selected(get_option('rmenupro_add_to_cart_icon', 'none'), 'bag'); 
-                                                                ?>>Shopping Bag Icon</option>
-                                            <option value="basket" <?php //selected(get_option('rmenupro_add_to_cart_icon', 'none'), 'basket'); 
-                                                                    ?>>Basket Icon</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="rmenupro-settings-column" id="rmenupro-atc-icon-position-row">
-                                <div class="rmenupro-settings-field">
-                                    <label class="rmenupro-settings-label">Icon Position</label>
-                                    <div class="rmenupro-settings-control">
-                                        <select name="rmenupro_add_to_cart_icon_position" class="rmenupro-select">
-                                            <option value="left" <?php //selected(get_option('rmenupro_add_to_cart_icon_position', 'left'), 'left'); 
-                                                                    ?>>Left</option>
-                                            <option value="right" <?php //selected(get_option('rmenupro_add_to_cart_icon_position', 'left'), 'right'); 
-                                                                    ?>>Right</option>
-                                            <option value="top" <?php //selected(get_option('rmenupro_add_to_cart_icon_position', 'left'), 'top'); 
-                                                                ?>>Top</option>
-                                            <option value="bottom" <?php //selected(get_option('rmenupro_add_to_cart_icon_position', 'left'), 'bottom'); 
-                                                                    ?>>Bottom</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                        </div> -->
-
+                                    <tr>
+                                        <th class="rmenupro-settings-label">Button Icon</th>
+                                        <td class="rmenupro-settings-control">
+                                            <select name="rmenupro_add_to_cart_icon" class="rmenupro-select">
+                                                <option value="none" <?php selected(get_option('rmenupro_add_to_cart_icon', 'none'), 'none'); ?>>No Icon</option>
+                                                <option value="cart" <?php selected(get_option('rmenupro_add_to_cart_icon', 'none'), 'cart'); ?>>Cart Icon</option>
+                                                <option value="plus" <?php selected(get_option('rmenupro_add_to_cart_icon', 'none'), 'plus'); ?>>Plus Icon</option>
+                                                <option value="bag" <?php selected(get_option('rmenupro_add_to_cart_icon', 'none'), 'bag'); ?>>Shopping Bag Icon</option>
+                                                <option value="basket" <?php selected(get_option('rmenupro_add_to_cart_icon', 'none'), 'basket'); ?>>Basket Icon</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <tr id="rmenupro-atc-icon-position-row" style="<?php echo (get_option('rmenupro_add_to_cart_icon', 'none') == 'none') ? 'display:none;' : 'display:block;'; ?>">
+                                        <th class="rmenupro-settings-label">Icon Position</th>
+                                        <td class="rmenupro-settings-control">
+                                            <select name="rmenupro_add_to_cart_icon_position" class="rmenupro-select">
+                                                <option value="left" <?php selected(get_option('rmenupro_add_to_cart_icon_position', 'left'), 'left'); ?>>Left</option>
+                                                <option value="right" <?php selected(get_option('rmenupro_add_to_cart_icon_position', 'left'), 'right'); ?>>Right</option>
+                                                <option value="top" <?php selected(get_option('rmenupro_add_to_cart_icon_position', 'left'), 'top'); ?>>Top</option>
+                                                <option value="bottom" <?php selected(get_option('rmenupro_add_to_cart_icon_position', 'left'), 'bottom'); ?>>Bottom</option>
+                                            </select>
+                                        </td>
+                                    </tr>
                                     <tr class="rmenupro-settings-row rmenupro-custom-css-row" id="rmenupro-atc-custom-css-row" style="<?php echo (get_option('rmenupro_add_to_cart_style', 'default') == 'custom') ? 'display:flex;' : 'display:none;'; ?>">
                                         <th class="rmenupro-settings-label">Custom CSS</th>
                                         <td class="rmenupro-settings-control" style="max-width: 100% !important;">
@@ -2824,7 +2886,7 @@ function onepaqucpro_cart_dashboard()
                                     if (this.value === 'none') {
                                         iconPositionRow.style.display = 'none';
                                     } else {
-                                        iconPositionRow.style.display = 'block';
+                                        iconPositionRow.style.display = 'flex';
                                     }
                                 });
 
