@@ -225,16 +225,23 @@ function onepaqucpro_ajax_add_to_cart()
     $raw_variations = isset($_POST['variations']) ? wp_unslash($_POST['variations']) : array();
     $variations = is_array($raw_variations) ? array_map('sanitize_text_field', $raw_variations) : array();
 
-    $product_status = get_post_status($product_id);
+    $product = wc_get_product($product_id);
+    $product_status = $product ? $product->get_status() : get_post_status($product_id);
+    $can_add_private_product = 'private' === $product_status && (current_user_can('read_private_products') || current_user_can('edit_post', $product_id));
+    $can_add_by_status = in_array($product_status, array('publish'), true) || $can_add_private_product;
 
     $passed_validation = apply_filters('woocommerce_add_to_cart_validation', true, $product_id, $quantity, $variation_id, $variations);
 
-    if ($passed_validation && WC()->cart->add_to_cart($product_id, $quantity, $variation_id, $variations) && 'publish' === $product_status) {
+    $added_to_cart = false;
+    if ($passed_validation && $can_add_by_status) {
+        $added_to_cart = WC()->cart->add_to_cart($product_id, $quantity, $variation_id, $variations);
+    }
+
+    if ($added_to_cart) {
 
         do_action('woocommerce_ajax_added_to_cart', $product_id);
 
         // Get product name for the message
-        $product = wc_get_product($product_id);
         $product_name = $product ? $product->get_name() : '';
 
         // Get cart URL
@@ -321,10 +328,15 @@ function onepaqucpro_ajax_add_to_cart()
 
         wp_send_json($response);
     } else {
+        $message = esc_html__('Error adding product to cart', 'one-page-quick-checkout-for-woocommerce-pro');
+        if ('private' === $product_status && ! $can_add_private_product) {
+            $message = esc_html__('This private product cannot be added to cart for the current user.', 'one-page-quick-checkout-for-woocommerce-pro');
+        }
+
         $data = array(
             'success' => false,
             'error' => true,
-            'message' => esc_html__('Error adding product to cart', 'one-page-quick-checkout-for-woocommerce-pro')
+            'message' => $message
         );
 
         wp_send_json($data);
