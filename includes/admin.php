@@ -1091,7 +1091,6 @@ function onepaqucpro_cart_dashboard()
                                     </tr>
 
 
-
                                     <tr class="rmenupro-settings-row rmenupro-custom-css-row" id="rmenupro-custom-css-row" style="<?php echo (get_option('rmenupro_wc_checkout_style', 'default') == 'custom') ? 'display:flex;' : 'display:none;'; ?> grid-row: span 2;">
                                         <th class="rmenupro-settings-label">Custom CSS</th>
                                         <td class="rmenupro-settings-control" style="max-width: 100% !important;">

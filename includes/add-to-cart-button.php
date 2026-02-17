@@ -93,7 +93,6 @@ function onepaqucpro_apply_add_to_cart_styles()
                 break;
 
             case 'rounded':
-                $css .= "border-radius: 30px{$important};";
                 $css .= "padding: 10px 25px{$important};";
                 $css .= "font-weight: 500{$important};";
                 $css .= "transition: all 0.3s ease{$important};";
