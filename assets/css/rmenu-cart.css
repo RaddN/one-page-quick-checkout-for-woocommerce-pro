@@ -1223,10 +1223,12 @@ table.one-page-checkout-product-table td {
   height: 28px;
   border: none;
   background: #f5f5f5;
+  color: #000;
   border-radius: 3px;
   line-height: 1;
   cursor: pointer;
   font-size: 16px;
+  padding: 0;
 }
 
 .wc-block-components-order-summary-item .onepaquc-blocks-qty-input {
@@ -1249,6 +1251,7 @@ table.one-page-checkout-product-table td {
   cursor: pointer;
   font-size: 18px;
   line-height: 1;
+  padding: 0;
 }
 
 .wc-block-components-order-summary-item .onepaquc-blocks-product-link {
