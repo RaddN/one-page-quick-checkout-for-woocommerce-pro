@@ -49,7 +49,7 @@ function onepaqucpro_plugincy_one_page_checkout_widget()
          */
         public function get_icon()
         {
-            return 'dashicons-onepaqucpro_one_page_cart';
+            return 'dashicons-onepaquc_one_page_cart';
         }
 
         /**
