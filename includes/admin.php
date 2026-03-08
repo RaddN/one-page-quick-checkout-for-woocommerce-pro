@@ -2293,7 +2293,7 @@ function onepaqucpro_cart_dashboard()
                         <?php $onepaquc_helper->sec_head('h3', 'plugincy_sec_head', '<span class="dashicons dashicons-translation"></span>', 'Translations', ''); ?>
                         <table class="form-table plugincy_table">
                             <tr>
-                                <?php $onepaquc_helper->sec_head('th', 'rmenu-settings-label', '', '"Quick View" Text', 'Customize the text for the quick view button or link.'); ?>
+                                <?php $onepaquc_helper->sec_head('th', 'rmenu-settings-label', '', '"View Full Details" Button Text', 'Change the text shown on the "View Full Details" button inside the Quick View popup.'); ?>
                                 <td class="rmenupro-settings-control">
                                     <?php
                                     $details_text = get_option('rmenupro_quick_view_details_text', '');

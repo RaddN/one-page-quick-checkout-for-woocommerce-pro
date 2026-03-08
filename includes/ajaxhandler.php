@@ -105,23 +105,6 @@ function onepaqucpro_handle_remove_cart_item()
     }
 }
 
-// update checkout form on ajax complete
-function onepaqucpro_update_checkout_form()
-{
-    ob_start();
-
-    // Use include to load the template from your plugin's directory
-    onepaqucpro_rmenupro_checkout();
-
-    $checkout_form = ob_get_clean();
-
-    // Send response with cart HTML and count
-    wp_send_json_success(array('checkout_form' => $checkout_form));
-}
-
-add_action('wp_ajax_onepaqucpro_update_checkout', 'onepaqucpro_update_checkout_form');
-add_action('wp_ajax_nopriv_onepaqucpro_update_checkout', 'onepaqucpro_update_checkout_form');
-
 // Add AJAX handler for refreshing product list
 add_action('wp_ajax_onepaqucpro_refresh_checkout_product_list', 'onepaqucpro_refresh_checkout_product_list');
 add_action('wp_ajax_nopriv_onepaqucpro_refresh_checkout_product_list', 'onepaqucpro_refresh_checkout_product_list');

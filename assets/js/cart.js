@@ -17,7 +17,6 @@ jQuery(document).ready(function ($) {
     })();
 
     let isUpdatingCart = false;
-    let isUpdatingCheckout = false;
     $isonepagewidget = ($('.checkout-popup,#checkout-popup').length) ? $('.checkout-popup,#checkout-popup').data('isonepagewidget') : false;
 
     function hasCheckoutFormOnPage() {
@@ -90,40 +89,19 @@ jQuery(document).ready(function ($) {
     $(document.body).on('added_to_cart removed_from_cart', function () {
         const cartDrawer = document.querySelector('.cart-drawer');
         const canOpenDrawer = !hasCheckoutFormOnPage();
-        if (cartDrawer && cartDrawer.length && cartDrawer.classList.contains('open')) {
-            window.createCheckoutIframe();
-            window.refreshCheckoutIframe();
+        if (cartDrawer && cartDrawer.classList.contains('open')) {
+            if (typeof window.onepaqucproRefreshPopupCheckout === 'function') {
+                window.onepaqucproRefreshPopupCheckout();
+            }
         } else {
-            window.createCheckoutIframe();
-            window.refreshCheckoutIframe();
-            // window.updateCartCount();
             debouncedUpdate(canOpenDrawer);
+            if (typeof window.onepaqucproRefreshPopupCheckout === 'function') {
+                window.onepaqucproRefreshPopupCheckout();
+            } else {
+                $(document.body).trigger('update_checkout');
+            }
         }
     });
-
-    // Function to update the checkout form
-    function updateCheckoutForm() {
-        if (isUpdatingCheckout) return;
-        isUpdatingCheckout = true;
-        $.ajax({
-            url: onepaqucpro_rmsgValue.ajax_url,
-            method: 'POST',
-            data: { action: 'onepaqucpro_update_checkout' },
-            success: function (response) {
-                if (response.success) {
-                    // $('.checkout-popup').html(response.data.checkout_form);
-                    $(document.body).trigger('update_checkout');
-                } else {
-                    console.error('Error updating checkout:', response.data);
-                }
-                isUpdatingCheckout = false;
-            },
-            error: function () {
-                console.error('AJAX request failed.');
-                isUpdatingCheckout = false;
-            }
-        });
-    }
 
     function debouncedUpdate(showdrawer = true) {
         if (hasCheckoutFormOnPage()) {
@@ -136,7 +114,6 @@ jQuery(document).ready(function ($) {
         } else {
             updateCartContent(true);
         }
-        updateCheckoutForm();
     }
 
     window.updateCartContent = function (isdrawer = true) {
@@ -265,7 +242,6 @@ jQuery(document).ready(function ($) {
             success: function (response) {
                 // Trigger WC events
                 $(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash, $thisButton]);
-                $('body').trigger('onepaqucpro_update_checkout');
                 $(document.body).trigger('update_checkout');
                 debouncedUpdate(false);
             },
@@ -571,7 +547,6 @@ jQuery(document).ready(function ($) {
 
                         // Update UI
                         debouncedUpdate(shouldOpenSideCart);
-                        $(document.body).trigger('update_checkout');
 
                         const cartDrawer = $('.cart-drawer');
 
@@ -587,9 +562,7 @@ jQuery(document).ready(function ($) {
                                 console.error('Cart drawer not found. Enable floating/sticky cart from settings.');
                             }
                         } else {
-                            const checkout_popup = $('.checkout-popup');
-                            if (checkout_popup.length) checkout_popup.show();
-                            if (cartDrawer && cartDrawer.length) cartDrawer.removeClass('open');
+                            window.openCheckoutPopup();
                         }
                     } else {
                         alert(response.message || 'Could not add the product to cart.');

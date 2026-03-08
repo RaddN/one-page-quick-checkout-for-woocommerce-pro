@@ -1,12 +1,9 @@
 jQuery(document).ready(function ($) {
-
-    let updateCartContent_timer;
-
-    
     plugincydebugLog("Settings : ", onepaqucpro_rmsgValue.plugincy_all_settings);
 
     const checkout_popup = $('.checkout-popup');
     $isonepagewidget = (checkout_popup.length) ? checkout_popup.data('isonepagewidget') : false;
+    const iframeFallbackEnabled = !!(window.onepaqucpro_rmsgValue && window.onepaqucpro_rmsgValue.popup_iframe_fallback_enabled);
 
     var checkoutIframe = $('<iframe>', {
         src: onepaqucpro_rmsgValue.checkout_url + '?hide_header_footer=1',
@@ -14,8 +11,16 @@ jQuery(document).ready(function ($) {
         frameborder: 0,
         style: 'width: 100%; min-height: 100%; height: 100%;'
     });
-    // append iframe
+
+    function popupHasNativeCheckoutForm() {
+        return $('.checkout-popup form.checkout.woocommerce-checkout').length > 0;
+    }
+
     window.createCheckoutIframe = function () {
+        if (!iframeFallbackEnabled) {
+            return false;
+        }
+
         if (!$('form.checkout.woocommerce-checkout').length && checkout_popup.length && $(".checkout-popup #checkout-form").length && !$(".checkout-popup #checkout-form #checkout-iframe").length) {
             // Show loading spinner before iframe loads
             $('.checkout-popup #checkout-form').html('<style>div#checkout-form { overflow: hidden !important; display: flex ; flex-direction: column; justify-content: center; }</style><div class="plugincy_preloader"> <svg class="plugincy_cart" role="img" aria-label="Shopping plugincy_cart line animation" viewBox="0 0 128 128" width="128px" height="128px" xmlns="http://www.w3.org/2000/svg"> <g fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"> <g class="plugincy_cart__track" stroke="hsla(0,10%,10%,0.1)"> <polyline points="4,4 21,4 26,22 124,22 112,64 35,64 39,80 106,80" /> <circle cx="43" cy="111" r="13" /> <circle cx="102" cy="111" r="13" /> </g> <g class="plugincy_cart__lines" stroke="currentColor"> <polyline class="plugincy_cart__top" points="4,4 21,4 26,22 124,22 112,64 35,64 39,80 106,80" stroke-dasharray="338 338" stroke-dashoffset="-338" /> <g class="plugincy_cart__wheel1" transform="rotate(-90,43,111)"> <circle class="plugincy_cart__wheel-stroke" cx="43" cy="111" r="13" stroke-dasharray="81.68 81.68" stroke-dashoffset="81.68" /> </g> <g class="plugincy_cart__wheel2" transform="rotate(90,102,111)"> <circle class="plugincy_cart__wheel-stroke" cx="102" cy="111" r="13" stroke-dasharray="81.68 81.68" stroke-dashoffset="81.68" /> </g> </g> </g> </svg> <div class="plugincy_preloader__text"> <p class="plugincy_preloader__msg">Bringing you the goods…</p> <p class="plugincy_preloader__msg plugincy_preloader__msg--last">This is taking long. Something’s wrong.</p> </div> </div>');
@@ -32,14 +37,48 @@ jQuery(document).ready(function ($) {
                 $('.checkout-popup #checkout-form').html('<p>Error loading checkout. Please try again.</p>');
             });
         }
+
+        return true;
     }
 
     // Function to refresh iframe
     window.refreshCheckoutIframe = function () {
+        if (!iframeFallbackEnabled) {
+            return false;
+        }
+
         if ($('#checkout-iframe').length) {
             $('#checkout-iframe')[0].src = $('#checkout-iframe')[0].src;
         }
+
+        return true;
     };
+
+    window.onepaqucproRefreshPopupCheckout = function () {
+        if (!checkout_popup.length) {
+            return;
+        }
+
+        if (popupHasNativeCheckoutForm()) {
+            $(document.body).trigger('update_checkout');
+            return;
+        }
+
+        if (iframeFallbackEnabled) {
+            window.createCheckoutIframe();
+            window.refreshCheckoutIframe();
+        }
+    };
+
+    function clearTemporaryDrawerStyles() {
+        if ($('#cart-drawer-style').length) {
+            $('#cart-drawer-style').remove();
+        }
+
+        if ($('#cart-drawer2-style').length) {
+            $('#cart-drawer2-style').remove();
+        }
+    }
 
     // Click event to close cart drawer and checkout popup
     $(document).click(function (event) {
@@ -56,6 +95,7 @@ jQuery(document).ready(function ($) {
     window.openCartDrawer = function () {
         const cartDrawer = $('.cart-drawer');
         const overlay = $('.overlay');
+        clearTemporaryDrawerStyles();
         if (cartDrawer && cartDrawer.length) {
             cartDrawer.addClass('open');
             if (overlay) overlay.show();
@@ -71,26 +111,37 @@ jQuery(document).ready(function ($) {
 
     // Open the checkout popup
     window.openCheckoutPopup = function () {
-        if (checkout_popup) checkout_popup.show();
+        if (!checkout_popup.length) {
+            return;
+        }
+
+        checkout_popup.show();
         const cartDrawer = $('.cart-drawer');
+        const overlay = $('.overlay');
         if (cartDrawer && cartDrawer.length) {
             cartDrawer.removeClass('open');
         }
 
-        if ($('.checkout-popup iframe')) {
-            updateCartContent_timer = setInterval(() => {
-                window.updateCartContent(false);
-            }, 2000);
+        if (!$isonepagewidget) {
+            if (overlay.length) {
+                overlay.show();
+            }
+            document.body.style.overflow = 'hidden';
         }
 
-        $('body').append(`
-            <style id="cart-drawer-style">
-                .cart-drawer {
-                opacity: 0 !important;
-                visibility: hidden !important;
-                }
-            </style>
-        `);
+        clearTemporaryDrawerStyles();
+        window.onepaqucproRefreshPopupCheckout();
+
+        if (!$('#cart-drawer-style').length) {
+            $('body').append(`
+                <style id="cart-drawer-style">
+                    .cart-drawer {
+                    opacity: 0 !important;
+                    visibility: hidden !important;
+                    }
+                </style>
+            `);
+        }
     };
 
     // Function to close the cart drawer and checkout popup
@@ -102,8 +153,7 @@ jQuery(document).ready(function ($) {
         if (cartDrawer && cartDrawer.length) cartDrawer.removeClass('open');
         $('.overlay').hide(); // Hide overlay when cart is closed
         document.body.style.overflow = '';
-        if ($('#cart-drawer-style')) $('#cart-drawer-style').remove();
-        clearInterval(updateCartContent_timer);
+        clearTemporaryDrawerStyles();
     }
 
     // Select & select all functionality
