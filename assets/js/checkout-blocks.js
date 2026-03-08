@@ -9,7 +9,7 @@
     var domObserverStarted = false;
 
     function isEnabled(value, defaultValue) {
-        if (value === undefined || value === null || value === '') {
+        if (value === undefined || value === null) {
             return defaultValue;
         }
 
@@ -22,7 +22,19 @@
         }
 
         if (typeof value === 'string') {
-            return value === '1' || value.toLowerCase() === 'true';
+            var normalized = value.trim().toLowerCase();
+
+            if (normalized === '') {
+                return false;
+            }
+
+            if (normalized === '1' || normalized === 'true' || normalized === 'yes') {
+                return true;
+            }
+
+            if (normalized === '0' || normalized === 'false' || normalized === 'no') {
+                return false;
+            }
         }
 
         return defaultValue;
