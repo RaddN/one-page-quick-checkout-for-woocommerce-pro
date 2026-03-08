@@ -850,6 +850,20 @@ function onepaqucpro_add_to_cart_admin_script()
 
 class ONEPAQUCPRO_Add_To_Cart_Handler
 {
+    /**
+     * Get the success message template, falling back when the option is empty.
+     */
+    private function get_success_message_template()
+    {
+        $default_message = '{product} has been added to your cart.';
+        $custom_message = get_option('rmenupro_add_to_cart_success_message', $default_message);
+
+        if (trim((string) $custom_message) === '') {
+            return $default_message;
+        }
+
+        return $custom_message;
+    }
 
     /**
      * Constructor
@@ -948,7 +962,7 @@ class ONEPAQUCPRO_Add_To_Cart_Handler
             'redirect' => $redirect_option !== 'none',
             'redirect_url' => $redirect_url,
             'i18n' => array(
-                'success' => get_option('rmenupro_add_to_cart_success_message', '{product} has been added to your cart.'),
+                'success' => $this->get_success_message_template(),
                 'view_cart' => get_option('rmenupro_show_view_cart_link', 1) ? esc_html__('View Cart', 'one-page-quick-checkout-for-woocommerce-pro') : '',
                 'checkout' => get_option('rmenupro_show_checkout_link', 0) ? esc_html__('Checkout', 'one-page-quick-checkout-for-woocommerce-pro') : '',
             )
@@ -1023,7 +1037,7 @@ class ONEPAQUCPRO_Add_To_Cart_Handler
      */
     public function customize_add_to_cart_message($message, $products)
     {
-        $custom_message = get_option('rmenupro_add_to_cart_success_message', '{product} has been added to your cart.');
+        $custom_message = $this->get_success_message_template();
         $show_view_cart = get_option('rmenupro_show_view_cart_link', 1);
         $show_checkout = get_option('rmenupro_show_checkout_link', 0);
 

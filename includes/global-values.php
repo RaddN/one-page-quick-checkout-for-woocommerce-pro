@@ -4,7 +4,7 @@ if (! defined('ABSPATH')) exit; // Exit if accessed directly
 $onepaqucpro_checkoutformfields = [
     "your_cart" => "Your Cart",
     "txt_subtotal" => "Subtotal",
-    "txt_checkout" => "Place order",
+    "txt_checkout" => "Checkout",
     "txt-complete_your_purchase" => "Complete your purchase using the form below.",
 ];
 

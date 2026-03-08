@@ -320,6 +320,66 @@
         },
 
         /**
+         * Start auto-hide with hover pause support.
+         */
+        enableHoverAwareAutoHide: function (notification) {
+            var duration = parseInt(rmenupro_ajax_object.notification_duration, 10) || 3000;
+            var hideTimer = null;
+            var removeTimer = null;
+            var isClosing = false;
+
+            function clearTimers() {
+                if (hideTimer) {
+                    clearTimeout(hideTimer);
+                    hideTimer = null;
+                }
+
+                if (removeTimer) {
+                    clearTimeout(removeTimer);
+                    removeTimer = null;
+                }
+            }
+
+            function hideNotification() {
+                if (isClosing) {
+                    return;
+                }
+
+                isClosing = true;
+                notification.removeClass('show');
+                removeTimer = setTimeout(function () {
+                    notification.remove();
+                }, 300);
+            }
+
+            function startCountdown() {
+                if (isClosing) {
+                    return;
+                }
+
+                clearTimeout(hideTimer);
+                hideTimer = setTimeout(hideNotification, duration);
+            }
+
+            notification.on('mouseenter', function () {
+                clearTimers();
+            });
+
+            notification.on('mouseleave', function () {
+                startCountdown();
+            });
+
+            startCountdown();
+
+            return {
+                hideNow: function () {
+                    clearTimers();
+                    hideNotification();
+                }
+            };
+        },
+
+        /**
          * Show popup notification
          */
         showPopupNotification: function (message, viewCartBtn, checkoutBtn) {
@@ -343,21 +403,13 @@
                 popup.addClass('show');
             }, 10);
 
-            // Handle close button
-            popup.find('.rmenupro-popup-close').on('click', function () {
-                popup.removeClass('show');
-                setTimeout(function () {
-                    popup.remove();
-                }, 300);
-            });
+            var popupAutoHide = this.enableHoverAwareAutoHide(popup);
 
-            // Auto-hide after duration
-            setTimeout(function () {
-                popup.removeClass('show');
-                setTimeout(function () {
-                    popup.remove();
-                }, 300);
-            }, rmenupro_ajax_object.notification_duration);
+            // Handle close button
+            popup.find('.rmenupro-popup-close').on('click', function (event) {
+                event.preventDefault();
+                popupAutoHide.hideNow();
+            });
         },
 
         /**
@@ -399,14 +451,7 @@
             setTimeout(function () {
                 toast.addClass('show');
             }, 10);
-
-            // Auto-hide after duration
-            setTimeout(function () {
-                toast.removeClass('show');
-                setTimeout(function () {
-                    toast.remove();
-                }, 300);
-            }, rmenupro_ajax_object.notification_duration);
+            this.enableHoverAwareAutoHide(toast);
         },
 
         /**
@@ -445,14 +490,7 @@
             setTimeout(function () {
                 errorToast.addClass('show');
             }, 10);
-
-            // Auto-hide after duration
-            setTimeout(function () {
-                errorToast.removeClass('show');
-                setTimeout(function () {
-                    errorToast.remove();
-                }, 300);
-            }, rmenupro_ajax_object.notification_duration);
+            this.enableHoverAwareAutoHide(errorToast);
         }
     };
 

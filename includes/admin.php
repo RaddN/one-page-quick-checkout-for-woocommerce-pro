@@ -3269,7 +3269,7 @@ function onepaqucpro_cart_dashboard()
                             <?php $onepaquc_helper->sec_head('h3', 'plugincy_sec_head', '<span class="dashicons dashicons-smartphone"></span>', 'Mobile Settings'); ?>
                             <table class="form-table plugincy_table">
                                 <tr class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
-                                    <?php $onepaquc_helper->sec_head('th', 'rmenu-settings-label', '', 'Sticky Add to Cart on Mobile', 'Keep the Add to Cart button visible at the bottom of the screen on mobile devices.'); ?>
+                                    <?php $onepaquc_helper->sec_head('th', 'rmenu-settings-label', '', 'Sticky Add to Cart on Mobile', 'Show a sticky Add to Cart button at the bottom of single product pages on mobile devices only.'); ?>
                                     <td class="rmenupro-settings-control">
                                         <?php $onepaquc_helper->switcher('rmenupro_sticky_add_to_cart_mobile', 0, true); ?>
                                     </td>
