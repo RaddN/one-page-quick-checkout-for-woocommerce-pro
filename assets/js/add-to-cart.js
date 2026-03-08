@@ -361,6 +361,25 @@
         },
 
         /**
+         * Get toast notification classes based on settings
+         */
+        getToastClasses: function (extraClasses) {
+            var position = (rmenupro_ajax_object.toast_position || 'top_right').replace(/_/g, '-');
+            var size = (rmenupro_ajax_object.toast_size || 'comfy').replace(/_/g, '-');
+            var classes = [
+                'rmenupro-toast-notification',
+                'rmenupro-toast-position-' + position,
+                'rmenupro-toast-size-' + size
+            ];
+
+            if (extraClasses) {
+                classes.push(extraClasses);
+            }
+
+            return classes.join(' ');
+        },
+
+        /**
          * Show toast notification
          */
         showToastNotification: function (message, viewCartBtn, checkoutBtn) {
@@ -368,7 +387,7 @@
             $('.rmenupro-toast-notification').remove();
 
             // Create toast
-            var toast = $('<div class="rmenupro-toast-notification">' +
+            var toast = $('<div class="' + this.getToastClasses() + '">' +
                 '<div class="rmenupro-toast-message">' + message + '</div>' +
                 '<div class="rmenupro-toast-buttons">' + viewCartBtn + checkoutBtn + '</div>' +
                 '</div>');
@@ -415,7 +434,7 @@
          */
         showError: function (message) {
             // Create error toast
-            var errorToast = $('<div class="rmenupro-toast-notification rmenupro-error">' +
+            var errorToast = $('<div class="' + this.getToastClasses('rmenupro-error') + '">' +
                 '<div class="rmenupro-toast-message">' + message + '</div>' +
                 '</div>');
 

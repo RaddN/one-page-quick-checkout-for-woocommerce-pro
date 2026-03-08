@@ -137,6 +137,8 @@ $onepaqucpro_string_settings_fields = [
     "rmenupro_show_view_cart_link",
     "rmenupro_add_to_cart_notification_duration",
     "rmenupro_show_checkout_link",
+    "rmenupro_add_to_cart_toast_position",
+    "rmenupro_add_to_cart_toast_size",
     "rmenupro_sticky_add_to_cart_mobile",
     "rmenupro_mobile_add_to_cart_text",
     "rmenupro_mobile_button_size",

@@ -925,12 +925,26 @@ class ONEPAQUCPRO_Add_To_Cart_Handler
             $redirect_url = $checkout_url;
         }
 
+        $toast_position = !onepaqucpro_premium_feature() ? 'top_right' : get_option('rmenupro_add_to_cart_toast_position', 'top_right');
+        $allowed_toast_positions = array('top_right', 'top_left', 'bottom_right', 'bottom_left');
+        if (!in_array($toast_position, $allowed_toast_positions, true)) {
+            $toast_position = 'top_right';
+        }
+
+        $toast_size = !onepaqucpro_premium_feature() ? 'comfy' : get_option('rmenupro_add_to_cart_toast_size', 'comfy');
+        $allowed_toast_sizes = array('comfy', 'compact');
+        if (!in_array($toast_size, $allowed_toast_sizes, true)) {
+            $toast_size = 'comfy';
+        }
+
         wp_localize_script('rmenupro-ajax-add-to-cart', 'rmenupro_ajax_object', array(
             'ajax_url' => esc_url(admin_url('admin-ajax.php')),
             'nonce' => esc_js(wp_create_nonce('rmenupro-ajax-nonce')),
             'animation' => get_option('rmenupro_add_to_cart_animation', 'none'),
             'notification_style' => !onepaqucpro_premium_feature() ? "default" : get_option('rmenupro_add_to_cart_notification_style', 'default'),
             'notification_duration' => intval(get_option('rmenupro_add_to_cart_notification_duration', 3000)),
+            'toast_position' => $toast_position,
+            'toast_size' => $toast_size,
             'redirect' => $redirect_option !== 'none',
             'redirect_url' => $redirect_url,
             'i18n' => array(

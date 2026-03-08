@@ -135,6 +135,49 @@
     transition: opacity 0.3s, transform 0.3s;
 }
 
+.rmenupro-toast-notification.rmenupro-toast-position-top-left {
+    top: 20px;
+    right: auto;
+    bottom: auto;
+    left: 20px;
+    transform: translateX(-30px);
+}
+
+.rmenupro-toast-notification.rmenupro-toast-position-bottom-right {
+    top: auto;
+    right: 20px;
+    bottom: 20px;
+    left: auto;
+    transform: translateX(30px);
+}
+
+.rmenupro-toast-notification.rmenupro-toast-position-bottom-left {
+    top: auto;
+    right: auto;
+    bottom: 20px;
+    left: 20px;
+    transform: translateX(-30px);
+}
+
+.rmenupro-toast-notification.rmenupro-toast-size-compact {
+    max-width: 320px;
+    padding: 12px 16px;
+}
+
+.rmenupro-toast-notification.rmenupro-toast-size-compact .rmenupro-toast-message {
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+
+.rmenupro-toast-notification.rmenupro-toast-size-compact .rmenupro-toast-buttons {
+    gap: 8px;
+}
+
+.rmenupro-toast-notification.rmenupro-toast-size-compact .rmenupro-toast-buttons .button {
+    font-size: 11px;
+    padding: 4px 8px;
+}
+
 .rmenupro-toast-notification.rmenupro-error {
     border-left-color: #F44336;
 }
@@ -205,6 +248,22 @@
         right: 20px;
         max-width: none;
         width: calc(100% - 40px);
+    }
+
+    .rmenupro-toast-notification.rmenupro-toast-position-top-left,
+    .rmenupro-toast-notification.rmenupro-toast-position-top-right {
+        top: 20px;
+        right: 20px;
+        bottom: auto;
+        left: 20px;
+    }
+
+    .rmenupro-toast-notification.rmenupro-toast-position-bottom-left,
+    .rmenupro-toast-notification.rmenupro-toast-position-bottom-right {
+        top: auto;
+        right: 20px;
+        bottom: 20px;
+        left: 20px;
     }
     
     .rmenupro-popup-content {

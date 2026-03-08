@@ -2977,7 +2977,7 @@ function onepaqucpro_cart_dashboard()
 
                         <div class="rmenupro-settings-row">
                             <div class="rmenupro-settings-field" id="rmenupro-add-to-cart-archive-display" style="display: flex; align-items: center; justify-content: space-between; gap: 20px;">
-                                <label class="rmenupro-settings-label">Button Display on Archive Pages
+                                <label class="rmenupro-settings-label">Button Display
                                     <span class="tooltip">
                                         <span class="question-mark">?</span>
                                         <span class="tooltip-text">Control how Add to Cart buttons appear on product archive pages.</span>
@@ -3055,6 +3055,13 @@ function onepaqucpro_cart_dashboard()
 
                         <div class="rmenupro-settings-section  plugincy_card plugincy_col-5" id="add_to_cart_notification">
                             <?php $onepaquc_helper->sec_head('h3', 'plugincy_sec_head', '<span class="dashicons dashicons-bell"></span>', 'Notifications', 'Customize how notifications are displayed when products are added to cart.'); ?>
+                            <?php
+                            $notification_style = get_option('rmenupro_add_to_cart_notification_style', 'default');
+                            $toast_position = get_option('rmenupro_add_to_cart_toast_position', 'top_right');
+                            $toast_size = get_option('rmenupro_add_to_cart_toast_size', 'comfy');
+                            $toast_position_name = !onepaqucpro_premium_feature() ? 'pro_add_to_cart_toast_position' : 'rmenupro_add_to_cart_toast_position';
+                            $toast_size_name = !onepaqucpro_premium_feature() ? 'pro_add_to_cart_toast_size' : 'rmenupro_add_to_cart_toast_size';
+                            ?>
                             <table class="form-table plugincy_table">
                                 <tr class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
                                     <?php $onepaquc_helper->sec_head('th', 'rmenu-settings-label', '', 'Notification Style', 'Choose how to display notifications when products are added to cart.'); ?>
@@ -3067,32 +3074,126 @@ function onepaqucpro_cart_dashboard()
                                     </td>
                                 </tr>
 
-                                <tr class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+                                <tr class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only ' : ''; ?>rmenupro-notification-dependent<?php echo $notification_style === 'default' ? ' rmenupro-hidden-setting' : ''; ?>">
                                     <?php $onepaquc_helper->sec_head('th', 'rmenu-settings-label', '', 'Success Message', 'Customize the success message shown after adding to cart. Use {product} as a placeholder for the product name.'); ?>
                                     <td class="rmenupro-settings-control">
                                         <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="text" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_add_to_cart_success_message' : 'rmenupro_add_to_cart_success_message'; ?>" value="<?php echo esc_attr(get_option('rmenupro_add_to_cart_success_message', '{product} has been added to your cart.')); ?>" class="regular-text" />
                                     </td>
                                 </tr>
 
-                                <tr class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+                                <tr class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only ' : ''; ?>rmenupro-notification-dependent<?php echo $notification_style === 'default' ? ' rmenupro-hidden-setting' : ''; ?>">
                                     <?php $onepaquc_helper->sec_head('th', 'rmenu-settings-label', '', 'Show View Cart Link', 'Display a "View Cart" link in the notification message.'); ?>
                                     <td class="rmenupro-settings-control">
                                         <?php $onepaquc_helper->switcher('rmenupro_show_view_cart_link', 1); ?>
                                     </td>
                                 </tr>
 
-                                <tr class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+                                <tr class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only ' : ''; ?>rmenupro-notification-dependent<?php echo $notification_style === 'default' ? ' rmenupro-hidden-setting' : ''; ?>">
                                     <?php $onepaquc_helper->sec_head('th', 'rmenu-settings-label', '', 'Show Checkout Link', 'Display a "Checkout" link in the notification message.'); ?>
                                     <td class="rmenupro-settings-control">
                                         <?php $onepaquc_helper->switcher('rmenupro_show_checkout_link', 0); ?>
                                     </td>
                                 </tr>
 
-                                <tr class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>" id="rmenupro-add-to-cart-notification-settings">
+                                <tr class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only ' : ''; ?>rmenupro-notification-dependent<?php echo $notification_style === 'default' ? ' rmenupro-hidden-setting' : ''; ?>" id="rmenupro-add-to-cart-notification-settings">
                                     <?php $onepaquc_helper->sec_head('th', 'rmenu-settings-label', '', 'Notification Duration', 'How long to display the notification for (in milliseconds).'); ?>
                                     <td class="rmenupro-settings-control">
                                         <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="number" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_add_to_cart_notification_duration' : 'rmenupro_add_to_cart_notification_duration'; ?>" value="<?php echo esc_attr(get_option('rmenupro_add_to_cart_notification_duration', '3000')); ?>" class="small-text" min="1000" max="10000" step="500" />
                                         <span class="rmenupro-unit">ms</span>
+                                    </td>
+                                </tr>
+
+                                <tr class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only ' : ''; ?>rmenupro-notification-dependent rmenupro-toast-only rmenupro-toast-layout-row<?php echo $notification_style !== 'toast' ? ' rmenupro-hidden-setting' : ''; ?>">
+                                    <?php $onepaquc_helper->sec_head('th', 'rmenu-settings-label', '', 'Floating Position', 'Choose where toast notifications should appear on the screen.'); ?>
+                                    <td class="rmenupro-settings-control">
+                                        <div class="rmenupro-toast-choice-wrapper">
+                                            <div class="rmenupro-toast-choice-grid">
+                                                <label class="rmenupro-toast-choice-card">
+                                                    <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="radio" name="<?php echo esc_attr($toast_position_name); ?>" value="bottom_right" <?php checked($toast_position, 'bottom_right'); ?> />
+                                                    <span class="rmenupro-toast-choice-card-inner">
+                                                        <span class="rmenupro-toast-choice-preview rmenupro-toast-choice-preview--position rmenupro-toast-choice-preview--bottom-right">
+                                                            <span class="rmenupro-toast-choice-toast"></span>
+                                                        </span>
+                                                        <span class="rmenupro-toast-choice-title">Bottom right</span>
+                                                    </span>
+                                                </label>
+
+                                                <label class="rmenupro-toast-choice-card">
+                                                    <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="radio" name="<?php echo esc_attr($toast_position_name); ?>" value="top_right" <?php checked($toast_position, 'top_right'); ?> />
+                                                    <span class="rmenupro-toast-choice-card-inner">
+                                                        <span class="rmenupro-toast-choice-preview rmenupro-toast-choice-preview--position rmenupro-toast-choice-preview--top-right">
+                                                            <span class="rmenupro-toast-choice-toast"></span>
+                                                        </span>
+                                                        <span class="rmenupro-toast-choice-title">Top right</span>
+                                                    </span>
+                                                </label>
+
+                                                <label class="rmenupro-toast-choice-card">
+                                                    <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="radio" name="<?php echo esc_attr($toast_position_name); ?>" value="bottom_left" <?php checked($toast_position, 'bottom_left'); ?> />
+                                                    <span class="rmenupro-toast-choice-card-inner">
+                                                        <span class="rmenupro-toast-choice-preview rmenupro-toast-choice-preview--position rmenupro-toast-choice-preview--bottom-left">
+                                                            <span class="rmenupro-toast-choice-toast"></span>
+                                                        </span>
+                                                        <span class="rmenupro-toast-choice-title">Bottom left</span>
+                                                    </span>
+                                                </label>
+
+                                                <label class="rmenupro-toast-choice-card">
+                                                    <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="radio" name="<?php echo esc_attr($toast_position_name); ?>" value="top_left" <?php checked($toast_position, 'top_left'); ?> />
+                                                    <span class="rmenupro-toast-choice-card-inner">
+                                                        <span class="rmenupro-toast-choice-preview rmenupro-toast-choice-preview--position rmenupro-toast-choice-preview--top-left">
+                                                            <span class="rmenupro-toast-choice-toast"></span>
+                                                        </span>
+                                                        <span class="rmenupro-toast-choice-title">Top left</span>
+                                                    </span>
+                                                </label>
+                                            </div>
+                                            <p class="description rmenupro-toast-choice-description">Choose where floating alerts should appear.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only ' : ''; ?>rmenupro-notification-dependent rmenupro-toast-only rmenupro-toast-layout-row<?php echo $notification_style !== 'toast' ? ' rmenupro-hidden-setting' : ''; ?>">
+                                    <?php $onepaquc_helper->sec_head('th', 'rmenu-settings-label', '', 'Size', 'Choose the size of toast notifications.'); ?>
+                                    <td class="rmenupro-settings-control">
+                                        <div class="rmenupro-toast-choice-wrapper">
+                                            <div class="rmenupro-toast-choice-grid">
+                                                <label class="rmenupro-toast-choice-card">
+                                                    <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="radio" name="<?php echo esc_attr($toast_size_name); ?>" value="comfy" <?php checked($toast_size, 'comfy'); ?> />
+                                                    <span class="rmenupro-toast-choice-card-inner">
+                                                        <span class="rmenupro-toast-choice-preview rmenupro-toast-choice-preview--size rmenupro-toast-choice-preview--comfy">
+                                                            <span class="rmenupro-toast-choice-toast-card">
+                                                                <span class="rmenupro-toast-choice-avatar"></span>
+                                                                <span class="rmenupro-toast-choice-lines">
+                                                                    <span></span>
+                                                                    <span></span>
+                                                                    <span></span>
+                                                                </span>
+                                                            </span>
+                                                        </span>
+                                                        <span class="rmenupro-toast-choice-title">Comfy</span>
+                                                    </span>
+                                                </label>
+
+                                                <label class="rmenupro-toast-choice-card">
+                                                    <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="radio" name="<?php echo esc_attr($toast_size_name); ?>" value="compact" <?php checked($toast_size, 'compact'); ?> />
+                                                    <span class="rmenupro-toast-choice-card-inner">
+                                                        <span class="rmenupro-toast-choice-preview rmenupro-toast-choice-preview--size rmenupro-toast-choice-preview--compact">
+                                                            <span class="rmenupro-toast-choice-toast-card">
+                                                                <span class="rmenupro-toast-choice-avatar"></span>
+                                                                <span class="rmenupro-toast-choice-lines">
+                                                                    <span></span>
+                                                                    <span></span>
+                                                                    <span></span>
+                                                                </span>
+                                                            </span>
+                                                        </span>
+                                                        <span class="rmenupro-toast-choice-title">Compact</span>
+                                                    </span>
+                                                </label>
+                                            </div>
+                                            <p class="description rmenupro-toast-choice-description">Choose the size of floating notifications.</p>
+                                        </div>
                                     </td>
                                 </tr>
                             </table>
@@ -3103,9 +3204,12 @@ function onepaqucpro_cart_dashboard()
                         document.addEventListener('DOMContentLoaded', function() {
                             const checkbox = document.querySelector('input[name="rmenupro_enable_ajax_add_to_cart"]');
                             const redirect_atc = document.querySelector('select[name="rmenupro_redirect_after_add"]');
+                            const notificationStyle = document.querySelector('select[name="rmenupro_add_to_cart_notification_style"], select[name="pro_add_to_cart_notification_style"]');
                             const settingsInputs = Array.from(document.querySelectorAll('#add_to_cart_behave input, #add_to_cart_behave select, #add_to_cart_notification input, #add_to_cart_notification select')).filter(
                                 el => !(el.name === "rmenupro_enable_ajax_add_to_cart")
                             );
+                            const notificationDependentRows = Array.from(document.querySelectorAll('#add_to_cart_notification .rmenupro-notification-dependent'));
+                            const toastOnlyRows = Array.from(document.querySelectorAll('#add_to_cart_notification .rmenupro-toast-only'));
 
                             function updateSettings() {
                                 const enabled_checkbox = document.querySelector('input[name="rmenupro_enable_ajax_add_to_cart"]').checked;
@@ -3114,20 +3218,47 @@ function onepaqucpro_cart_dashboard()
 
                             }
 
+                            function updateNotificationRowVisibility() {
+                                if (!notificationStyle) {
+                                    return;
+                                }
+
+                                const currentStyle = notificationStyle.value;
+                                const showNotificationSettings = currentStyle !== 'default';
+
+                                notificationDependentRows.forEach(function(row) {
+                                    row.classList.toggle('rmenupro-hidden-setting', !showNotificationSettings);
+                                });
+
+                                toastOnlyRows.forEach(function(row) {
+                                    row.classList.toggle('rmenupro-hidden-setting', currentStyle !== 'toast');
+                                });
+                            }
+
                             function notificationVisibilityHandle() {
                                 const redirectAtcVal = document.querySelector('select[name="rmenupro_redirect_after_add"]').value; // Use .value
 
                                 const notiSettings = Array.from(document.querySelectorAll('#add_to_cart_notification input, #add_to_cart_notification select'));
                                 toggleDisabledClass(redirectAtcVal !== 'none', notiSettings);
+                                updateNotificationRowVisibility();
                             }
 
                             // Initial update on page load
-                            setTimeout(updateSettings, 2000);
-                            setTimeout(notificationVisibilityHandle, 2000);
+                            updateSettings();
+                            notificationVisibilityHandle();
 
                             // Update when the checkbox changes
-                            checkbox.addEventListener('change', updateSettings);
-                            redirect_atc.addEventListener('change', notificationVisibilityHandle);
+                            if (checkbox) {
+                                checkbox.addEventListener('change', updateSettings);
+                            }
+
+                            if (redirect_atc) {
+                                redirect_atc.addEventListener('change', notificationVisibilityHandle);
+                            }
+
+                            if (notificationStyle) {
+                                notificationStyle.addEventListener('change', updateNotificationRowVisibility);
+                            }
                         });
                     </script>
                 </div>
