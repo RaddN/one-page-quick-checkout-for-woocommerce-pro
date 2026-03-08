@@ -27,10 +27,15 @@ jQuery(document).ready(function ($) {
         );
     }
 
+    function isPopupCheckoutVisible() {
+        return $('.checkout-popup:visible').not('.onepagecheckoutwidget').length > 0;
+    }
+
     // Function to fetch and update cart contents
     function updateCartContent(isdrawer = true) {
         if (isUpdatingCart) return;
         isUpdatingCart = true;
+        const drawerWasOpen = $('.cart-drawer.open').length > 0;
         var cartIcon = $('.rwc_cart-button').data('cart-icon');
         var productTitleTag = $('.rwc_cart-button').data('product_title_tag');
         var drawerPosition = $('.rwc_cart-button').data('drawer-position');
@@ -48,9 +53,15 @@ jQuery(document).ready(function ($) {
             success: function (response) {
                 if (response.success) {
                     $('.rmenupro-cart').html(response.data.cart_html);
-                    if (isdrawer && response.data.cart_count !== 0 && !hasCheckoutFormOnPage()) {
+
+                    if (isPopupCheckoutVisible()) {
+                        $('.cart-drawer').removeClass('open');
+                        $('.overlay').show();
+                        document.body.style.overflow = 'hidden';
+                    } else if ((isdrawer || drawerWasOpen) && response.data.cart_count !== 0 && !hasCheckoutFormOnPage()) {
                         window.openCartDrawer();
                     }
+
                     isUpdatingCart = false;
                 }
             },
