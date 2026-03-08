@@ -563,8 +563,14 @@ jQuery(document).ready(function ($) {
                             }
                         }
 
+                        const shouldOpenSideCart = methodKey === 'side_cart' && !$isonepagewidget && !hasCheckoutFormOnPage();
+
+                        if (shouldOpenSideCart && $('#cart-drawer2-style').length) {
+                            $('#cart-drawer2-style').remove();
+                        }
+
                         // Update UI
-                        debouncedUpdate(false);
+                        debouncedUpdate(shouldOpenSideCart);
                         $(document.body).trigger('update_checkout');
 
                         const cartDrawer = $('.cart-drawer');
@@ -576,12 +582,10 @@ jQuery(document).ready(function ($) {
                         if (methodKey === 'ajax_add') {
                             if (cartDrawer && cartDrawer.length) cartDrawer.removeClass('open');
                             if ($('#cart-drawer2-style').length) $('#cart-drawer2-style').remove();
-                        } else if (methodKey === 'side_cart' && !$isonepagewidget) {
-                            if ($('#cart-drawer2-style').length) $('#cart-drawer2-style').remove();
+                        } else if (shouldOpenSideCart) {
                             if (!cartDrawer.length) {
                                 console.error('Cart drawer not found. Enable floating/sticky cart from settings.');
                             }
-                            debouncedUpdate();
                         } else {
                             const checkout_popup = $('.checkout-popup');
                             if (checkout_popup.length) checkout_popup.show();
