@@ -48,6 +48,9 @@ function onepaqucpro_apply_add_to_cart_styles()
 
     // Add !important rule if force CSS is enabled
     $important = $force_css ? ' !important' : '';
+    $checkout_button_exclusions = ':not(.direct-checkout-button):not(.onepaquc-checkout-btn):not(.onepaqucpro-checkout-btn)';
+    $single_add_to_cart_selector = '.single_add_to_cart_button' . $checkout_button_exclusions;
+    $single_product_add_to_cart_selector = '.single .product ' . $single_add_to_cart_selector;
 
     // Start building CSS
     $css = '';
@@ -55,7 +58,7 @@ function onepaqucpro_apply_add_to_cart_styles()
     // Only apply custom styling if not using default WooCommerce style
     if ($button_style != 'default') {
         // Base button styles
-        $css .= '.rmenupro-mobile-sticky-cart .single_add_to_cart_button.button.alt, .rmenupro-mobile-sticky-cart button[name="add-to-cart"], .single .product .single_add_to_cart_button,.woocommerce a.button.add_to_cart_button:not(.product_type_variable), .woocommerce button.button.add_to_cart_button:not(.product_type_variable), .woocommerce input.button.add_to_cart_button:not(.product_type_variable), .woocommerce #respond input#submit, .woocommerce a.button.alt.add_to_cart_button:not(.product_type_variable), .woocommerce button.button.alt.add_to_cart_button:not(.product_type_variable), .woocommerce input.button.alt.add_to_cart_button:not(.product_type_variable), .woocommerce #respond input#submit.alt {';
+        $css .= '.rmenupro-mobile-sticky-cart .single_add_to_cart_button.button.alt, .rmenupro-mobile-sticky-cart button[name="add-to-cart"], ' . $single_product_add_to_cart_selector . ',.woocommerce a.button.add_to_cart_button:not(.product_type_variable), .woocommerce button.button.add_to_cart_button:not(.product_type_variable), .woocommerce input.button.add_to_cart_button:not(.product_type_variable), .woocommerce #respond input#submit, .woocommerce a.button.alt.add_to_cart_button:not(.product_type_variable), .woocommerce button.button.alt.add_to_cart_button:not(.product_type_variable), .woocommerce input.button.alt.add_to_cart_button:not(.product_type_variable), .woocommerce #respond input#submit.alt {';
 
 
 
@@ -153,18 +156,18 @@ function onepaqucpro_apply_add_to_cart_styles()
 
     // Mobile icon only
     if ($mobile_icon_only && $button_icon != 'none') {
-        $css .= '.woocommerce a.button.add_to_cart_button:not(.product_type_variable) .rmenupro-btn-text, .woocommerce button.button.add_to_cart_button:not(.product_type_variable) .rmenupro-btn-text, .woocommerce input.button.add_to_cart_button:not(.product_type_variable) .rmenupro-btn-text, .single_add_to_cart_button .rmenupro-btn-text {';
+        $css .= '.woocommerce a.button.add_to_cart_button:not(.product_type_variable) .rmenupro-btn-text, .woocommerce button.button.add_to_cart_button:not(.product_type_variable) .rmenupro-btn-text, .woocommerce input.button.add_to_cart_button:not(.product_type_variable) .rmenupro-btn-text, ' . $single_add_to_cart_selector . ' .rmenupro-btn-text {';
         $css .= "display: none{$important};";
         $css .= '}';
 
-        $css .= '.woocommerce a.button.add_to_cart_button:not(.product_type_variable) .rmenupro-btn-icon, .woocommerce button.button.add_to_cart_button:not(.product_type_variable) .rmenupro-btn-icon, .woocommerce input.button.add_to_cart_button:not(.product_type_variable) .rmenupro-btn-icon, .single_add_to_cart_button .rmenupro-btn-icon {';
+        $css .= '.woocommerce a.button.add_to_cart_button:not(.product_type_variable) .rmenupro-btn-icon, .woocommerce button.button.add_to_cart_button:not(.product_type_variable) .rmenupro-btn-icon, .woocommerce input.button.add_to_cart_button:not(.product_type_variable) .rmenupro-btn-icon, ' . $single_add_to_cart_selector . ' .rmenupro-btn-icon {';
         $css .= "margin: 0{$important};";
         $css .= '}';
     }
 
     // Mobile button size adjustments
     if ($mobile_button_size != 'default') {
-        $css .= '.rmenupro-ajax-add-to-cart,.single_add_to_cart_button:not(.direct-checkout-button):not(.onepaquc-checkout-btn),.add_to_cart_button:not(.direct-checkout-button):not(.onepaquc-checkout-btn) {';
+        $css .= '.rmenupro-ajax-add-to-cart,' . $single_add_to_cart_selector . ',.add_to_cart_button' . $checkout_button_exclusions . ' {';
 
         switch ($mobile_button_size) {
             case 'larger':
@@ -210,7 +213,7 @@ function onepaqucpro_apply_add_to_cart_styles()
         $css .= "box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1){$important};";
         $css .= '}';
 
-        $css .= '.rmenupro-mobile-sticky-cart .single_add_to_cart_button {';
+        $css .= '.rmenupro-mobile-sticky-cart ' . $single_add_to_cart_selector . ' {';
         $css .= "width: 100%{$important};";
         $css .= "margin: 0{$important};";
         $css .= '}';
@@ -220,7 +223,7 @@ function onepaqucpro_apply_add_to_cart_styles()
 
     // Loading effect styles
     if ($loading_effect != 'none') {
-        $css .= '.woocommerce a.button.add_to_cart_button.loading:not(.product_type_variable), .woocommerce button.button.add_to_cart_button.loading:not(.product_type_variable), .single_add_to_cart_button.loading {';
+        $css .= '.woocommerce a.button.add_to_cart_button.loading:not(.product_type_variable), .woocommerce button.button.add_to_cart_button.loading:not(.product_type_variable), ' . $single_add_to_cart_selector . '.loading {';
 
         switch ($loading_effect) {
             case 'spinner':
@@ -228,7 +231,7 @@ function onepaqucpro_apply_add_to_cart_styles()
                 $css .= "color: transparent{$important};";
                 $css .= '}';
 
-                $css .= '.woocommerce a.button.add_to_cart_button.loading:not(.product_type_variable):after, .woocommerce button.button.add_to_cart_button.loading:not(.product_type_variable):after, .single_add_to_cart_button.loading:after {';
+                $css .= '.woocommerce a.button.add_to_cart_button.loading:not(.product_type_variable):after, .woocommerce button.button.add_to_cart_button.loading:not(.product_type_variable):after, ' . $single_add_to_cart_selector . '.loading:after {';
                 $css .= "content: ''{$important};";
                 $css .= "position: absolute{$important};";
                 $css .= "top: 50%{$important};";
@@ -247,7 +250,7 @@ function onepaqucpro_apply_add_to_cart_styles()
                 $css .= "color: transparent{$important};";
                 $css .= '}';
 
-                $css .= '.woocommerce a.button.add_to_cart_button.loading:not(.product_type_variable):after, .woocommerce button.button.add_to_cart_button.loading:not(.product_type_variable):after, .single_add_to_cart_button.loading:after {';
+                $css .= '.woocommerce a.button.add_to_cart_button.loading:not(.product_type_variable):after, .woocommerce button.button.add_to_cart_button.loading:not(.product_type_variable):after, ' . $single_add_to_cart_selector . '.loading:after {';
                 $css .= "content: '...'{$important};";
                 $css .= "position: absolute{$important};";
                 $css .= "top: 50%{$important};";
@@ -315,6 +318,7 @@ function onepaqucpro_add_icons_to_buttons()
     $button_icon = get_option('rmenupro_add_to_cart_icon', 'none');
     $icon_position = get_option('rmenupro_add_to_cart_icon_position', 'left');
     $mobile_icon_only = get_option('rmenupro_mobile_icon_only', 0);
+    $checkout_button_exclusions = ':not(.direct-checkout-button):not(.onepaquc-checkout-btn):not(.onepaqucpro-checkout-btn)';
 
     // Map option values to SVG code
     $svg_icon = '';
@@ -343,7 +347,7 @@ function onepaqucpro_add_icons_to_buttons()
 ?>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const addToCartButtons = document.querySelectorAll('.add_to_cart_button:not(.product_type_variable):not(.product_type_grouped):not(.product_type_external):not(.ast-select-options-trigger), .single_add_to_cart_button:not(.product_type_variable):not(.product_type_grouped):not(.product_type_external):not(.ast-select-options-trigger)');
+            const addToCartButtons = document.querySelectorAll('.add_to_cart_button:not(.product_type_variable):not(.product_type_grouped):not(.product_type_external):not(.ast-select-options-trigger)<?php echo esc_js($checkout_button_exclusions); ?>, .single_add_to_cart_button:not(.product_type_variable):not(.product_type_grouped):not(.product_type_external):not(.ast-select-options-trigger)<?php echo esc_js($checkout_button_exclusions); ?>');
             const svgIcon = `<?php echo $svg_icon; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                                 ?>`;
             const iconPosition = '<?php echo esc_attr($icon_position); ?>';
@@ -571,7 +575,7 @@ function rmenupro_add_sticky_mobile_cart()
             grid-column: 1;
             width: 100% !important;
         }
-        .rmenupro-mobile-sticky-cart .rmenupro-ajax-add-to-cart:after, .rmenupro-mobile-sticky-cart .single_add_to_cart_button:not(.direct-checkout-button):not(.onepaquc-checkout-btn):after, .rmenupro-mobile-sticky-cart .add_to_cart_button:not(.direct-checkout-button):not(.onepaquc-checkout-btn):after{
+        .rmenupro-mobile-sticky-cart .rmenupro-ajax-add-to-cart:after, .rmenupro-mobile-sticky-cart .single_add_to_cart_button:not(.direct-checkout-button):not(.onepaquc-checkout-btn):not(.onepaqucpro-checkout-btn):after, .rmenupro-mobile-sticky-cart .add_to_cart_button:not(.direct-checkout-button):not(.onepaquc-checkout-btn):not(.onepaqucpro-checkout-btn):after{
             display: none;
         }
 
@@ -581,12 +585,14 @@ function rmenupro_add_sticky_mobile_cart()
         }
 
         .rmenupro-mobile-sticky-cart .opqcfw-btn,
-        .rmenupro-mobile-sticky-cart .onepaquc-checkout-btn {
+        .rmenupro-mobile-sticky-cart .onepaquc-checkout-btn,
+        .rmenupro-mobile-sticky-cart .onepaqucpro-checkout-btn {
             grid-column: 2;
         }
 
         .rmenupro-mobile-sticky-cart .opqcfw-btn:hover,
-        .rmenupro-mobile-sticky-cart .onepaquc-checkout-btn:hover {
+        .rmenupro-mobile-sticky-cart .onepaquc-checkout-btn:hover,
+        .rmenupro-mobile-sticky-cart .onepaqucpro-checkout-btn:hover {
             background: #333333 !important;
         }
 
@@ -626,7 +632,7 @@ function rmenupro_add_sticky_mobile_cart()
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const addToCartButton = document.querySelector('.single_add_to_cart_button');
+            const addToCartButton = document.querySelector('.single_add_to_cart_button:not(.direct-checkout-button):not(.onepaquc-checkout-btn):not(.onepaqucpro-checkout-btn)');
 
             // Only proceed if we found the add to cart button
             if (!addToCartButton) {
@@ -647,7 +653,7 @@ function rmenupro_add_sticky_mobile_cart()
             buttonGroup.className = 'button-group';
 
             // Find and move buttons to button group
-            const buttons = clonedForm.querySelectorAll('button, a.button, .opqcfw-btn, .onepaquc-checkout-btn');
+            const buttons = clonedForm.querySelectorAll('button, a.button, .opqcfw-btn, .onepaquc-checkout-btn, .onepaqucpro-checkout-btn');
             buttons.forEach(btn => {
                 buttonGroup.appendChild(btn);
             });
@@ -731,7 +737,7 @@ function rmenupro_add_sticky_mobile_cart()
             }
 
             // Forward events from sticky button to original form
-            const stickyAddToCartBtn = clonedForm.querySelector('.single_add_to_cart_button');
+            const stickyAddToCartBtn = clonedForm.querySelector('.single_add_to_cart_button:not(.direct-checkout-button):not(.onepaquc-checkout-btn):not(.onepaqucpro-checkout-btn)');
             if (stickyAddToCartBtn) {
                 stickyAddToCartBtn.addEventListener('click', function(e) {
                     e.preventDefault();
