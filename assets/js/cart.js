@@ -19,10 +19,17 @@ jQuery(document).ready(function ($) {
     let isUpdatingCart = false;
     $isonepagewidget = ($('.checkout-popup,#checkout-popup').length) ? $('.checkout-popup,#checkout-popup').data('isonepagewidget') : false;
 
-    function hasCheckoutFormOnPage() {
+    function hasInlineCheckoutFormOnPage() {
+        const inlineClassicCheckout = $('form.checkout.woocommerce-checkout').filter(function () {
+            return !$(this).closest('.checkout-popup').not('.onepagecheckoutwidget').length;
+        }).length > 0;
+        const inlineBlockCheckout = $('.wp-block-woocommerce-checkout, .wc-block-checkout, .wc-block-components-checkout').filter(function () {
+            return !$(this).closest('.checkout-popup').not('.onepagecheckoutwidget').length;
+        }).length > 0;
+
         return !!(
-            $('form.checkout.woocommerce-checkout').length ||
-            $('.wp-block-woocommerce-checkout, .wc-block-checkout, .wc-block-components-checkout').length ||
+            inlineClassicCheckout ||
+            inlineBlockCheckout ||
             $('.one-page-checkout-container form.checkout.woocommerce-checkout').length
         );
     }
@@ -52,14 +59,25 @@ jQuery(document).ready(function ($) {
             },
             success: function (response) {
                 if (response.success) {
-                    $('.rmenupro-cart').html(response.data.cart_html);
+                    const popupCheckoutVisible = isPopupCheckoutVisible();
+                    const shouldKeepDrawerOpen = !popupCheckoutVisible && (isdrawer || drawerWasOpen) && response.data.cart_count !== 0;
+                    let cartHtml = response.data.cart_html;
 
-                    if (isPopupCheckoutVisible()) {
+                    if (shouldKeepDrawerOpen) {
+                        cartHtml = cartHtml.replace(/class="cart-drawer([^"]*)"/, function (match, classNames) {
+                            return /\bopen\b/.test(classNames) ? match : 'class="cart-drawer' + classNames + ' open"';
+                        });
+                    }
+
+                    $('.rmenupro-cart').html(cartHtml);
+
+                    if (popupCheckoutVisible) {
                         $('.cart-drawer').removeClass('open');
                         $('.overlay').show();
                         document.body.style.overflow = 'hidden';
-                    } else if ((isdrawer || drawerWasOpen) && response.data.cart_count !== 0 && !hasCheckoutFormOnPage()) {
-                        window.openCartDrawer();
+                    } else if (shouldKeepDrawerOpen) {
+                        $('.overlay').show();
+                        document.body.style.overflow = 'hidden';
                     }
 
                     isUpdatingCart = false;
@@ -99,7 +117,7 @@ jQuery(document).ready(function ($) {
     // Event handler for adding/removing items from the cart
     $(document.body).on('added_to_cart removed_from_cart', function () {
         const cartDrawer = document.querySelector('.cart-drawer');
-        const canOpenDrawer = !hasCheckoutFormOnPage();
+        const canOpenDrawer = !hasInlineCheckoutFormOnPage();
         if (cartDrawer && cartDrawer.classList.contains('open')) {
             if (typeof window.onepaqucproRefreshPopupCheckout === 'function') {
                 window.onepaqucproRefreshPopupCheckout();
@@ -115,12 +133,12 @@ jQuery(document).ready(function ($) {
     });
 
     function debouncedUpdate(showdrawer = true) {
-        if (hasCheckoutFormOnPage()) {
+        const isDrawerOpen = ($('.cart-drawer').length && $('.cart-drawer').hasClass('open')) ? true : false;
+        if (hasInlineCheckoutFormOnPage() && !isDrawerOpen) {
             showdrawer = false;
         }
 
-        $is_drawerOpen = ($('.cart-drawer').length && $('.cart-drawer').hasClass('open')) ? true : false;
-        if (!showdrawer || ($isonepagewidget && !$is_drawerOpen)) {
+        if (!showdrawer || ($isonepagewidget && !isDrawerOpen)) {
             updateCartContent(false);
         } else {
             updateCartContent(true);
@@ -550,7 +568,7 @@ jQuery(document).ready(function ($) {
                             }
                         }
 
-                        const shouldOpenSideCart = methodKey === 'side_cart' && !$isonepagewidget && !hasCheckoutFormOnPage();
+                        const shouldOpenSideCart = methodKey === 'side_cart' && !$isonepagewidget && !hasInlineCheckoutFormOnPage();
 
                         if (shouldOpenSideCart && $('#cart-drawer2-style').length) {
                             $('#cart-drawer2-style').remove();
