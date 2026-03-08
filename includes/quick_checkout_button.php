@@ -186,7 +186,7 @@ function onepaqucpro_get_button_styling()
     // Basic button classes
     $classes = "button single_add_to_cart_button direct-checkout-button opqcfw-btn wp-element-button ";
     $style = "cursor:pointer;text-align: center;";
-    $icon = '';
+    $icon = [];
     $additional_css = '';
     $style_options = onepaqucpro_get_direct_checkout_style_options();
 
@@ -219,34 +219,36 @@ function onepaqucpro_get_button_styling()
         $classes .= " mobile-optimized-checkout";
     }
 
-    // Handle button icon
-    $icon_type = get_option('rmenupro_wc_checkout_icon', 'none');
-    $icon_position = get_option('rmenupro_wc_checkout_icon_position', 'left');
+    // Handle button icon only for plugin-managed styles.
+    if ($button_style !== 'default') {
+        $icon_type = get_option('rmenupro_wc_checkout_icon', 'none');
+        $icon_position = get_option('rmenupro_wc_checkout_icon_position', 'left');
 
-    if ($icon_type !== 'none') {
-        // Define icon HTML based on type
-        switch ($icon_type) {
-            case 'cart':
-                $icon_content = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#ffffff" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="rmenupro-icon"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>';
-                break;
-            case 'checkout':
-                $icon_content = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="#fff" xml:space="preserve" width="16" height="16"><path d="M7.436 10.207a.507.507 0 0 0 .556.452.507.507 0 0 0 .452-.556L8.21 7.841a.507.507 0 0 0-1.008.104zm3.172.452q.027.003.053.003a.507.507 0 0 0 .504-.455l.234-2.262a.507.507 0 0 0-.452-.556.507.507 0 0 0-.556.452l-.234 2.262a.507.507 0 0 0 .452.556m-3.926 2.203c-.865 0-1.569.704-1.569 1.569S5.818 16 6.683 16s1.569-.704 1.569-1.569-.704-1.569-1.569-1.569m0 2.124a.556.556 0 1 1 .002-1.112.556.556 0 0 1-.002 1.112m5.234-2.124c-.865 0-1.569.704-1.569 1.569S11.052 16 11.917 16s1.569-.704 1.569-1.569-.704-1.569-1.569-1.569m0 2.124a.556.556 0 1 1 .002-1.112.556.556 0 0 1-.002 1.112"/><path d="M14.948 5.698a.5.5 0 0 0-.401-.197H4.445L4.021 3.87a.51.51 0 0 0-.491-.379H1.453a.507.507 0 0 0 0 1.014h1.685l.42 1.617.008.03 1.564 6.016a.51.51 0 0 0 .491.379h7.357a.51.51 0 0 0 .491-.379l1.569-6.031a.5.5 0 0 0-.09-.437m-2.361 5.834H6.013L4.708 6.516h9.183zm-5.383-8.88h2.968l-.775.775a.507.507 0 0 0 .358.865.5.5 0 0 0 .358-.148l1.64-1.64a.507.507 0 0 0 0-.717L10.112.148a.507.507 0 0 0-.717.717l.775.775H7.203a.507.507 0 0 0 0 1.014"/></svg>';
-                break;
-            case 'arrow':
-                $icon_content = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#ffffff" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="rmenupro-icon"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>';
-                break;
-            default:
-                $icon_content = '';
-        }
+        if ($icon_type !== 'none') {
+            // Define icon HTML based on type
+            switch ($icon_type) {
+                case 'cart':
+                    $icon_content = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#ffffff" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="rmenupro-icon"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>';
+                    break;
+                case 'checkout':
+                    $icon_content = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="#fff" xml:space="preserve" width="16" height="16"><path d="M7.436 10.207a.507.507 0 0 0 .556.452.507.507 0 0 0 .452-.556L8.21 7.841a.507.507 0 0 0-1.008.104zm3.172.452q.027.003.053.003a.507.507 0 0 0 .504-.455l.234-2.262a.507.507 0 0 0-.452-.556.507.507 0 0 0-.556.452l-.234 2.262a.507.507 0 0 0 .452.556m-3.926 2.203c-.865 0-1.569.704-1.569 1.569S5.818 16 6.683 16s1.569-.704 1.569-1.569-.704-1.569-1.569-1.569m0 2.124a.556.556 0 1 1 .002-1.112.556.556 0 0 1-.002 1.112m5.234-2.124c-.865 0-1.569.704-1.569 1.569S11.052 16 11.917 16s1.569-.704 1.569-1.569-.704-1.569-1.569-1.569m0 2.124a.556.556 0 1 1 .002-1.112.556.556 0 0 1-.002 1.112"/><path d="M14.948 5.698a.5.5 0 0 0-.401-.197H4.445L4.021 3.87a.51.51 0 0 0-.491-.379H1.453a.507.507 0 0 0 0 1.014h1.685l.42 1.617.008.03 1.564 6.016a.51.51 0 0 0 .491.379h7.357a.51.51 0 0 0 .491-.379l1.569-6.031a.5.5 0 0 0-.09-.437m-2.361 5.834H6.013L4.708 6.516h9.183zm-5.383-8.88h2.968l-.775.775a.507.507 0 0 0 .358.865.5.5 0 0 0 .358-.148l1.64-1.64a.507.507 0 0 0 0-.717L10.112.148a.507.507 0 0 0-.717.717l.775.775H7.203a.507.507 0 0 0 0 1.014"/></svg>';
+                    break;
+                case 'arrow':
+                    $icon_content = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#ffffff" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="rmenupro-icon"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>';
+                    break;
+                default:
+                    $icon_content = '';
+            }
 
-        if (!empty($icon_content)) {
-            $icon = [
-                'content' => $icon_content,
-                'position' => $icon_position
-            ];
+            if (!empty($icon_content)) {
+                $icon = [
+                    'content' => $icon_content,
+                    'position' => $icon_position
+                ];
 
-            // Add class for icon positioning
-            $classes .= " icon-position-{$icon_position}";
+                // Add class for icon positioning
+                $classes .= " icon-position-{$icon_position}";
+            }
         }
     }
 
@@ -271,8 +273,6 @@ function onepaqucpro_add_button_css()
     $button_styling = onepaqucpro_get_button_styling();
     $additional_css = $button_styling['additional_css'];
     $style_options = onepaqucpro_get_direct_checkout_style_options();
-    $hover_bg_color = sanitize_hex_color(get_option('rmenupro_wc_checkout_hover_bg_color', '#222222'));
-    $hover_text_color = sanitize_hex_color(get_option('rmenupro_wc_checkout_hover_text_color', '#ffffff'));
 
     // Start output buffer for CSS
     ob_start();
@@ -292,19 +292,14 @@ function onepaqucpro_add_button_css()
             letter-spacing: 1px;
             font-weight: 600;
         }
-        .direct-checkout-button:hover{
-            background-color: <?php echo esc_html($hover_bg_color); ?> !important;
-            border-color: <?php echo esc_html($hover_bg_color); ?> !important;
-            color: <?php echo esc_html($hover_text_color); ?> !important;
-        }
         <?php if ($style_options['button_style'] !== 'default') : ?>
 
         .direct-checkout-button:hover,
         .direct-checkout-button:focus,
         .direct-checkout-button:active {
-            background-color: <?php echo esc_html($style_options['hover_bg_color']); ?>;
-            color: <?php echo esc_html($style_options['hover_text_color']); ?>;
-            border-color: <?php echo esc_html($style_options['hover_bg_color']); ?>;
+            background-color: <?php echo esc_html($style_options['hover_bg_color']); ?> !important;
+            color: <?php echo esc_html($style_options['hover_text_color']); ?> !important;
+            border-color: <?php echo esc_html($style_options['hover_bg_color']); ?> !important;
         }
 
         <?php endif; ?>
