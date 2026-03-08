@@ -3355,7 +3355,9 @@ function onepaqucpro_cart_dashboard()
                         </iframe>
                     </div>
                     <h3>Buy Now Button</h3>
-                    <p>Transform your WooCommerce store with instant purchase buttons that bypass the traditional cart process. Our plugin automatically adds buy now buttons on single product and archive pages, but you have complete control over placement and customization.</p>
+                    <p>
+                        Transform your <strong>WooCommerce store</strong> with <strong>instant purchase buttons</strong> that bypass the traditional <strong>cart process</strong>. Our plugin automatically adds <strong>buy now buttons</strong> on <strong>single product</strong> and <strong>archive pages</strong>, but you have complete control over placement and customization.
+                    </p>
 
                     <div class="tutorial-shortcode">
                         <h4>Basic Shortcode:</h4>
@@ -3377,7 +3379,9 @@ function onepaqucpro_cart_dashboard()
                         </iframe>
                     </div>
                     <h3>Buy Now Button Anywhere</h3>
-                    <p>You can use buy now button anywhere on your site with this shortcode.</p>
+                    <p>
+                        You can use <strong>buy now button</strong> anywhere on your <strong>site</strong> with this <strong>shortcode</strong>.
+                    </p>
                     <div class="tutorial-shortcode">
                         <h4>Shortcode:</h4>
                         <code>[onepaquc_button product_id="123" variation_id="456" qty="2"]</code>
@@ -3401,7 +3405,9 @@ function onepaqucpro_cart_dashboard()
                         </iframe>
                     </div>
                     <h3>One Page Checkout</h3>
-                    <p>You can use one page checkout anywhere on your site with this shortcode.</p>
+                    <p>
+                        You can use <strong>one page checkout</strong> anywhere on your <strong>site</strong> with this <strong>shortcode</strong>.
+                    </p>
                     <div class="tutorial-shortcode">
                         <h4>Shortcode:</h4>
                         <code>[onepaquc_checkout product_id="123" variation_id="456" qty="2" clear_cart="yes" auto_add="yes"]</code>
@@ -3424,7 +3430,9 @@ function onepaqucpro_cart_dashboard()
                         </iframe>
                     </div>
                     <h3>Floating Cart</h3>
-                    <p>A modern, stylish side-drawer cart that users can access from any page for improved convenience.</p>
+                    <p>
+                        A <strong>modern</strong>, <strong>stylish</strong> <strong>side-drawer cart</strong> that users can access from <strong>any page</strong> for improved convenience.
+                    </p>
                     <div class="tutorial-tips">
                         <h4>Floating Cart Benefits:</h4>
                         <ul>
