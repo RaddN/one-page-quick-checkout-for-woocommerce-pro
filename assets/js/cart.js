@@ -384,40 +384,240 @@ jQuery(document).ready(function ($) {
 
     var $directbehave = onepaqucpro_wc_cart_params.direct_checkout_behave;
     var methodKey = $directbehave.rmenupro_wc_checkout_method;
+    var archiveVariationModalState = null;
 
-    function directcheckout(product_id, product_type, $button) {
-        var $variation_id = $button.data('variation-id') || $button.siblings('.archive-variations-container').find('.variation_id').val() ||
-            $button.siblings('.variation_id').val() || $button.closest('.product').find('.variation_id').val() ||
-            $button.closest('.product').find('.archive-variations-container').find('.variation_id').val() || 0;
-        var variations = {};
+    function escapeHtml(value) {
+        return $('<div>').text(value || '').html();
+    }
 
-        var variation_on_archive = $button.siblings('.archive-variations-container').find('.variation-button.selected').data('attrs') ||
-            $button.closest('.product').find('.archive-variations-container').find('.variation-button.selected').data('attrs');
+    function appendHiddenCartDrawerStyle() {
+        const cartDrawer = $('.cart-drawer');
 
-        if (!variation_on_archive) {
-            $(".archive-variations-container").find('.var-attr-group').each(function () {
-                var attribute = $(this).find('button.var-attr-option.selected').data('attr');
-                var value = $(this).find('button.var-attr-option.selected').data('value');
-                if (attribute && value) {
-                    variations[attribute] = value;
-                }
-            });
-            variation_on_archive = variations;
+        if (!cartDrawer.length || $('#cart-drawer2-style').length) {
+            return;
         }
 
+        $('body').append(`
+            <style id="cart-drawer2-style">
+                .cart-drawer,.overlay {
+                    opacity: 0 !important;
+                    visibility: hidden !important;
+                    display: none !important;
+                }
+                body{
+                    overflow: auto !important;
+                }
+            </style>
+        `);
+    }
+
+    function handleWooFragments(response) {
+        if (!response.fragments) {
+            return;
+        }
+
+        $.each(response.fragments, function (key, value) {
+            $(key).replaceWith(value);
+        });
+
+        if (typeof sessionStorage !== 'undefined') {
+            sessionStorage.setItem('wc_fragments', JSON.stringify(response.fragments));
+            sessionStorage.setItem('wc_cart_hash', response.cart_hash);
+        }
+    }
+
+    function getArchiveVariationContainer($button, $overrideContainer) {
+        if ($overrideContainer && $overrideContainer.length) {
+            return $overrideContainer.first();
+        }
+
+        return $button.closest('.product').find('.archive-variations-container').first();
+    }
+
+    function toTitleCaseFromSlug(value) {
+        return String(value || '')
+            .replace(/^attribute_/, '')
+            .replace(/^pa_/, '')
+            .replace(/[-_]+/g, ' ')
+            .replace(/\b\w/g, function (letter) {
+                return letter.toUpperCase();
+            });
+    }
+
+    function normalizeVariationMap(attrs) {
+        var normalized = {};
+
+        $.each(attrs || {}, function (key, value) {
+            if (typeof value === 'undefined' || value === null || value === '') {
+                return;
+            }
+
+            normalized[String(key).replace(/^attribute_/, '')] = value;
+        });
+
+        return normalized;
+    }
+
+    function parsePopupInfoData($element, attributeName) {
+        if (!$element.length) {
+            return null;
+        }
+
+        var parsedData = $element.data(attributeName);
+
+        if (typeof parsedData === 'string') {
+            try {
+                parsedData = JSON.parse(parsedData);
+            } catch (error) {
+                parsedData = null;
+            }
+        }
+
+        return parsedData && typeof parsedData === 'object' ? parsedData : null;
+    }
+
+    function getVariationPopupSourceData($product) {
+        var popupData = parsePopupInfoData($product.find('.onepaqucpro-variation-popup-data[data-popup-info]').first(), 'popup-info');
+
+        if (popupData) {
+            return popupData;
+        }
+
+        return parsePopupInfoData($product.find('.rmenupro-product-data[data-product-info]').first(), 'product-info');
+    }
+
+    function normalizeVariationPopupData(rawData) {
+        if (!rawData || typeof rawData !== 'object') {
+            return null;
+        }
+
+        var normalizedAttributes = {};
+        var attrKeys = [];
+
+        $.each(rawData.attributes || {}, function (attrKey, attrInfo) {
+            var normalizedKey = String(attrKey).replace(/^attribute_/, '');
+            var options = [];
+            var label = rawData.attribute_labels && rawData.attribute_labels[normalizedKey]
+                ? rawData.attribute_labels[normalizedKey]
+                : toTitleCaseFromSlug(normalizedKey);
+
+            if ($.isArray(attrInfo)) {
+                options = $.map(attrInfo, function (value) {
+                    return {
+                        slug: value,
+                        label: toTitleCaseFromSlug(value)
+                    };
+                });
+            } else if (attrInfo && typeof attrInfo === 'object' && $.isArray(attrInfo.options)) {
+                options = attrInfo.options;
+                label = attrInfo.label || label;
+            }
+
+            if (!options.length) {
+                return;
+            }
+
+            normalizedAttributes[normalizedKey] = {
+                label: label,
+                options: options
+            };
+            attrKeys.push(normalizedKey);
+        });
+
+        var normalizedVariations = $.map(rawData.variations || [], function (variation) {
+            var variationId = variation.id || variation.variation_id;
+            var attrs = normalizeVariationMap(variation.attrs || variation.attributes || {});
+
+            if (!variationId || !Object.keys(attrs).length) {
+                return null;
+            }
+
+            return {
+                id: String(variationId),
+                attrs: attrs
+            };
+        });
+
+        if (!normalizedVariations.length || !attrKeys.length) {
+            return null;
+        }
+
+        return {
+            title: rawData.title || '',
+            priceHtml: rawData.price_html || '',
+            imageSrc: rawData.image_src || '',
+            attributes: normalizedAttributes,
+            attrKeys: rawData.attr_keys && rawData.attr_keys.length
+                ? $.map(rawData.attr_keys, function (key) { return String(key).replace(/^attribute_/, ''); })
+                : attrKeys,
+            variations: normalizedVariations
+        };
+    }
+
+    function buildFallbackArchiveVariationContainer($product) {
+        var popupData = normalizeVariationPopupData(getVariationPopupSourceData($product));
+        if (!popupData) {
+            return $();
+        }
+
+        var $container = $('<div class="archive-variations-container onepaqucpro-variation-modal__generated" data-layout="separate"></div>');
+        var $box = $('<div class="separate-attrs"></div>');
+
+        $('<script type="application/json" class="var-map"></script>')
+            .text(JSON.stringify(popupData.variations))
+            .appendTo($box);
+
+        $('<script type="application/json" class="attr-keys"></script>')
+            .text(JSON.stringify(popupData.attrKeys))
+            .appendTo($box);
+
+        $.each(popupData.attrKeys, function (index, attrKey) {
+            var attrInfo = popupData.attributes[attrKey];
+            if (!attrInfo || !$.isArray(attrInfo.options) || !attrInfo.options.length) {
+                return;
+            }
+
+            var $group = $('<div class="var-attr-group"></div>').attr('data-attr', attrKey);
+            $('<span class="var-attr-title"></span>').text(attrInfo.label + ':').appendTo($group);
+
+            var $options = $('<div class="var-attr-options"></div>');
+            $.each(attrInfo.options, function (optionIndex, option) {
+                $('<button type="button" class="var-attr-option"></button>')
+                    .attr('data-attr', attrKey)
+                    .attr('data-value', option.slug)
+                    .text(option.label)
+                    .appendTo($options);
+            });
+
+            $group.append($options).appendTo($box);
+        });
+
+        $container.append($box);
+        $container.append('<input type="hidden" class="variation_id" value="">');
+
+        return $container;
+    }
+
+    function getQuantityForAction($button, product_id) {
         var $form = $button.closest('form.cart');
+        var $product = $button.closest('.product');
         var quantity = 1;
 
-        // Try multiple approaches to find the quantity input
         if ($form.length > 0) {
             quantity = $form.find('input.qty').val();
         } else {
             var $qtyInput = $button.siblings('.rmenu-archive-quantity');
+
+            if (!$qtyInput.length && $product.length) {
+                $qtyInput = $product.find('.rmenu-archive-quantity').first();
+            }
+
             if ($qtyInput.length > 0) {
                 quantity = $qtyInput.val();
             } else {
                 var $qtyWrapper = $('.rmenu-quantity-wrapper[data-product_id="' + product_id + '"]');
                 var qtyByData = $button.data('quantity');
+
                 if ($qtyWrapper.length > 0) {
                     var $qtyField = $qtyWrapper.find('.rmenu-archive-quantity');
                     if ($qtyField.length > 0) {
@@ -434,83 +634,371 @@ jQuery(document).ready(function ($) {
             }
         }
 
-        // Enhanced variation handling for product forms
-        if ($form.length > 0 && $form.find('input[name="variation_id"]').length > 0) {
-            $form.find('.variations select').each(function () {
-                var attribute = $(this).attr('name');
-                var value = $(this).val();
-                if (value) {
-                    variations[attribute] = value;
-                }
-            });
-        } else if (variation_on_archive) {
-            variations = variation_on_archive;
-        }
-
-        // Ensure we have a valid quantity
         if (!quantity || quantity < 1 || isNaN(quantity)) {
             quantity = 1;
         }
 
-        // Convert to number to ensure proper comparison
-        $variation_id = parseInt($variation_id) || 0;
-        $('#checkout-button-drawer-link').prop('disabled', true);
+        return quantity;
+    }
 
-        // ENHANCED VALIDATION FOR VARIABLE PRODUCTS
-        if (product_type === 'variable') {
-            // Check if variation_id is missing
-            if ($variation_id === 0) {
-                $('#checkout-button-drawer-link').prop('disabled', false);
-                $button.removeClass('loading').prop('disabled', false);
-                alert("Please select all product options before adding this product to your cart.");
-                return false;
+    function getSelectedArchiveVariations($archiveContainer) {
+        var variations = {};
+
+        if (!$archiveContainer.length) {
+            return variations;
+        }
+
+        var selectedAttrs = $archiveContainer.find('.variation-button.selected').first().data('attrs');
+
+        if (typeof selectedAttrs === 'string') {
+            try {
+                selectedAttrs = JSON.parse(selectedAttrs);
+            } catch (error) {
+                selectedAttrs = {};
             }
+        }
 
-            // Additional check: Verify all required variation attributes are selected
-            var requiredAttributes = [];
-            var $variationForm = $button.closest('.product').find('form.variations_form, form.cart');
+        if (selectedAttrs && typeof selectedAttrs === 'object') {
+            return $.extend({}, selectedAttrs);
+        }
 
-            if ($variationForm.length > 0) {
-                // Count required variation attributes from form
-                $variationForm.find('.variations select').each(function () {
-                    if ($(this).data('attribute_name') || $(this).attr('name')) {
-                        requiredAttributes.push($(this).attr('name') || $(this).data('attribute_name'));
-                    }
-                });
-            } else {
-                // Count required attributes from archive variation container
-                $button.closest('.product').find('.archive-variations-container .var-attr-group').each(function () {
-                    var attrName = $(this).data('attribute') || $(this).find('button.var-attr-option').first().data('attr');
-                    if (attrName) {
-                        requiredAttributes.push(attrName);
-                    }
-                });
+        $archiveContainer.find('.var-attr-group').each(function () {
+            var attribute = $(this).data('attr') || $(this).find('button.var-attr-option.selected').data('attr');
+            var value = $(this).find('button.var-attr-option.selected').data('value');
+
+            if (attribute && value) {
+                variations[attribute] = value;
             }
+        });
 
-            // Check if all required attributes have been selected
-            var selectedCount = Object.keys(variations).length;
-            var requiredCount = requiredAttributes.length;
+        return variations;
+    }
 
-            if (requiredCount > 0 && selectedCount < requiredCount) {
-                $('#checkout-button-drawer-link').prop('disabled', false);
-                $button.removeClass('loading').prop('disabled', false);
-                alert("Please select all product options. You have selected " + selectedCount + " out of " + requiredCount + " required options.");
-                return false;
-            }
+    function collectVariationState($button, product_id, $overrideContainer) {
+        var $form = $button.closest('form.cart');
+        var $product = $button.closest('.product');
+        var $archiveContainer = getArchiveVariationContainer($button, $overrideContainer);
+        var variationId = $button.data('variation-id') ||
+            $button.siblings('.archive-variations-container').find('.variation_id').val() ||
+            ($archiveContainer.length ? $archiveContainer.find('.variation_id').val() : '') ||
+            $button.siblings('.variation_id').val() ||
+            $product.find('.variation_id').first().val() || 0;
+        var variations = {};
+        var requiredAttributes = [];
+        var isFormVariationContext = $form.length > 0 && $form.find('input[name="variation_id"]').length > 0 && !$overrideContainer;
 
-            // Validate that no variation attribute is empty
-            var hasEmptyVariation = false;
-            $.each(variations, function (key, value) {
-                if (!value || value === '' || value === 'undefined') {
-                    hasEmptyVariation = true;
-                    return false; // break loop
+        if (isFormVariationContext) {
+            variationId = $form.find('input[name="variation_id"]').val() || variationId;
+            $form.find('.variations select').each(function () {
+                var attribute = $(this).attr('name');
+                var value = $(this).val();
+
+                if (attribute) {
+                    requiredAttributes.push(attribute);
+                }
+
+                if (value) {
+                    variations[attribute] = value;
                 }
             });
+        } else if ($archiveContainer.length) {
+            variations = getSelectedArchiveVariations($archiveContainer);
+            $archiveContainer.find('.var-attr-group').each(function () {
+                var attrName = $(this).data('attr') || $(this).data('attribute') || $(this).find('button.var-attr-option').first().data('attr');
 
-            if (hasEmptyVariation) {
+                if (attrName) {
+                    requiredAttributes.push(attrName);
+                }
+            });
+        }
+
+        return {
+            variationId: parseInt(variationId, 10) || 0,
+            variations: variations,
+            requiredAttributes: requiredAttributes,
+            quantity: getQuantityForAction($button, product_id),
+            $archiveContainer: $archiveContainer,
+            isArchiveContext: $archiveContainer.length > 0
+        };
+    }
+
+    function validateVariationSelection(product_type, selection) {
+        if (product_type !== 'variable') {
+            return {
+                valid: true
+            };
+        }
+
+        if (selection.variationId === 0) {
+            return {
+                valid: false,
+                message: 'Please select all product options before adding this product to your cart.'
+            };
+        }
+
+        var selectedCount = Object.keys(selection.variations).length;
+        var requiredCount = selection.requiredAttributes.length;
+
+        if (requiredCount > 0 && selectedCount < requiredCount) {
+            return {
+                valid: false,
+                message: 'Please select all product options. You have selected ' + selectedCount + ' out of ' + requiredCount + ' required options.'
+            };
+        }
+
+        var hasEmptyVariation = false;
+        $.each(selection.variations, function (key, value) {
+            if (!value || value === '' || value === 'undefined') {
+                hasEmptyVariation = true;
+                return false;
+            }
+        });
+
+        if (hasEmptyVariation) {
+            return {
+                valid: false,
+                message: 'Please complete all product option selections.'
+            };
+        }
+
+        return {
+            valid: true
+        };
+    }
+
+    function setArchiveVariationModalFeedback(message, type) {
+        if (!archiveVariationModalState || !archiveVariationModalState.$modal.length) {
+            return;
+        }
+
+        var $feedback = archiveVariationModalState.$modal.find('.onepaqucpro-variation-modal__feedback');
+        $feedback.removeClass('is-visible is-error is-success');
+
+        if (!message) {
+            $feedback.text('');
+            return;
+        }
+
+        $feedback.text(message)
+            .addClass('is-visible')
+            .addClass(type === 'success' ? 'is-success' : 'is-error');
+    }
+
+    function setArchiveVariationModalLoading(isLoading) {
+        if (!archiveVariationModalState || !archiveVariationModalState.$modal.length) {
+            return;
+        }
+
+        archiveVariationModalState.$modal.find('.onepaqucpro-variation-modal__action')
+            .toggleClass('is-loading', !!isLoading)
+            .prop('disabled', !!isLoading);
+    }
+
+    function closeArchiveVariationPopup() {
+        if (!archiveVariationModalState) {
+            return;
+        }
+
+        var state = archiveVariationModalState;
+
+        $(document).off('keydown.onepaqucproVariationModal');
+
+        if (state.isSynthetic) {
+            if (state.$container && state.$container.length) {
+                state.$container.remove();
+            }
+        } else if (state.$container && state.$container.length && state.$placeholder && state.$placeholder.length) {
+            state.$container.removeClass('onepaqucpro-variation-modal__moved-options');
+
+            if (state.wasOverlay) {
+                state.$container.addClass('overlay-variations');
+            }
+
+            if (state.wasBottomOffset) {
+                state.$container.addClass('bottom-48');
+            }
+
+            state.$placeholder.replaceWith(state.$container);
+        }
+
+        if (state.$modal && state.$modal.length) {
+            state.$modal.remove();
+        }
+
+        $('body').removeClass('onepaqucpro-variation-modal-open');
+        archiveVariationModalState = null;
+    }
+
+    function openArchiveVariationPopup($button, message) {
+        var $product = $button.closest('.product');
+        var $container = $product.find('.archive-variations-container').first();
+        var isSynthetic = false;
+
+        if (!$product.length) {
+            return false;
+        }
+
+        if (!$container.length) {
+            $container = buildFallbackArchiveVariationContainer($product);
+            isSynthetic = $container.length > 0;
+        }
+
+        if (!$container.length) {
+            return false;
+        }
+
+        closeArchiveVariationPopup();
+
+        var title = $.trim($button.data('title') || $product.find('.woocommerce-loop-product__title').first().text() || 'Choose product options');
+        var priceHtml = $product.find('.price').first().html() || '';
+        var $image = $product.find('.astra-shop-thumbnail-wrap img, img.wp-post-image').first();
+        var imageHtml = '';
+
+        if ($image.length && $image.attr('src')) {
+            imageHtml = '<div class="onepaqucpro-variation-modal__media">' +
+                '<img src="' + escapeHtml($image.attr('src')) + '" alt="' + escapeHtml($image.attr('alt') || title) + '">' +
+                '</div>';
+        }
+
+        var modalHtml = [
+            '<div class="onepaqucpro-variation-modal">',
+            '<div class="onepaqucpro-variation-modal__backdrop"></div>',
+            '<div class="onepaqucpro-variation-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="onepaqucpro-variation-modal-title">',
+            '<button type="button" class="onepaqucpro-variation-modal__close" aria-label="Close variation picker">&times;</button>',
+            '<div class="onepaqucpro-variation-modal__hero">',
+            imageHtml,
+            '<div class="onepaqucpro-variation-modal__summary">',
+            '<span class="onepaqucpro-variation-modal__eyebrow">Choose your product options</span>',
+            '<h3 id="onepaqucpro-variation-modal-title" class="onepaqucpro-variation-modal__title">' + escapeHtml(title) + '</h3>',
+            priceHtml ? '<div class="onepaqucpro-variation-modal__price">' + priceHtml + '</div>' : '',
+            '<p class="onepaqucpro-variation-modal__text">Select the variation you want, then add it to cart or continue with Buy Now.</p>',
+            '</div>',
+            '</div>',
+            '<div class="onepaqucpro-variation-modal__options"></div>',
+            '<p class="onepaqucpro-variation-modal__feedback" aria-live="polite"></p>',
+            '<div class="onepaqucpro-variation-modal__actions">',
+            '<button type="button" class="onepaqucpro-variation-modal__action onepaqucpro-variation-modal__action--cart">Add to cart</button>',
+            '<button type="button" class="onepaqucpro-variation-modal__action onepaqucpro-variation-modal__action--buy">Buy now</button>',
+            '</div>',
+            '</div>',
+            '</div>'
+        ].join('');
+
+        var $modal = $(modalHtml);
+        var $placeholder = $();
+        var wasOverlay = false;
+        var wasBottomOffset = false;
+
+        if (!isSynthetic) {
+            $placeholder = $('<div class="onepaqucpro-variation-modal__placeholder" aria-hidden="true"></div>');
+            wasOverlay = $container.hasClass('overlay-variations');
+            wasBottomOffset = $container.hasClass('bottom-48');
+
+            $container.after($placeholder);
+            $container.removeClass('overlay-variations bottom-48').addClass('onepaqucpro-variation-modal__moved-options');
+        }
+
+        $modal.find('.onepaqucpro-variation-modal__options').append($container);
+        $('body').append($modal).addClass('onepaqucpro-variation-modal-open');
+
+        if ($container.is('[data-layout="separate"]') && typeof window.onepaqucproInitSeparateArchiveVariations === 'function') {
+            window.onepaqucproInitSeparateArchiveVariations($container);
+        }
+
+        archiveVariationModalState = {
+            $modal: $modal,
+            $button: $button,
+            $container: $container,
+            $placeholder: $placeholder,
+            isSynthetic: isSynthetic,
+            wasOverlay: wasOverlay,
+            wasBottomOffset: wasBottomOffset
+        };
+
+        setArchiveVariationModalFeedback(message || '', message ? 'error' : '');
+
+        $(document).on('keydown.onepaqucproVariationModal', function (event) {
+            if (event.key === 'Escape') {
+                closeArchiveVariationPopup();
+            }
+        });
+
+        $modal.find('.onepaqucpro-variation-modal__close').trigger('focus');
+        return true;
+    }
+
+    function ajaxAddArchiveSelectionToCart($button, selection, callbacks) {
+        callbacks = callbacks || {};
+
+        $.ajax({
+            type: 'POST',
+            url: onepaqucpro_wc_cart_params.ajax_url,
+            data: {
+                action: 'onepaqucpro_ajax_add_to_cart',
+                product_id: $button.data('product-id'),
+                quantity: selection.quantity,
+                variation_id: selection.variationId,
+                variations: selection.variations,
+                nonce: onepaqucpro_wc_cart_params.nonce || '',
+            },
+            success: function (response) {
+                if (response.success) {
+                    handleWooFragments(response);
+
+                    const shouldOpenSideCart = methodKey === 'side_cart' && !$isonepagewidget && !hasInlineCheckoutFormOnPage();
+
+                    debouncedUpdate(shouldOpenSideCart);
+                    $(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash, $button]);
+
+                    if (callbacks.success) {
+                        callbacks.success(response, shouldOpenSideCart);
+                    }
+                } else if (callbacks.error) {
+                    callbacks.error(response.message || 'Could not add the product to cart.');
+                }
+            },
+            error: function () {
+                if (callbacks.error) {
+                    callbacks.error('Failed to add product to cart. Please try again later.');
+                }
+            },
+            complete: function () {
+                if (callbacks.complete) {
+                    callbacks.complete();
+                }
+            }
+        });
+    }
+
+    function startDirectCheckout($button, selectionOverride) {
+        var product_id = $button.data('product-id');
+        var product_type = $button.data('product-type');
+
+        $button.addClass('loading').prop('disabled', true);
+        appendHiddenCartDrawerStyle();
+        directcheckout(product_id, product_type, $button, selectionOverride);
+    }
+
+    function directcheckout(product_id, product_type, $button, selectionOverride) {
+        var selection = selectionOverride || collectVariationState($button, product_id);
+        var $variation_id = selection.variationId;
+        var variations = selection.variations;
+        var quantity = selection.quantity;
+        $('#checkout-button-drawer-link').prop('disabled', true);
+
+        if (product_type === 'variable') {
+            var validation = validateVariationSelection(product_type, selection);
+
+            if (!validation.valid) {
                 $('#checkout-button-drawer-link').prop('disabled', false);
                 $button.removeClass('loading').prop('disabled', false);
-                alert("Please complete all product option selections.");
+
+                if (openArchiveVariationPopup($button, validation.message)) {
+                    $('#cart-drawer2-style').remove();
+                    return false;
+                }
+
+                alert(validation.message);
                 return false;
             }
         }
@@ -556,17 +1044,7 @@ jQuery(document).ready(function ($) {
                 },
                 success: function (response) {
                     if (response.success) {
-                        // Handle WooCommerce fragments
-                        if (response.fragments) {
-                            $.each(response.fragments, function (key, value) {
-                                $(key).replaceWith(value);
-                            });
-
-                            if (typeof sessionStorage !== 'undefined') {
-                                sessionStorage.setItem('wc_fragments', JSON.stringify(response.fragments));
-                                sessionStorage.setItem('wc_cart_hash', response.cart_hash);
-                            }
-                        }
+                        handleWooFragments(response);
 
                         const shouldOpenSideCart = methodKey === 'side_cart' && !$isonepagewidget && !hasInlineCheckoutFormOnPage();
 
@@ -615,7 +1093,7 @@ jQuery(document).ready(function ($) {
             });
         }
 
-        $redirecturlparams = `?onepaqucpro_add-to-cart=${product_id}&onepaqucpro_quantity=${quantity}`;
+        var $redirecturlparams = `?onepaqucpro_add-to-cart=${product_id}&onepaqucpro_quantity=${quantity}`;
         if ($variation_id && $variation_id != 0) {
             $redirecturlparams += `&onepaqucpro_variation_id=${$variation_id}`;
         }
@@ -660,28 +1138,85 @@ jQuery(document).ready(function ($) {
 
     // Event delegation for better performance
     $(document).on('click', '.direct-checkout-button', function (e) {
-        e.preventDefault(); // Prevent the default anchor behavior
-        var $button = $(this); // Cache the button reference
-        var product_id = $button.data('product-id');
-        var product_type = $button.data('product-type');
-        const cartDrawer = $('.cart-drawer');
-        // Add loading class
-        $button.addClass('loading').prop('disabled', true); // Disable the button
-        if (cartDrawer && cartDrawer.length) {
-            $('body').append(`
-            <style id="cart-drawer2-style">
-                .cart-drawer,.overlay {
-                    opacity: 0 !important;
-                    visibility: hidden !important;
-                    display: none !important;
-                }
-                body{
-                    overflow: auto !important;
-                }
-            </style>
-        `);
+        e.preventDefault();
+        startDirectCheckout($(this));
+    });
+
+    $(document).on('click', '.onepaqucpro-variation-modal__backdrop, .onepaqucpro-variation-modal__close', function (e) {
+        e.preventDefault();
+        closeArchiveVariationPopup();
+    });
+
+    $(document).on('click', '.onepaqucpro-variation-modal .variation-button, .onepaqucpro-variation-modal .var-attr-option', function () {
+        if (!archiveVariationModalState) {
+            return;
         }
-        directcheckout(product_id, product_type, $button);
+
+        setTimeout(function () {
+            if (!archiveVariationModalState) {
+                return;
+            }
+
+            var $button = archiveVariationModalState.$button;
+            var selection = collectVariationState($button, $button.data('product-id'), archiveVariationModalState.$container);
+            var validation = validateVariationSelection($button.data('product-type'), selection);
+
+            if (validation.valid) {
+                setArchiveVariationModalFeedback('', '');
+            }
+        }, 0);
+    });
+
+    $(document).on('click', '.onepaqucpro-variation-modal__action--buy', function (e) {
+        e.preventDefault();
+
+        if (!archiveVariationModalState) {
+            return;
+        }
+
+        var $button = archiveVariationModalState.$button;
+        var selection = collectVariationState($button, $button.data('product-id'), archiveVariationModalState.$container);
+        var validation = validateVariationSelection($button.data('product-type'), selection);
+
+        if (!validation.valid) {
+            setArchiveVariationModalFeedback(validation.message, 'error');
+            return;
+        }
+
+        closeArchiveVariationPopup();
+        startDirectCheckout($button, selection);
+    });
+
+    $(document).on('click', '.onepaqucpro-variation-modal__action--cart', function (e) {
+        e.preventDefault();
+
+        if (!archiveVariationModalState) {
+            return;
+        }
+
+        var $button = archiveVariationModalState.$button;
+        var selection = collectVariationState($button, $button.data('product-id'), archiveVariationModalState.$container);
+        var validation = validateVariationSelection($button.data('product-type'), selection);
+
+        if (!validation.valid) {
+            setArchiveVariationModalFeedback(validation.message, 'error');
+            return;
+        }
+
+        setArchiveVariationModalFeedback('', '');
+        setArchiveVariationModalLoading(true);
+
+        ajaxAddArchiveSelectionToCart($button, selection, {
+            success: function () {
+                closeArchiveVariationPopup();
+            },
+            error: function (message) {
+                setArchiveVariationModalFeedback(message, 'error');
+            },
+            complete: function () {
+                setArchiveVariationModalLoading(false);
+            }
+        });
     });
 
     $(document.body).on('updated_checkout', function () {

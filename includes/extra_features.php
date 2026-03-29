@@ -691,9 +691,12 @@ class onepaqucpro_add_variation_buttons_on_archive
             foreach ($attributes_terms as $attr_key => $info) {
                 echo '<div class="var-attr-group" data-attr="' . esc_attr($attr_key) . '">';
 
-                if ($show_titles) {
-                    echo '<span class="var-attr-title">' . esc_html($info['label']) . ':</span> ';
+                $title_class = 'var-attr-title';
+                if (!$show_titles) {
+                    $title_class .= ' var-attr-title--archive-hidden';
                 }
+
+                echo '<span class="' . esc_attr($title_class) . '">' . esc_html($info['label']) . ':</span> ';
 
                 echo '<div class="var-attr-options">';
                 foreach ($info['terms'] as $slug => $label) {
@@ -938,9 +941,12 @@ function onepaqucpro_add_variation_buttons_to_loop($link, $product)
         foreach ($attributes_terms as $attr_key => $info) {
             echo '<div class="var-attr-group" data-attr="' . esc_attr($attr_key) . '">';
 
-            if ($show_titles) {
-                echo '<span class="var-attr-title">' . esc_html($info['label']) . ':</span> ';
+            $title_class = 'var-attr-title';
+            if (!$show_titles) {
+                $title_class .= ' var-attr-title--archive-hidden';
             }
+
+            echo '<span class="' . esc_attr($title_class) . '">' . esc_html($info['label']) . ':</span> ';
 
             echo '<div class="var-attr-options">';
             foreach ($info['terms'] as $slug => $label) {

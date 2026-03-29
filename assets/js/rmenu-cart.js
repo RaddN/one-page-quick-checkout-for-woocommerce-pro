@@ -393,6 +393,121 @@ jQuery(document).ready(function ($) {
 // variation selection handle
 
 jQuery(function ($) {
+    function getSeparateVariationConfig($wrap) {
+        if (!$wrap || !$wrap.length) {
+            return null;
+        }
+
+        var cachedConfig = $wrap.data('onepaqucproSeparateConfig');
+        if (cachedConfig) {
+            return cachedConfig;
+        }
+
+        var $box = $wrap.find('.separate-attrs');
+        if (!$box.length) {
+            return null;
+        }
+
+        var variations = [];
+        var attrKeys = [];
+
+        try {
+            variations = JSON.parse($box.find('script.var-map').text() || '[]');
+        } catch (e) { }
+
+        try {
+            attrKeys = JSON.parse($box.find('script.attr-keys').text() || '[]');
+        } catch (e) { }
+
+        cachedConfig = {
+            $wrap: $wrap,
+            $box: $box,
+            variations: variations,
+            attrKeys: attrKeys
+        };
+
+        $wrap.data('onepaqucproSeparateConfig', cachedConfig);
+        return cachedConfig;
+    }
+
+    function getSelectedSeparateValues($wrap) {
+        var selected = {};
+
+        $wrap.find('.var-attr-option.selected').each(function () {
+            var $btn = $(this);
+            var attr = $btn.data('attr');
+            var value = $btn.data('value');
+
+            if (attr && value) {
+                selected[attr] = value;
+            }
+        });
+
+        return selected;
+    }
+
+    function findSeparateVariationId(config, selected) {
+        for (var i = 0; i < config.variations.length; i++) {
+            var variation = config.variations[i];
+            var isMatch = true;
+
+            for (var k = 0; k < config.attrKeys.length; k++) {
+                var attrKey = config.attrKeys[k];
+                if (!selected[attrKey] || variation.attrs[attrKey] != selected[attrKey]) {
+                    isMatch = false;
+                    break;
+                }
+            }
+
+            plugincydebugLog("possible variation id : ", variation.id);
+            if (isMatch) {
+                return variation.id;
+            }
+        }
+
+        return '';
+    }
+
+    function refreshSeparateAvailability(config, selected) {
+        config.attrKeys.forEach(function (attrKey) {
+            config.$box.find('.var-attr-option[data-attr="' + attrKey + '"]').each(function () {
+                var $option = $(this);
+                var value = $option.data('value');
+                var testSelection = Object.assign({}, selected);
+                testSelection[attrKey] = value;
+
+                var available = config.variations.some(function (variation) {
+                    return config.attrKeys.every(function (key) {
+                        return !testSelection[key] || variation.attrs[key] == testSelection[key];
+                    });
+                });
+
+                if (available) {
+                    $option.removeClass('disabled');
+                } else {
+                    $option.addClass('disabled');
+                }
+            });
+        });
+    }
+
+    function syncSeparateVariationState($wrap) {
+        var config = getSeparateVariationConfig($wrap);
+        if (!config) {
+            return;
+        }
+
+        var selected = getSelectedSeparateValues($wrap);
+        refreshSeparateAvailability(config, selected);
+
+        var variationId = findSeparateVariationId(config, selected);
+        plugincydebugLog("selected: ", selected);
+        plugincydebugLog("final variation id: ", variationId);
+
+        $wrap.find('input.variation_id').val(variationId);
+        $wrap.find('span.variation_id').text(variationId);
+    }
+
     // Keep overlays attached directly to .product
     $('.overlay-variations').each(function () {
         var $variations = $(this);
@@ -413,87 +528,26 @@ jQuery(function ($) {
         $wrap.find('span.variation_id').text(id);
     });
 
-    // SEPARATE logic
     $('.archive-variations-container[data-layout="separate"]').each(function () {
-        var $wrap = $(this);
-        var $box = $wrap.find('.separate-attrs');
-        if (!$box.length) return;
-
-        var variations = [];
-        var attrKeys = [];
-
-        try {
-            variations = JSON.parse($box.find('script.var-map').text() || '[]');
-        } catch (e) { }
-        try {
-            attrKeys = JSON.parse($box.find('script.attr-keys').text() || '[]');
-        } catch (e) { }
-
-        var selected = {}; // attr_key => slug
-
-        function findVariationId() {
-            for (var i = 0; i < variations.length; i++) {
-                var v = variations[i],
-                    ok = true;
-                    
-                for (var k = 0; k < attrKeys.length; k++) {
-                    var a = attrKeys[k];
-                    if (!selected[a] || v.attrs[a] != selected[a]) {
-                        ok = false;
-                        break;
-                    }
-                }
-                plugincydebugLog("possible variation id : ", v.id);
-                if (ok) return v.id;
-            }
-            return '';
-        }
-
-        // (optional) compute enabled options based on partial selection
-        function refreshAvailability() {
-            // For each attribute, check which options are available given current selection
-            attrKeys.forEach(function(attr) {
-            $box.find('.var-attr-option[data-attr="' + attr + '"]').each(function() {
-                var $option = $(this);
-                var value = $option.data('value');
-                var testSelection = Object.assign({}, selected);
-                testSelection[attr] = value;
-
-                // Check if any variation matches this partial selection
-                var available = variations.some(function(v) {
-                return attrKeys.every(function(a) {
-                    // If attribute is selected, must match; if not selected, ignore
-                    return !testSelection[a] || v.attrs[a] == testSelection[a];
-                });
-                });
-
-                if (available) {
-                $option.removeClass('disabled');
-                } else {
-                $option.addClass('disabled');
-                }
-            });
-            });
-        }
-
-        $box.on('click', '.var-attr-option', function () {
-            plugincydebugLog("clicked variation button: ", $(this));
-            var $btn = $(this);
-            var attr = $btn.data('attr');
-            var value = $btn.data('value');
-
-            // single-select per attribute
-            $btn.addClass('selected').siblings('[data-attr="' + attr + '"]').removeClass('selected');
-            selected[attr] = value;
-
-            plugincydebugLog("selected: ", selected);
-
-            refreshAvailability();
-
-            var id = findVariationId();
-            plugincydebugLog("final variation id: ", id);
-            $wrap.find('input.variation_id').val(id);
-            $wrap.find('span.variation_id').text(id);
-        });
+        syncSeparateVariationState($(this));
     });
+
+    $(document).on('click', '.archive-variations-container[data-layout="separate"] .var-attr-option', function () {
+        plugincydebugLog("clicked variation button: ", $(this));
+        var $btn = $(this);
+
+        if ($btn.hasClass('disabled')) {
+            return;
+        }
+
+        $btn.closest('.var-attr-options').find('.var-attr-option').removeClass('selected');
+        $btn.addClass('selected');
+
+        syncSeparateVariationState($btn.closest('.archive-variations-container'));
+    });
+
+    window.onepaqucproInitSeparateArchiveVariations = function ($container) {
+        syncSeparateVariationState($container);
+        return $container;
+    };
 });

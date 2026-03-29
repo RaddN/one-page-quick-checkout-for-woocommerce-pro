@@ -122,6 +122,169 @@ function onepaqucpro_should_display_button($product)
     return false;
 }
 
+function onepaqucpro_get_archive_variation_popup_data($product)
+{
+    if (!($product instanceof WC_Product_Variable)) {
+        return array();
+    }
+
+    $available_variations = onepaqucpro_get_validated_variations($product);
+    if (empty($available_variations)) {
+        return array();
+    }
+
+    $attributes_terms = array();
+    $attr_keys_indexed = array();
+    $variations_for_js = array();
+    $default_attributes = array();
+
+    foreach ((array) $product->get_default_attributes() as $key => $value) {
+        $default_attributes[str_replace('attribute_', '', (string) $key)] = (string) $value;
+    }
+
+    foreach ($available_variations as $variation) {
+        $variation_id = isset($variation['variation_id']) ? (int) $variation['variation_id'] : 0;
+        $variation_attrs = array();
+
+        if ($variation_id <= 0 || empty($variation['attributes']) || !is_array($variation['attributes'])) {
+            continue;
+        }
+
+        foreach ($variation['attributes'] as $attribute_name => $attribute_value) {
+            $attr_key = str_replace('attribute_', '', (string) $attribute_name);
+            $slug = (string) $attribute_value;
+
+            if ($slug === '') {
+                $prod_attrs = $product->get_attributes();
+
+                if (!isset($prod_attrs[$attr_key])) {
+                    continue;
+                }
+
+                /** @var WC_Product_Attribute $product_attribute */
+                $product_attribute = $prod_attrs[$attr_key];
+
+                if (!isset($attributes_terms[$attr_key])) {
+                    $attributes_terms[$attr_key] = array(
+                        'label' => wc_attribute_label($attr_key, $product) ?: ucfirst(str_replace('pa_', '', $attr_key)),
+                        'options' => array(),
+                    );
+                }
+
+                if ($product_attribute->is_taxonomy()) {
+                    $term_ids = (array) $product_attribute->get_options();
+                    if (!empty($term_ids)) {
+                        $terms = get_terms(array(
+                            'taxonomy' => $attr_key,
+                            'hide_empty' => false,
+                            'include' => $term_ids,
+                        ));
+
+                        if (!is_wp_error($terms) && !empty($terms)) {
+                            foreach ($terms as $term) {
+                                $attributes_terms[$attr_key]['options'][$term->slug] = array(
+                                    'slug' => $term->slug,
+                                    'label' => $term->name,
+                                );
+                            }
+                        }
+                    }
+                } else {
+                    foreach ((array) $product_attribute->get_options() as $raw_value) {
+                        $raw_value = (string) $raw_value;
+                        $raw_slug = sanitize_title($raw_value);
+                        $attributes_terms[$attr_key]['options'][$raw_slug] = array(
+                            'slug' => $raw_slug,
+                            'label' => $raw_value,
+                        );
+                    }
+                }
+
+                continue;
+            }
+
+            $attr_label = wc_attribute_label($attr_key, $product);
+            $value_label = $slug;
+
+            if (taxonomy_exists($attr_key)) {
+                $term = get_term_by('slug', $slug, $attr_key);
+                if ($term && !is_wp_error($term)) {
+                    $value_label = $term->name;
+                }
+            }
+
+            if (!isset($attributes_terms[$attr_key])) {
+                $attributes_terms[$attr_key] = array(
+                    'label' => $attr_label ?: ucfirst(str_replace('pa_', '', $attr_key)),
+                    'options' => array(),
+                );
+            }
+
+            $attributes_terms[$attr_key]['options'][$slug] = array(
+                'slug' => $slug,
+                'label' => $value_label,
+            );
+
+            $variation_attrs[$attr_key] = $slug;
+            $attr_keys_indexed[$attr_key] = true;
+        }
+
+        $variations_for_js[] = array(
+            'id' => (string) $variation_id,
+            'attrs' => $variation_attrs,
+        );
+    }
+
+    if (empty($variations_for_js) || empty($attributes_terms)) {
+        return array();
+    }
+
+    $image_src = '';
+    if ($product->get_image_id()) {
+        $image_data = wp_get_attachment_image_src($product->get_image_id(), 'woocommerce_thumbnail');
+        if (!empty($image_data[0])) {
+            $image_src = $image_data[0];
+        }
+    }
+
+    if ($image_src === '') {
+        $image_src = wc_placeholder_img_src('woocommerce_thumbnail');
+    }
+
+    foreach ($attributes_terms as $attr_key => $info) {
+        $attributes_terms[$attr_key]['options'] = array_values($attributes_terms[$attr_key]['options']);
+    }
+
+    return array(
+        'id' => $product->get_id(),
+        'title' => $product->get_name(),
+        'price_html' => $product->get_price_html(),
+        'image_src' => $image_src,
+        'attributes' => $attributes_terms,
+        'attr_keys' => array_keys($attr_keys_indexed),
+        'variations' => $variations_for_js,
+        'default_attributes' => $default_attributes,
+    );
+}
+
+function onepaqucpro_render_archive_variation_popup_data()
+{
+    global $product;
+
+    if (!($product instanceof WC_Product_Variable) || is_singular('product')) {
+        return;
+    }
+
+    $popup_data = onepaqucpro_get_archive_variation_popup_data($product);
+    if (empty($popup_data)) {
+        return;
+    }
+
+    echo '<div class="onepaqucpro-variation-popup-data" style="display:none;" data-popup-info="' . esc_attr(wp_json_encode($popup_data)) . '"></div>';
+}
+
+add_action('woocommerce_after_shop_loop_item', 'onepaqucpro_render_archive_variation_popup_data', 120);
+
 /**
  * Get the CSS classes and styling for the direct checkout button
  * 
