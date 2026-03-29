@@ -124,6 +124,10 @@ function onepaqucpro_should_display_button($product)
 
 function onepaqucpro_get_archive_variation_popup_data($product)
 {
+    if (!(function_exists('onepaqucpro_premium_feature') && onepaqucpro_premium_feature())) {
+        return array();
+    }
+
     if (!($product instanceof WC_Product_Variable)) {
         return array();
     }
@@ -270,6 +274,10 @@ function onepaqucpro_get_archive_variation_popup_data($product)
 function onepaqucpro_render_archive_variation_popup_data()
 {
     global $product;
+
+    if (!(function_exists('onepaqucpro_premium_feature') && onepaqucpro_premium_feature())) {
+        return;
+    }
 
     if (!($product instanceof WC_Product_Variable) || is_singular('product')) {
         return;

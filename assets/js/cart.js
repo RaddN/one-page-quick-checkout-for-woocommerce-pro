@@ -386,6 +386,10 @@ jQuery(document).ready(function ($) {
     var methodKey = $directbehave.rmenupro_wc_checkout_method;
     var archiveVariationModalState = null;
 
+    function canUseArchiveVariationPopup() {
+        return !!(window.onepaqucpro_wc_cart_params && onepaqucpro_wc_cart_params.premium_feature);
+    }
+
     function escapeHtml(value) {
         return $('<div>').text(value || '').html();
     }
@@ -830,6 +834,10 @@ jQuery(document).ready(function ($) {
     }
 
     function openArchiveVariationPopup($button, message) {
+        if (!canUseArchiveVariationPopup()) {
+            return false;
+        }
+
         var $product = $button.closest('.product');
         var $container = $product.find('.archive-variations-container').first();
         var isSynthetic = false;

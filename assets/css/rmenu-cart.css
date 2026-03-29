@@ -1867,7 +1867,7 @@ body.onepaqucpro-variation-modal-open {
   gap: 8px;
 }
 
-.onepaqucpro-variation-modal .variation-button,
+.onepaqucpro-variation-modal .variation-button, .onepaqucpro-variation-modal .var-attr-option:focus,
 .onepaqucpro-variation-modal .var-attr-option {
   min-height: 40px;
   padding: 8px 14px;
@@ -1876,12 +1876,14 @@ body.onepaqucpro-variation-modal-open {
   background: #fff;
   font-size: 13px;
   font-weight: 600;
+  color: #000;
 }
 
 .onepaqucpro-variation-modal .variation-button:hover,
 .onepaqucpro-variation-modal .var-attr-option:hover {
   background: #eff6ff;
   border-color: #93c5fd;
+  color: #1d4ed8;
 }
 
 .onepaqucpro-variation-modal .variation-button.selected,

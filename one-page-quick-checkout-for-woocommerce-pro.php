@@ -264,6 +264,7 @@ function onepaqucpro_cart_enqueue_scripts()
         'checkout_url' => wc_get_checkout_url(),
         'cart_url'     => wc_get_cart_url(),
         'nonce' => esc_js(wp_create_nonce('rmenupro-ajax-nonce')),
+        'premium_feature' => function_exists('onepaqucpro_premium_feature') && onepaqucpro_premium_feature(),
     ));
     // Retrieve the onepaqucpro_editor value
     $onepaqucpro_editor_value = get_option('onepaqucpro_editor', '');
