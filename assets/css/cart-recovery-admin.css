@@ -129,7 +129,7 @@
 .onepaqucpro-cr-panel {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
 }
 
 .onepaqucpro-cr-section {
@@ -200,19 +200,20 @@
 .onepaqucpro-cr-toolbar {
   display: flex;
   justify-content: space-between;
-  gap: 16px;
-  padding: 18px 20px;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
   background: #fff;
-  border-radius: 18px;
-  border: 1px solid #e3ebf4;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+  border-radius: 14px;
+  border: 1px solid #e8eef6;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
 }
 
 .onepaqucpro-cr-toolbar__filters,
 .onepaqucpro-cr-toolbar__search {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
@@ -221,15 +222,16 @@
 }
 
 .onepaqucpro-cr-toolbar input[type="search"] {
-  min-width: 260px;
+  min-width: 220px;
+  border-radius: 8px;
 }
 
 .onepaqucpro-cr-inline-field {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   color: #475569;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .onepaqucpro-cr-inline-field span {
@@ -239,7 +241,7 @@
 .onepaqucpro-cr-range-label {
   align-self: center;
   color: #4b5563;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -247,9 +249,9 @@
 .onepaqucpro-cr-table-wrap,
 .onepaqucpro-cr-stage-table-wrap {
   background: #fff;
-  border-radius: 18px;
-  border: 1px solid #e3ebf4;
-  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.06);
+  border-radius: 14px;
+  border: 1px solid #e8eef6;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
   overflow: hidden;
 }
 
@@ -257,20 +259,21 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
-  padding: 16px 18px;
+  gap: 12px;
+  padding: 12px 16px;
   border-bottom: 1px solid #eef3f8;
+  background: #fafbfd;
 }
 
 .onepaqucpro-cr-bulk {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .onepaqucpro-cr-table-count {
   color: #64748b;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
 }
 
@@ -283,22 +286,22 @@
 .onepaqucpro-cr-table thead th,
 .onepaqucpro-cr-table thead td,
 .onepaqucpro-cr-template-table thead th {
-  padding: 14px 16px;
-  background: #f8fbff;
-  border-bottom: 1px solid #e6edf7;
+  padding: 11px 14px;
+  background: #f6f9fd;
+  border-bottom: 1px solid #e8eef6;
   color: #475569;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
 }
 
 .onepaqucpro-cr-table tbody td,
 .onepaqucpro-cr-table tbody th,
 .onepaqucpro-cr-template-table tbody td {
-  padding: 16px;
+  padding: 12px 14px;
   vertical-align: top;
-  border-bottom: 1px solid #eef3f8;
+  border-bottom: 1px solid #f0f4f9;
   background: #fff;
 }
 
@@ -313,12 +316,13 @@
 
 .onepaqucpro-cr-table--carts tbody tr:hover td,
 .onepaqucpro-cr-table--carts tbody tr:hover th {
-  background: #fbfdff;
+  background: #f8fafc;
 }
 
 .onepaqucpro-cr-table--carts .check-column {
-  padding-left: 14px;
+  padding-left: 12px;
   padding-right: 6px;
+  width: 2.25em;
 }
 
 .onepaqucpro-cr-table--carts .column-primary {
@@ -390,13 +394,13 @@
 .onepaqucpro-cr-table--carts td.onepaqucpro-cr-col--number,
 .onepaqucpro-cr-table--carts th.onepaqucpro-cr-col--time,
 .onepaqucpro-cr-table--carts td.onepaqucpro-cr-col--time {
-  padding-left: 12px;
-  padding-right: 12px;
+  padding-left: 10px;
+  padding-right: 10px;
 }
 
 .onepaqucpro-cr-table--carts .row-actions {
-  margin-top: 6px;
-  font-size: 12px;
+  margin-top: 4px;
+  font-size: 11px;
   color: #64748b;
   visibility: visible;
 }
@@ -436,24 +440,25 @@
 .onepaqucpro-cr-customer strong,
 .onepaqucpro-cr-email-cell strong {
   display: block;
-  margin-bottom: 4px;
-  font-size: 14px;
+  margin-bottom: 2px;
+  font-size: 13px;
 }
 
 .onepaqucpro-cr-customer span {
   display: block;
   color: #64748b;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
+  font-size: 12px;
 }
 
 .onepaqucpro-cr-cart-primary {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 12px;
+  gap: 10px;
 }
 
 .onepaqucpro-cr-avatar-wrap {
-  margin-top: 2px;
+  margin-top: 1px;
 }
 
 .onepaqucpro-cr-avatar {
@@ -467,24 +472,24 @@
 .onepaqucpro-cr-cart-primary__title {
   display: flex;
   align-items: baseline;
-  gap: 10px;
-  font-size: 14px;
-  margin-bottom: 4px;
+  gap: 8px;
+  font-size: 13px;
+  margin-bottom: 2px;
 }
 
 .onepaqucpro-cr-cart-primary__id {
   font-weight: 700;
   color: #94a3b8;
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .onepaqucpro-cr-cart-primary__meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   color: #64748b;
-  font-size: 12px;
-  line-height: 1.45;
+  font-size: 11px;
+  line-height: 1.4;
 }
 
 .onepaqucpro-cr-cart-primary__meta span {
@@ -492,17 +497,17 @@
 }
 
 .onepaqucpro-cr-cart-primary__sub {
-  margin-top: 6px;
+  margin-top: 4px;
   color: #475569;
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .onepaqucpro-cr-meta {
   display: block;
-  margin-top: 4px;
+  margin-top: 2px;
   color: #94a3b8;
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .onepaqucpro-cr-metric {
@@ -533,11 +538,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 92px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
+  min-width: 78px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .onepaqucpro-cr-badge.is-abandoned {
@@ -606,23 +612,24 @@
 .onepaqucpro-cr-table-tools {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
 .onepaqucpro-cr-tag-list {
-  margin-top: 6px;
+  margin-top: 4px;
   color: #475569;
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .onepaqucpro-cr-pagination {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 14px 18px 18px;
+  gap: 10px;
+  padding: 12px 16px 14px;
   border-top: 1px solid #eef3f8;
+  background: #fafbfd;
 }
 
 .onepaqucpro-cr-pagination__links {
