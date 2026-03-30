@@ -858,6 +858,12 @@ jQuery(document).ready(function ($) {
         closeArchiveVariationPopup();
 
         var title = $.trim($button.data('title') || $product.find('.woocommerce-loop-product__title').first().text() || 'Choose product options');
+        var shortDescription = $.trim(String(
+            $button.attr('data-short-description') ||
+            $button.data('shortDescription') ||
+            $product.find('.woocommerce-product-details__short-description').first().text() ||
+            ''
+        ).replace(/\s+/g, ' '));
         var priceHtml = $product.find('.price').first().html() || '';
         var $image = $product.find('.astra-shop-thumbnail-wrap img, img.wp-post-image').first();
         var imageHtml = '';
@@ -876,10 +882,9 @@ jQuery(document).ready(function ($) {
             '<div class="onepaqucpro-variation-modal__hero">',
             imageHtml,
             '<div class="onepaqucpro-variation-modal__summary">',
-            '<span class="onepaqucpro-variation-modal__eyebrow">Choose Your Variation</span>',
             '<h3 id="onepaqucpro-variation-modal-title" class="onepaqucpro-variation-modal__title">' + escapeHtml(title) + '</h3>',
             priceHtml ? '<div class="onepaqucpro-variation-modal__price">' + priceHtml + '</div>' : '',
-            '<p class="onepaqucpro-variation-modal__text">Select the variation you want, then add it to cart or continue with Buy Now.</p>',
+            shortDescription ? '<p class="onepaqucpro-variation-modal__text">' + escapeHtml(shortDescription) + '</p>' : '',
             '</div>',
             '</div>',
             '<div class="onepaqucpro-variation-modal__options"></div>',
