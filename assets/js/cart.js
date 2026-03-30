@@ -876,7 +876,7 @@ jQuery(document).ready(function ($) {
             '<div class="onepaqucpro-variation-modal__hero">',
             imageHtml,
             '<div class="onepaqucpro-variation-modal__summary">',
-            '<span class="onepaqucpro-variation-modal__eyebrow">Choose your product options</span>',
+            '<span class="onepaqucpro-variation-modal__eyebrow">Choose Your Variation</span>',
             '<h3 id="onepaqucpro-variation-modal-title" class="onepaqucpro-variation-modal__title">' + escapeHtml(title) + '</h3>',
             priceHtml ? '<div class="onepaqucpro-variation-modal__price">' + priceHtml + '</div>' : '',
             '<p class="onepaqucpro-variation-modal__text">Select the variation you want, then add it to cart or continue with Buy Now.</p>',
