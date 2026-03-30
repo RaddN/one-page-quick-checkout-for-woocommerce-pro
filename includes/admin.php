@@ -20,24 +20,6 @@ function onepaqucpro_cart_menu()
     );
     add_submenu_page(
         'onepaqucpro_cart',
-        'Cart Recovery',
-        'Cart Recovery',
-        'manage_options',
-        'onepaqucpro_cart_recovery',
-        'onepaqucpro_cart_recovery_page'
-    );
-
-    // Hidden editor page (opened from "Add New Email" / "Edit" links).
-    add_submenu_page(
-        'onepaqucpro_cart',
-        __('Edit Recovery Email', 'one-page-quick-checkout-for-woocommerce-pro'),
-        '',
-        'manage_options',
-        'onepaqucpro_cart_recovery_template',
-        'onepaqucpro_cart_recovery_template_page'
-    );
-    add_submenu_page(
-        'onepaqucpro_cart',
         'Documentation',
         'Documentation',
         'manage_options',
@@ -48,16 +30,6 @@ function onepaqucpro_cart_menu()
         // add_submenu_page('bd-affiliate-marketing', 'Manage Posts', 'Manage Posts', 'manage_options', 'bd-manage-posts', 'onepaqucpro_marketing_manage_posts');
         // add_submenu_page('bd-affiliate-marketing', 'Send Notification', 'Send Notification', 'manage_options', 'bd-send-notification', 'onepaqucpro_marketing_send_notification');
     }
-}
-
-function onepaqucpro_cart_recovery_template_page()
-{
-    if (class_exists('Onepaqucpro_Cart_Recovery_Admin')) {
-        Onepaqucpro_Cart_Recovery_Admin::render_template_page();
-        return;
-    }
-
-    echo '<div class="wrap"><h1>' . esc_html__('Cart Recovery', 'one-page-quick-checkout-for-woocommerce-pro') . '</h1></div>';
 }
 
 // Display the form for Side Cart and PopUp settings
