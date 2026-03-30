@@ -20,6 +20,24 @@ function onepaqucpro_cart_menu()
     );
     add_submenu_page(
         'onepaqucpro_cart',
+        'Cart Recovery',
+        'Cart Recovery',
+        'manage_options',
+        'onepaqucpro_cart_recovery',
+        'onepaqucpro_cart_recovery_page'
+    );
+
+    // Hidden editor page (opened from "Add New Email" / "Edit" links).
+    add_submenu_page(
+        'onepaqucpro_cart',
+        __('Edit Recovery Email', 'one-page-quick-checkout-for-woocommerce-pro'),
+        '',
+        'manage_options',
+        'onepaqucpro_cart_recovery_template',
+        'onepaqucpro_cart_recovery_template_page'
+    );
+    add_submenu_page(
+        'onepaqucpro_cart',
         'Documentation',
         'Documentation',
         'manage_options',
