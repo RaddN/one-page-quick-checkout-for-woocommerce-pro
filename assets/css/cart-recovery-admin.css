@@ -415,6 +415,11 @@
   color: #163bd6;
 }
 
+.onepaqucpro-cr-table--carts .row-actions .onepaqucpro-cr-action-disabled {
+  color: #94a3b8;
+  cursor: default;
+}
+
 .onepaqucpro-cr-table--carts .toggle-row {
   display: none;
 }

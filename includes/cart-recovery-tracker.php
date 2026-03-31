@@ -2174,7 +2174,7 @@ class Onepaqucpro_Cart_Recovery_Tracker
             $metadata[sanitize_key((string) $key)] = is_array($value) ? self::sanitize_recursive($value) : $value;
         }
 
-        return self::update_cart_row(
+        return false !== self::update_cart_row(
             (int) $cart_id,
             array(
                 'metadata' => wp_json_encode($metadata),
