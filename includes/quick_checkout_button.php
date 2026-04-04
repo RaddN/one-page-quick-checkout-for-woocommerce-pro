@@ -247,6 +247,8 @@ function onepaqucpro_get_archive_variation_popup_data($product)
         $variations_for_js[] = array(
             'id' => (string) $variation_id,
             'attrs' => $variation_attrs,
+            'price_html' => !empty($variation['price_html']) ? $variation['price_html'] : '',
+            'image_src' => !empty($variation['image']['src']) ? $variation['image']['src'] : '',
         );
     }
 

@@ -538,7 +538,9 @@ jQuery(document).ready(function ($) {
 
             return {
                 id: String(variationId),
-                attrs: attrs
+                attrs: attrs,
+                priceHtml: variation.price_html || '',
+                imageSrc: variation.image_src || ''
             };
         });
 
@@ -682,11 +684,11 @@ jQuery(document).ready(function ($) {
         var $form = $button.closest('form.cart');
         var $product = $button.closest('.product');
         var $archiveContainer = getArchiveVariationContainer($button, $overrideContainer);
-        var variationId = $button.data('variation-id') ||
+        var variationId = ($archiveContainer.length ? $archiveContainer.find('.variation_id').val() : '') ||
             $button.siblings('.archive-variations-container').find('.variation_id').val() ||
-            ($archiveContainer.length ? $archiveContainer.find('.variation_id').val() : '') ||
             $button.siblings('.variation_id').val() ||
-            $product.find('.variation_id').first().val() || 0;
+            $product.find('.variation_id').first().val() ||
+            $button.data('variation-id') || 0;
         var variations = {};
         var requiredAttributes = [];
         var isFormVariationContext = $form.length > 0 && $form.find('input[name="variation_id"]').length > 0 && !$overrideContainer;
@@ -798,6 +800,102 @@ jQuery(document).ready(function ($) {
             .prop('disabled', !!isLoading);
     }
 
+    function findArchiveVariationModalData(selection) {
+        if (!archiveVariationModalState || !archiveVariationModalState.popupData || !archiveVariationModalState.popupData.variations) {
+            return null;
+        }
+
+        var popupData = archiveVariationModalState.popupData;
+        var variationId = selection && selection.variationId ? String(selection.variationId) : '';
+        var selectedAttrs = normalizeVariationMap(selection && selection.variations ? selection.variations : {});
+
+        if (variationId) {
+            for (var i = 0; i < popupData.variations.length; i++) {
+                if (popupData.variations[i].id === variationId) {
+                    return popupData.variations[i];
+                }
+            }
+        }
+
+        if (!Object.keys(selectedAttrs).length) {
+            return null;
+        }
+
+        for (var j = 0; j < popupData.variations.length; j++) {
+            var variation = popupData.variations[j];
+            var isMatch = true;
+
+            for (var k = 0; k < popupData.attrKeys.length; k++) {
+                var attrKey = popupData.attrKeys[k];
+
+                if (!selectedAttrs[attrKey] || variation.attrs[attrKey] !== selectedAttrs[attrKey]) {
+                    isMatch = false;
+                    break;
+                }
+            }
+
+            if (isMatch) {
+                return variation;
+            }
+        }
+
+        return null;
+    }
+
+    function updateArchiveVariationModalSummary(selection) {
+        if (!archiveVariationModalState || !archiveVariationModalState.$modal.length) {
+            return;
+        }
+
+        var state = archiveVariationModalState;
+        var variationData = findArchiveVariationModalData(selection);
+        var summary = $.extend({}, state.defaultSummary);
+
+        if (variationData) {
+            if (variationData.priceHtml) {
+                summary.priceHtml = variationData.priceHtml;
+            }
+
+            if (variationData.imageSrc) {
+                summary.imageSrc = variationData.imageSrc;
+            }
+        }
+
+        var $hero = state.$modal.find('.onepaqucpro-variation-modal__hero');
+        var $summary = state.$modal.find('.onepaqucpro-variation-modal__summary');
+        var $price = $summary.find('.onepaqucpro-variation-modal__price');
+        var $media = $hero.find('.onepaqucpro-variation-modal__media');
+
+        if (summary.priceHtml) {
+            if (!$price.length) {
+                $price = $('<div class="onepaqucpro-variation-modal__price"></div>');
+                $summary.find('.onepaqucpro-variation-modal__title').after($price);
+            }
+
+            $price.html(summary.priceHtml);
+        } else {
+            $price.remove();
+        }
+
+        if (summary.imageSrc) {
+            if (!$media.length) {
+                $media = $('<div class="onepaqucpro-variation-modal__media"></div>');
+                $hero.prepend($media);
+            }
+
+            var $img = $media.find('img');
+            if (!$img.length) {
+                $img = $('<img>');
+                $media.empty().append($img);
+            }
+
+            $img.attr('src', summary.imageSrc)
+                .attr('alt', state.defaultSummary.imageAlt || state.defaultSummary.title || '');
+        } else {
+            $media.remove();
+        }
+    }
+
     function closeArchiveVariationPopup() {
         if (!archiveVariationModalState) {
             return;
@@ -840,6 +938,7 @@ jQuery(document).ready(function ($) {
 
         var $product = $button.closest('.product');
         var $container = $product.find('.archive-variations-container').first();
+        var popupData = normalizeVariationPopupData(getVariationPopupSourceData($product));
         var isSynthetic = false;
 
         if (!$product.length) {
@@ -864,13 +963,15 @@ jQuery(document).ready(function ($) {
             $product.find('.woocommerce-product-details__short-description').first().text() ||
             ''
         ).replace(/\s+/g, ' '));
-        var priceHtml = $product.find('.price').first().html() || '';
+        var priceHtml = popupData && popupData.priceHtml ? popupData.priceHtml : ($product.find('.price').first().html() || '');
         var $image = $product.find('.astra-shop-thumbnail-wrap img, img.wp-post-image').first();
+        var imageSrc = popupData && popupData.imageSrc ? popupData.imageSrc : ($image.attr('src') || '');
+        var imageAlt = $image.attr('alt') || title;
         var imageHtml = '';
 
-        if ($image.length && $image.attr('src')) {
+        if (imageSrc) {
             imageHtml = '<div class="onepaqucpro-variation-modal__media">' +
-                '<img src="' + escapeHtml($image.attr('src')) + '" alt="' + escapeHtml($image.attr('alt') || title) + '">' +
+                '<img src="' + escapeHtml(imageSrc) + '" alt="' + escapeHtml(imageAlt) + '">' +
                 '</div>';
         }
 
@@ -923,11 +1024,19 @@ jQuery(document).ready(function ($) {
             $button: $button,
             $container: $container,
             $placeholder: $placeholder,
+            popupData: popupData,
+            defaultSummary: {
+                title: title,
+                priceHtml: priceHtml,
+                imageSrc: imageSrc,
+                imageAlt: imageAlt
+            },
             isSynthetic: isSynthetic,
             wasOverlay: wasOverlay,
             wasBottomOffset: wasBottomOffset
         };
 
+        updateArchiveVariationModalSummary(collectVariationState($button, $button.data('product-id'), $container));
         setArchiveVariationModalFeedback(message || '', message ? 'error' : '');
 
         $(document).on('keydown.onepaqucproVariationModal', function (event) {
@@ -1173,6 +1282,8 @@ jQuery(document).ready(function ($) {
             var $button = archiveVariationModalState.$button;
             var selection = collectVariationState($button, $button.data('product-id'), archiveVariationModalState.$container);
             var validation = validateVariationSelection($button.data('product-type'), selection);
+
+            updateArchiveVariationModalSummary(selection);
 
             if (validation.valid) {
                 setArchiveVariationModalFeedback('', '');
