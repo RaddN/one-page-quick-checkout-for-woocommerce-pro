@@ -268,7 +268,7 @@ jQuery(document).ready(function ($) {
         // Update via AJAX
         $.ajax({
             type: 'POST',
-            url: wc_checkout_params.ajax_url,
+            url: onepaqucpro_wc_cart_params.ajax_url,
             data: {
                 action: 'onepaqucpro_update_cart_item_quantity',
                 cart_item_key: cartItemKey,
