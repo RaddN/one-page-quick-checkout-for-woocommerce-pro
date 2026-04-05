@@ -813,6 +813,16 @@ class onepaqucpro_add_variation_buttons_on_archive
                     $combinations = $next;
                 }
 
+                $variation_price_html = isset($variation['price_html']) ? (string) $variation['price_html'] : '';
+                $variation_image_src = '';
+                $variation_image_srcset = '';
+                $variation_image_sizes = '';
+                if (!empty($variation['image']) && is_array($variation['image'])) {
+                    $variation_image_src = isset($variation['image']['src']) ? (string) $variation['image']['src'] : '';
+                    $variation_image_srcset = isset($variation['image']['srcset']) ? (string) $variation['image']['srcset'] : '';
+                    $variation_image_sizes = isset($variation['image']['sizes']) ? (string) $variation['image']['sizes'] : '';
+                }
+
                 // Render one button per concrete combination (store attrs for JS if needed)
                 foreach ($combinations as $combo) {
                     $labels = [];
@@ -822,7 +832,7 @@ class onepaqucpro_add_variation_buttons_on_archive
                         $attrs['attribute_' . $k] = $opt['slug'];
                     }
 
-                    echo '<button type="button" class="variation-button" data-id="' . esc_attr($vid) . '" data-attrs="' . esc_attr(wp_json_encode($attrs)) . '">'
+                    echo '<button type="button" class="variation-button" data-id="' . esc_attr($vid) . '" data-attrs="' . esc_attr(wp_json_encode($attrs)) . '" data-price-html="' . esc_attr($variation_price_html) . '" data-image-src="' . esc_attr($variation_image_src) . '" data-image-srcset="' . esc_attr($variation_image_srcset) . '" data-image-sizes="' . esc_attr($variation_image_sizes) . '">'
                         . esc_html(implode(' / ', $labels))
                         . '</button>';
                 }
@@ -915,7 +925,15 @@ class onepaqucpro_add_variation_buttons_on_archive
                     $attr_keys_indexed[$attr_key] = true;
                 }
 
-                $variations_for_js[] = ['id' => (string) $vid, 'attrs' => $var_attrs];
+                $variation_image = (!empty($variation['image']) && is_array($variation['image'])) ? $variation['image'] : [];
+                $variations_for_js[] = [
+                    'id' => (string) $vid,
+                    'attrs' => $var_attrs,
+                    'price_html' => isset($variation['price_html']) ? (string) $variation['price_html'] : '',
+                    'image_src' => isset($variation_image['src']) ? (string) $variation_image['src'] : '',
+                    'image_srcset' => isset($variation_image['srcset']) ? (string) $variation_image['srcset'] : '',
+                    'image_sizes' => isset($variation_image['sizes']) ? (string) $variation_image['sizes'] : '',
+                ];
             }
 
             $attr_keys = array_keys($attr_keys_indexed);
@@ -1065,6 +1083,16 @@ function onepaqucpro_add_variation_buttons_to_loop($link, $product)
                 $combinations = $next;
             }
 
+            $variation_price_html = isset($variation['price_html']) ? (string) $variation['price_html'] : '';
+            $variation_image_src = '';
+            $variation_image_srcset = '';
+            $variation_image_sizes = '';
+            if (!empty($variation['image']) && is_array($variation['image'])) {
+                $variation_image_src = isset($variation['image']['src']) ? (string) $variation['image']['src'] : '';
+                $variation_image_srcset = isset($variation['image']['srcset']) ? (string) $variation['image']['srcset'] : '';
+                $variation_image_sizes = isset($variation['image']['sizes']) ? (string) $variation['image']['sizes'] : '';
+            }
+
             // Render one button per concrete combination (store attrs for JS if needed)
             foreach ($combinations as $combo) {
                 $labels = [];
@@ -1074,7 +1102,7 @@ function onepaqucpro_add_variation_buttons_to_loop($link, $product)
                     $attrs['attribute_' . $k] = $opt['slug'];
                 }
 
-                echo '<button type="button" class="variation-button" data-id="' . esc_attr($vid) . '" data-attrs="' . esc_attr(wp_json_encode($attrs)) . '">'
+                echo '<button type="button" class="variation-button" data-id="' . esc_attr($vid) . '" data-attrs="' . esc_attr(wp_json_encode($attrs)) . '" data-price-html="' . esc_attr($variation_price_html) . '" data-image-src="' . esc_attr($variation_image_src) . '" data-image-srcset="' . esc_attr($variation_image_srcset) . '" data-image-sizes="' . esc_attr($variation_image_sizes) . '">'
                     . esc_html(implode(' / ', $labels))
                     . '</button>';
             }
@@ -1166,7 +1194,15 @@ function onepaqucpro_add_variation_buttons_to_loop($link, $product)
                 $attr_keys_indexed[$attr_key] = true;
             }
 
-            $variations_for_js[] = ['id' => (string) $vid, 'attrs' => $var_attrs];
+            $variation_image = (!empty($variation['image']) && is_array($variation['image'])) ? $variation['image'] : [];
+            $variations_for_js[] = [
+                'id' => (string) $vid,
+                'attrs' => $var_attrs,
+                'price_html' => isset($variation['price_html']) ? (string) $variation['price_html'] : '',
+                'image_src' => isset($variation_image['src']) ? (string) $variation_image['src'] : '',
+                'image_srcset' => isset($variation_image['srcset']) ? (string) $variation_image['srcset'] : '',
+                'image_sizes' => isset($variation_image['sizes']) ? (string) $variation_image['sizes'] : '',
+            ];
         }
 
         $attr_keys = array_keys($attr_keys_indexed);

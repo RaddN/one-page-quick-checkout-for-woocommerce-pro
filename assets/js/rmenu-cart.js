@@ -393,6 +393,90 @@ jQuery(document).ready(function ($) {
 // variation selection handle
 
 jQuery(function ($) {
+    function getArchivePresentationDefaults($product) {
+        if (!$product || !$product.length) {
+            return null;
+        }
+
+        var defaults = $product.data('onepaqucproArchivePresentationDefaults');
+        if (defaults) {
+            return defaults;
+        }
+
+        var $price = $product.find('.price').first();
+        var $image = $product.find('.astra-shop-thumbnail-wrap img, img.wp-post-image').first();
+
+        defaults = {
+            priceHtml: $price.length ? $price.html() : '',
+            imageSrc: $image.attr('src') || '',
+            imageSrcset: $image.attr('srcset') || '',
+            imageSizes: $image.attr('sizes') || '',
+        };
+
+        $product.data('onepaqucproArchivePresentationDefaults', defaults);
+        return defaults;
+    }
+
+    function normalizeVariationPresentation(variationData) {
+        if (!variationData || typeof variationData !== 'object') {
+            return null;
+        }
+
+        var imageData = variationData.image && typeof variationData.image === 'object' ? variationData.image : {};
+
+        return {
+            priceHtml: variationData.price_html || variationData.priceHtml || '',
+            imageSrc: variationData.image_src || variationData.imageSrc || imageData.src || '',
+            imageSrcset: variationData.image_srcset || variationData.imageSrcset || imageData.srcset || '',
+            imageSizes: variationData.image_sizes || variationData.imageSizes || imageData.sizes || '',
+        };
+    }
+
+    function updateArchiveProductPresentation($wrap, variationData) {
+        var $product = $wrap && $wrap.length ? $wrap.closest('.product') : $();
+        if (!$product.length) {
+            return;
+        }
+
+        var defaults = getArchivePresentationDefaults($product);
+        if (!defaults) {
+            return;
+        }
+
+        var presentation = normalizeVariationPresentation(variationData);
+        var $price = $product.find('.price').first();
+        var $image = $product.find('.astra-shop-thumbnail-wrap img, img.wp-post-image').first();
+
+        if ($price.length) {
+            if (presentation && presentation.priceHtml) {
+                $price.html(presentation.priceHtml);
+            } else if (typeof defaults.priceHtml === 'string') {
+                $price.html(defaults.priceHtml);
+            }
+        }
+
+        if ($image.length) {
+            var nextSrc = presentation && presentation.imageSrc ? presentation.imageSrc : defaults.imageSrc;
+            if (nextSrc) {
+                $image.attr('src', nextSrc);
+            }
+
+            var nextSrcset = presentation && presentation.imageSrcset ? presentation.imageSrcset : defaults.imageSrcset;
+            if (nextSrcset) {
+                $image.attr('srcset', nextSrcset);
+            } else {
+                $image.removeAttr('srcset');
+            }
+
+            var nextSizes = presentation && presentation.imageSizes ? presentation.imageSizes : defaults.imageSizes;
+            if (nextSizes) {
+                $image.attr('sizes', nextSizes);
+            } else {
+                $image.removeAttr('sizes');
+            }
+        }
+    }
+
     function getSeparateVariationConfig($wrap) {
         if (!$wrap || !$wrap.length) {
             return null;
@@ -468,6 +552,41 @@ jQuery(function ($) {
         return '';
     }
 
+    function findSeparateVariationData(config, variationId, selected) {
+        var targetId = variationId ? String(variationId) : '';
+
+        if (targetId) {
+            for (var i = 0; i < config.variations.length; i++) {
+                if (String(config.variations[i].id) === targetId) {
+                    return config.variations[i];
+                }
+            }
+        }
+
+        if (!selected || !Object.keys(selected).length) {
+            return null;
+        }
+
+        for (var j = 0; j < config.variations.length; j++) {
+            var variation = config.variations[j];
+            var matches = true;
+
+            for (var k = 0; k < config.attrKeys.length; k++) {
+                var attrKey = config.attrKeys[k];
+                if (!selected[attrKey] || !variation.attrs || variation.attrs[attrKey] != selected[attrKey]) {
+                    matches = false;
+                    break;
+                }
+            }
+
+            if (matches) {
+                return variation;
+            }
+        }
+
+        return null;
+    }
+
     function refreshSeparateAvailability(config, selected) {
         config.attrKeys.forEach(function (attrKey) {
             config.$box.find('.var-attr-option[data-attr="' + attrKey + '"]').each(function () {
@@ -501,11 +620,13 @@ jQuery(function ($) {
         refreshSeparateAvailability(config, selected);
 
         var variationId = findSeparateVariationId(config, selected);
+        var variationData = findSeparateVariationData(config, variationId, selected);
         plugincydebugLog("selected: ", selected);
         plugincydebugLog("final variation id: ", variationId);
 
         $wrap.find('input.variation_id').val(variationId);
         $wrap.find('span.variation_id').text(variationId);
+        updateArchiveProductPresentation($wrap, variationData);
     }
 
     // Keep overlays attached directly to .product
@@ -520,12 +641,20 @@ jQuery(function ($) {
     // COMBINE clicks (unchanged)
     $(document).on('click', '.variation-button', function () {
         plugincydebugLog("clicked variation button combined: ", $(this));
-        var $wrap = $(this).closest('.archive-variations-container');
-        var id = $(this).data('id');
+        var $button = $(this);
+        var $wrap = $button.closest('.archive-variations-container');
+        var id = $button.data('id');
+        var variationData = {
+            price_html: $button.attr('data-price-html') || '',
+            image_src: $button.attr('data-image-src') || '',
+            image_srcset: $button.attr('data-image-srcset') || '',
+            image_sizes: $button.attr('data-image-sizes') || '',
+        };
         plugincydebugLog("variation id: ", id);
-        $(this).addClass('selected').siblings().removeClass('selected');
+        $button.addClass('selected').siblings().removeClass('selected');
         $wrap.find('input.variation_id').val(id);
         $wrap.find('span.variation_id').text(id);
+        updateArchiveProductPresentation($wrap, variationData);
     });
 
     $('.archive-variations-container[data-layout="separate"]').each(function () {
