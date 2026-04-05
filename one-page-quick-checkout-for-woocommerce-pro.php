@@ -389,10 +389,10 @@ function onepaqucpro_is_popup_iframe_fallback_enabled()
     return (bool) apply_filters('onepaqucpro_enable_popup_iframe_fallback', false);
 }
 
-function onepaqucpro_request_has_popup_checkout_context()
+function onepaqucpro_request_has_checkout_context_marker($marker_name)
 {
-    if (isset($_POST['onepaqucpro_popup_checkout_context'])) {
-        $value = strtolower(trim((string) wp_unslash($_POST['onepaqucpro_popup_checkout_context'])));
+    if (isset($_POST[$marker_name])) {
+        $value = strtolower(trim((string) wp_unslash($_POST[$marker_name])));
         return in_array($value, array('1', 'true', 'yes', 'on'), true);
     }
 
@@ -400,14 +400,39 @@ function onepaqucpro_request_has_popup_checkout_context()
         $request_data = array();
         parse_str(wp_unslash($_POST['post_data']), $request_data);
 
-        if (isset($request_data['onepaqucpro_popup_checkout_context'])) {
-            $value = strtolower(trim((string) $request_data['onepaqucpro_popup_checkout_context']));
+        if (isset($request_data[$marker_name])) {
+            $value = strtolower(trim((string) $request_data[$marker_name]));
             return in_array($value, array('1', 'true', 'yes', 'on'), true);
         }
     }
 
     return false;
 }
+
+function onepaqucpro_request_has_popup_checkout_context()
+{
+    return onepaqucpro_request_has_checkout_context_marker('onepaqucpro_popup_checkout_context');
+}
+
+function onepaqucpro_request_has_inline_checkout_context()
+{
+    return onepaqucpro_request_has_checkout_context_marker('onepaqucpro_inline_checkout_context');
+}
+
+function onepaqucpro_is_rendering_inline_checkout()
+{
+    return !empty($GLOBALS['onepaqucpro_inline_checkout_context_active']);
+}
+
+function onepaqucpro_render_inline_checkout_context_marker()
+{
+    if (!onepaqucpro_is_rendering_inline_checkout() && !onepaqucpro_request_has_inline_checkout_context()) {
+        return;
+    }
+
+    echo '<input type="hidden" name="onepaqucpro_inline_checkout_context" value="1" />';
+}
+add_action('woocommerce_review_order_after_submit', 'onepaqucpro_render_inline_checkout_context_marker', 6);
 
 function onepaqucpro_should_mount_popup_checkout()
 {
@@ -716,10 +741,14 @@ function onepaqucpro_checkout_already_rendered(): bool
 function onepaqucpro_display_one_page_checkout_form(): bool
 {
 
-    if (onepaqucpro_checkout_already_rendered() || !function_exists('WC') || !WC()->cart || WC()->cart->is_empty()) {
+    if (onepaqucpro_checkout_already_rendered() || !function_exists('WC') || !WC()->cart) {
         return false;
     }
 
+    $context_key = 'onepaqucpro_inline_checkout_context_active';
+    $had_context = array_key_exists($context_key, $GLOBALS);
+    $previous_context = $had_context ? $GLOBALS[$context_key] : null;
+    $GLOBALS[$context_key] = true;
 
 ?>
     <div class="one-page-checkout-container onepagecheckoutwidget" id="checkout-popup" data-isonepagewidget="true">
@@ -728,6 +757,12 @@ function onepaqucpro_display_one_page_checkout_form(): bool
         <?php echo do_shortcode('[woocommerce_checkout]'); ?>
     </div>
     <?php
+
+    if ($had_context) {
+        $GLOBALS[$context_key] = $previous_context;
+    } else {
+        unset($GLOBALS[$context_key]);
+    }
 
     // Mark as rendered for the rest of this request
     if (!defined('ONEPAQUC_CHECKOUT_RENDERED')) {
@@ -793,7 +828,7 @@ function onepaqucpro_custom_quantity_input_on_checkout($html, $cart_item, $cart_
         // Build custom quantity input
         $new_html = '<div class="checkout-quantity-control">';
         $new_html .= '<button type="button" class="checkout-qty-btn checkout-qty-minus" data-cart-item="' . esc_attr($cart_item_key) . '">-</button>';
-        $new_html .= '<input type="text" name="cart[' . esc_attr($cart_item_key) . '][qty]" class="checkout-qty-input" value="' . esc_attr($quantity) . '" min="1" step="1" size="4">';
+        $new_html .= '<input type="text" class="checkout-qty-input" data-cart-item="' . esc_attr($cart_item_key) . '" value="' . esc_attr($quantity) . '" min="1" step="1" size="4">';
         $new_html .= '<button type="button" class="checkout-qty-btn checkout-qty-plus" data-cart-item="' . esc_attr($cart_item_key) . '">+</button>';
         $new_html .= '</div>';
     }
@@ -2018,7 +2053,7 @@ function onepaqucpro_validate_cart_item($passed, $product_id, $quantity)
 
 function onepaqucpro_allow_popup_checkout_update_order_review_expired($should_expire)
 {
-    if (onepaqucpro_request_has_popup_checkout_context()) {
+    if (onepaqucpro_request_has_popup_checkout_context() || onepaqucpro_request_has_inline_checkout_context()) {
         return false;
     }
 
@@ -2033,6 +2068,10 @@ function onepaqucpro_maybe_redirect_empty_checkout_cart($should_redirect)
     }
 
     if (function_exists('onepaqucpro_is_rendering_popup_checkout') && onepaqucpro_is_rendering_popup_checkout()) {
+        return false;
+    }
+
+    if (onepaqucpro_is_rendering_inline_checkout() || onepaqucpro_request_has_inline_checkout_context()) {
         return false;
     }
 
