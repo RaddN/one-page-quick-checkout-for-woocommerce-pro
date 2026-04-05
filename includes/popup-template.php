@@ -8,7 +8,7 @@ function onepaqucpro_is_rendering_popup_checkout()
 
 function onepaqucpro_render_popup_checkout_context_marker()
 {
-  if (!onepaqucpro_is_rendering_popup_checkout()) {
+  if (!onepaqucpro_is_rendering_popup_checkout() && (!function_exists('onepaqucpro_request_has_popup_checkout_context') || !onepaqucpro_request_has_popup_checkout_context())) {
     return;
   }
 
