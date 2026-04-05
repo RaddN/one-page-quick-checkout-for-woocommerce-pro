@@ -390,6 +390,436 @@ jQuery(document).ready(function ($) {
         });
     });
 
+    function parseVariationEditorData($editor) {
+        var $dataNode = $editor.find('.onepaqucpro-cart-variation-editor__data').first();
+        var editorInfo = $dataNode.data('editor-info');
+
+        if (typeof editorInfo === 'string') {
+            try {
+                editorInfo = JSON.parse(editorInfo);
+            } catch (error) {
+                editorInfo = null;
+            }
+
+            $dataNode.data('editor-info', editorInfo);
+        }
+
+        return editorInfo && typeof editorInfo === 'object' ? editorInfo : null;
+    }
+
+    function getVariationEditorAttrKeys(editorInfo) {
+        if (editorInfo && $.isArray(editorInfo.attr_keys) && editorInfo.attr_keys.length) {
+            return editorInfo.attr_keys.slice();
+        }
+
+        if (editorInfo && editorInfo.attributes) {
+            return Object.keys(editorInfo.attributes);
+        }
+
+        return [];
+    }
+
+    function getVariationEditorSelection($editor) {
+        var selection = {};
+
+        $editor.find('.onepaqucpro-cart-variation-editor__select').each(function () {
+            var attributeKey = $(this).data('variation-attr');
+            var value = $(this).val();
+
+            if (attributeKey && value) {
+                selection[String(attributeKey)] = value;
+            }
+        });
+
+        return selection;
+    }
+
+    function buildVariationEditorSignature(variationId, selection, attrKeys) {
+        var orderedSelection = {};
+
+        $.each(attrKeys || [], function (_, attrKey) {
+            orderedSelection[attrKey] = selection && selection[attrKey] ? String(selection[attrKey]) : '';
+        });
+
+        return String(variationId || '') + '|' + JSON.stringify(orderedSelection);
+    }
+
+    function findMatchingVariationForEditor(editorInfo, selection) {
+        var attrKeys = getVariationEditorAttrKeys(editorInfo);
+        var variations = editorInfo && $.isArray(editorInfo.variations) ? editorInfo.variations : [];
+        var i;
+        var j;
+
+        for (i = 0; i < variations.length; i++) {
+            var variation = variations[i];
+            var isMatch = true;
+
+            for (j = 0; j < attrKeys.length; j++) {
+                var attrKey = attrKeys[j];
+
+                if (!selection[attrKey] || !variation.attrs || variation.attrs[attrKey] !== selection[attrKey]) {
+                    isMatch = false;
+                    break;
+                }
+            }
+
+            if (isMatch) {
+                return variation;
+            }
+        }
+
+        return null;
+    }
+
+    function setVariationEditorFeedback($editor, message, type) {
+        var $feedback = $editor.find('.onepaqucpro-cart-variation-editor__feedback');
+
+        $feedback.removeClass('is-error is-success');
+
+        if (!message) {
+            $feedback.text('');
+            return;
+        }
+
+        $feedback.text(message);
+
+        if (type === 'success') {
+            $feedback.addClass('is-success');
+        } else {
+            $feedback.addClass('is-error');
+        }
+    }
+
+    function setVariationEditorLoading($editor, isLoading) {
+        $editor.toggleClass('is-loading', !!isLoading);
+        $editor.find('.onepaqucpro-cart-variation-editor__toggle, .onepaqucpro-cart-variation-editor__select, .onepaqucpro-cart-variation-editor__apply, .onepaqucpro-cart-variation-editor__cancel')
+            .prop('disabled', !!isLoading);
+    }
+
+    function syncVariationEditor($editor) {
+        var editorInfo = parseVariationEditorData($editor);
+        var attrKeys = getVariationEditorAttrKeys(editorInfo);
+        var selection = getVariationEditorSelection($editor);
+        var match = null;
+        var hasMissingSelection = false;
+        var originalSelection = editorInfo && editorInfo.selected_attributes ? editorInfo.selected_attributes : {};
+        var originalSignature;
+        var currentSignature = '';
+        var hasChanged = false;
+        var i;
+
+        for (i = 0; i < attrKeys.length; i++) {
+            if (!selection[attrKeys[i]]) {
+                hasMissingSelection = true;
+                break;
+            }
+        }
+
+        if (!hasMissingSelection) {
+            match = findMatchingVariationForEditor(editorInfo, selection);
+        }
+
+        originalSignature = buildVariationEditorSignature(
+            editorInfo && editorInfo.selected_variation_id ? editorInfo.selected_variation_id : '',
+            originalSelection,
+            attrKeys
+        );
+
+        if (match) {
+            currentSignature = buildVariationEditorSignature(match.id, selection, attrKeys);
+            hasChanged = currentSignature !== originalSignature;
+        }
+
+        $editor.find('.onepaqucpro-cart-variation-editor__apply')
+            .prop('disabled', !match || !hasChanged)
+            .data('variation-id', match ? match.id : '');
+
+        if (!hasMissingSelection && !match) {
+            setVariationEditorFeedback($editor, onepaqucpro_wc_cart_params.i18n_select_variation_error || 'Please choose a valid variation before updating.', 'error');
+        } else {
+            setVariationEditorFeedback($editor, '', '');
+        }
+
+        return {
+            editorInfo: editorInfo,
+            attrKeys: attrKeys,
+            selection: selection,
+            match: match,
+            hasChanged: hasChanged
+        };
+    }
+
+    function resetVariationEditor($editor) {
+        var editorInfo = parseVariationEditorData($editor);
+        var selectedAttributes = editorInfo && editorInfo.selected_attributes ? editorInfo.selected_attributes : {};
+
+        $editor.find('.onepaqucpro-cart-variation-editor__select').each(function () {
+            var attributeKey = $(this).data('variation-attr');
+            $(this).val(attributeKey && selectedAttributes[attributeKey] ? selectedAttributes[attributeKey] : '');
+        });
+
+        syncVariationEditor($editor);
+    }
+
+    var variationPanelRepositionTimer = null;
+
+    function clearVariationEditorPanelPosition($editor) {
+        $editor.find('.onepaqucpro-cart-variation-editor__panel').css({
+            position: '',
+            left: '',
+            top: '',
+            right: '',
+            bottom: '',
+            width: '',
+            maxWidth: '',
+            maxHeight: '',
+            marginTop: '',
+            zIndex: '',
+            overflowY: '',
+            overflow: ''
+        });
+    }
+
+    /**
+     * When an ancestor has transform/filter/perspective, position:fixed is laid out
+     * relative to that ancestor — not the viewport. Viewport coords must be converted.
+     */
+    function getFixedContainingBlockRect(fixedEl) {
+        var node = fixedEl && fixedEl.parentElement;
+        while (node && node !== document.documentElement) {
+            var style = window.getComputedStyle(node);
+            var transform = style.transform;
+            var filter = style.filter;
+            var perspective = style.perspective;
+            if (
+                (transform && transform !== 'none') ||
+                (filter && filter !== 'none') ||
+                (perspective && perspective !== 'none' && perspective !== '0px')
+            ) {
+                return node.getBoundingClientRect();
+            }
+            node = node.parentElement;
+        }
+        return null;
+    }
+
+    function positionVariationEditorPanel($editor) {
+        var $panel = $editor.find('.onepaqucpro-cart-variation-editor__panel');
+        var $toggle = $editor.find('.onepaqucpro-cart-variation-editor__toggle');
+        var panelEl = $panel[0];
+
+        if (!$panel.length || !$toggle.length || $panel.prop('hidden')) {
+            return;
+        }
+
+        clearVariationEditorPanelPosition($editor);
+
+        var margin = 8;
+        var vw = window.innerWidth;
+        var vh = window.innerHeight;
+        var pw = Math.max($panel.outerWidth(), 260);
+        var ph = $panel.outerHeight();
+        var rect = $toggle[0].getBoundingClientRect();
+        var blockRect = getFixedContainingBlockRect(panelEl);
+
+        var spaceBelow = vh - rect.bottom - margin;
+        var spaceAbove = rect.top - margin;
+        var placeAbove = ph + margin > spaceBelow && spaceAbove > spaceBelow;
+
+        var topV = placeAbove ? rect.top - ph - margin : rect.bottom + margin;
+        var leftV = rect.right - pw;
+
+        leftV = Math.max(margin, Math.min(leftV, vw - pw - margin));
+        topV = Math.max(margin, Math.min(topV, vh - ph - margin));
+
+        var maxH = placeAbove
+            ? Math.min(380, Math.max(120, rect.top - margin * 2))
+            : Math.min(380, Math.max(120, vh - rect.bottom - margin * 2));
+
+        var leftPx;
+        var topPx;
+
+        if (blockRect) {
+            leftPx = leftV - blockRect.left;
+            topPx = topV - blockRect.top;
+        } else {
+            leftPx = leftV;
+            topPx = topV;
+        }
+
+        $panel.css({
+            position: 'fixed',
+            left: leftPx + 'px',
+            top: topPx + 'px',
+            width: pw + 'px',
+            maxHeight: maxH + 'px',
+            marginTop: '0',
+            overflowY: 'auto',
+            zIndex: 10000000,
+            boxSizing: 'border-box'
+        });
+    }
+
+    function scheduleVariationEditorPanelPosition($editor) {
+        if (variationPanelRepositionTimer) {
+            clearTimeout(variationPanelRepositionTimer);
+        }
+        variationPanelRepositionTimer = setTimeout(function () {
+            requestAnimationFrame(function () {
+                positionVariationEditorPanel($editor);
+            });
+        }, 10);
+    }
+
+    function closeVariationEditor($editor) {
+        $editor.removeClass('is-open');
+        $editor.find('.onepaqucpro-cart-variation-editor__toggle').attr('aria-expanded', 'false');
+        $editor.find('.onepaqucpro-cart-variation-editor__panel').prop('hidden', true);
+        clearVariationEditorPanelPosition($editor);
+    }
+
+    function openVariationEditor($editor) {
+        $editor.addClass('is-open');
+        $editor.find('.onepaqucpro-cart-variation-editor__toggle').attr('aria-expanded', 'true');
+        $editor.find('.onepaqucpro-cart-variation-editor__panel').prop('hidden', false);
+        syncVariationEditor($editor);
+        requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+                positionVariationEditorPanel($editor);
+            });
+        });
+    }
+
+    $(document).on('click', '.onepaqucpro-cart-variation-editor__toggle', function (event) {
+        event.preventDefault();
+
+        var $editor = $(this).closest('.onepaqucpro-cart-variation-editor');
+
+        if ($editor.hasClass('is-open')) {
+            closeVariationEditor($editor);
+            return;
+        }
+
+        openVariationEditor($editor);
+    });
+
+    $(document).on('click.onepaqucproVarOutside', function (event) {
+        var $target = $(event.target);
+        $('.onepaqucpro-cart-variation-editor.is-open').each(function () {
+            var $editor = $(this);
+            var innerEditor = $target.closest('.onepaqucpro-cart-variation-editor')[0];
+            if (innerEditor !== $editor[0]) {
+                closeVariationEditor($editor);
+            }
+        });
+    });
+
+    $(document).on('change', '.onepaqucpro-cart-variation-editor__select', function () {
+        var $editor = $(this).closest('.onepaqucpro-cart-variation-editor');
+        syncVariationEditor($editor);
+        if ($editor.hasClass('is-open')) {
+            scheduleVariationEditorPanelPosition($editor);
+        }
+    });
+
+    $(window).on('resize.onepaqucproVarPanel', function () {
+        $('.onepaqucpro-cart-variation-editor.is-open').each(function () {
+            scheduleVariationEditorPanelPosition($(this));
+        });
+    });
+
+    if (!window._onepaqucproVarPanelScrollBound) {
+        window._onepaqucproVarPanelScrollBound = true;
+        document.addEventListener('scroll', function () {
+            $('.onepaqucpro-cart-variation-editor.is-open').each(function () {
+                scheduleVariationEditorPanelPosition($(this));
+            });
+        }, true);
+    }
+
+    $(document).on('click', '.onepaqucpro-cart-variation-editor__cancel', function (event) {
+        event.preventDefault();
+
+        var $editor = $(this).closest('.onepaqucpro-cart-variation-editor');
+        resetVariationEditor($editor);
+        closeVariationEditor($editor);
+    });
+
+    $(document).on('click', '.onepaqucpro-cart-variation-editor__apply', function (event) {
+        event.preventDefault();
+
+        var $editor = $(this).closest('.onepaqucpro-cart-variation-editor');
+        var cartItemKey = $editor.data('cart-item-key') || '';
+        var state = syncVariationEditor($editor);
+        var isCartPageEditor = $editor.hasClass('onepaqucpro-cart-variation-editor--cart') && $('body').hasClass('woocommerce-cart');
+        var isBlocksCartEditor = $editor.hasClass('onepaqucpro-cart-variation-editor--blocks-cart');
+        var isBlocksCheckoutEditor = $editor.hasClass('onepaqucpro-cart-variation-editor--blocks-checkout');
+
+        if (!cartItemKey || !state.match || !state.hasChanged) {
+            setVariationEditorFeedback($editor, onepaqucpro_wc_cart_params.i18n_select_variation_error || 'Please choose a valid variation before updating.', 'error');
+            return;
+        }
+
+        setVariationEditorLoading($editor, true);
+
+        $.ajax({
+            type: 'POST',
+            url: onepaqucpro_wc_cart_params.ajax_url,
+            data: {
+                action: 'onepaqucpro_update_cart_item_variation',
+                cart_item_key: cartItemKey,
+                variation_id: state.match.id,
+                variations: state.selection,
+                nonce: onepaqucpro_wc_cart_params.update_cart_item_variation
+            },
+            success: function (response) {
+                if (!response || !response.success) {
+                    var errorMessage = response && response.data && response.data.message
+                        ? response.data.message
+                        : (response && response.message ? response.message : onepaqucpro_wc_cart_params.i18n_update_variation_error);
+
+                    setVariationEditorFeedback($editor, errorMessage || 'Could not update the selected variation. Please try again.', 'error');
+                    return;
+                }
+
+                if (isCartPageEditor) {
+                    window.location.reload();
+                    return;
+                }
+
+                closeVariationEditor($editor);
+
+                if (isBlocksCartEditor || isBlocksCheckoutEditor) {
+                    if (typeof window.onepaqucproBlocksRefreshCartAfterVariationChange === 'function') {
+                        window.onepaqucproBlocksRefreshCartAfterVariationChange();
+                    }
+                    return;
+                }
+
+                debouncedUpdate(false);
+
+                if (hasInlineCheckoutFormOnPage()) {
+                    $(document.body).trigger('update_checkout');
+                } else if (typeof window.onepaqucproRefreshPopupCheckout === 'function') {
+                    window.onepaqucproRefreshPopupCheckout();
+                }
+
+                $(document.body).trigger('added_to_cart', [response.fragments || {}, response.cart_hash || '', $editor]);
+                $(document.body).trigger('update_checkout');
+            },
+            error: function () {
+                setVariationEditorFeedback(
+                    $editor,
+                    onepaqucpro_wc_cart_params.i18n_update_variation_error || 'Could not update the selected variation. Please try again.',
+                    'error'
+                );
+            },
+            complete: function () {
+                setVariationEditorLoading($editor, false);
+            }
+        });
+    });
+
     var $directbehave = onepaqucpro_wc_cart_params.direct_checkout_behave;
     var methodKey = $directbehave.rmenupro_wc_checkout_method;
     var archiveVariationModalState = null;

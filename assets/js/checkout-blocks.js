@@ -3,7 +3,9 @@
 
     var params = window.onepaqucpro_wc_cart_params || {};
     var checkoutRootSelector = '.wp-block-woocommerce-checkout, .wc-block-checkout, .wc-block-components-checkout';
+    var cartRootSelector = '.wp-block-woocommerce-cart, .wc-block-cart';
     var summaryItemSelector = '.wc-block-components-order-summary .wc-block-components-order-summary-item';
+    var cartRowSelector = 'table.wc-block-cart-items .wc-block-cart-items__row';
     var renderQueued = false;
     var dataSubscribed = false;
     var domObserverStarted = false;
@@ -43,6 +45,7 @@
     var options = {
         quantityControl: isEnabled(params.blocks_quantity_control, true),
         removeProduct: isEnabled(params.blocks_remove_product, true),
+        variationSwitch: isEnabled(params.variation_switch_enabled, false),
         linkProduct: isEnabled(params.blocks_link_product, false),
         removeLabel: params.i18n_remove_item || 'Remove this item',
         decreaseLabel: params.i18n_decrease_quantity || 'Decrease quantity',
@@ -51,6 +54,14 @@
 
     function hasCheckoutBlocks() {
         return !!document.querySelector(checkoutRootSelector);
+    }
+
+    function hasCartBlocks() {
+        return !!document.querySelector(cartRootSelector) || !!document.querySelector(cartRowSelector);
+    }
+
+    function hasBlocksSurface() {
+        return hasCheckoutBlocks() || hasCartBlocks();
     }
 
     function getCartStoreKey() {
@@ -157,6 +168,12 @@
         }
     }
 
+    window.onepaqucproBlocksRefreshCartAfterVariationChange = function () {
+        triggerLegacyCartRefresh('variation');
+        triggerBlocksCartRefresh();
+        queueRender();
+    };
+
     function ajaxUpdateQuantity(itemKey, nextQuantity) {
         return $.ajax({
             type: 'POST',
@@ -178,6 +195,19 @@
                 action: 'onepaqucpro_remove_cart_item',
                 cart_item_key: itemKey,
                 nonce: params.remove_cart_item
+            }
+        });
+    }
+
+    function ajaxGetVariationEditor(itemKey, context) {
+        return $.ajax({
+            type: 'POST',
+            url: params.ajax_url || '',
+            data: {
+                action: 'onepaqucpro_get_cart_item_variation_editor',
+                cart_item_key: itemKey,
+                context: context,
+                nonce: params.get_cart_item_variation_editor
             }
         });
     }
@@ -299,6 +329,93 @@
         nameNode.appendChild(anchor);
     }
 
+    function getVariationEditorTarget(row, context) {
+        if (!row) {
+            return null;
+        }
+
+        if (context === 'blocks-cart') {
+            return row.querySelector('.wc-block-cart-item__quantity') ||
+                row.querySelector('.wc-block-cart-item__product') ||
+                row;
+        }
+
+        return row.querySelector('.onepaquc-blocks-controls') ||
+            row.querySelector('.wc-block-components-order-summary-item__description') ||
+            row;
+    }
+
+    function removeExistingVariationEditors(row, context) {
+        if (!row) {
+            return;
+        }
+
+        var editors = row.querySelectorAll('.onepaqucpro-cart-variation-editor');
+        var i = 0;
+
+        for (i = 0; i < editors.length; i++) {
+            if (!context || editors[i].classList.contains('onepaqucpro-cart-variation-editor--' + context)) {
+                editors[i].parentNode.removeChild(editors[i]);
+            }
+        }
+    }
+
+    function insertVariationEditorMarkup(target, html, context) {
+        if (!target || !html) {
+            return;
+        }
+
+        if (context === 'blocks-cart') {
+            var removeLink = target.querySelector('.wc-block-cart-item__remove-link');
+
+            if (removeLink) {
+                removeLink.insertAdjacentHTML('afterend', html);
+                return;
+            }
+        }
+
+        target.insertAdjacentHTML('beforeend', html);
+    }
+
+    function ensureVariationEditor(row, cartItem, context) {
+        if (!options.variationSwitch || !row || !cartItem || !cartItem.key) {
+            return;
+        }
+
+        var existingEditor = row.querySelector('.onepaqucpro-cart-variation-editor--' + context);
+        var requestKey = String(context) + ':' + String(cartItem.key);
+        var target = getVariationEditorTarget(row, context);
+
+        if (!target) {
+            return;
+        }
+
+        if (existingEditor && existingEditor.getAttribute('data-cart-item-key') === String(cartItem.key)) {
+            return;
+        }
+
+        if (row.getAttribute('data-onepaquc-variation-request') === requestKey) {
+            return;
+        }
+
+        removeExistingVariationEditors(row, context);
+        row.setAttribute('data-onepaquc-variation-request', requestKey);
+
+        ajaxGetVariationEditor(cartItem.key, context)
+            .done(function (response) {
+                var html = response && response.success && response.data ? response.data.html : '';
+
+                if (!html) {
+                    return;
+                }
+
+                insertVariationEditorMarkup(target, html, context);
+            })
+            .always(function () {
+                row.removeAttribute('data-onepaquc-variation-request');
+            });
+    }
+
     function buildControlsMarkup(cartItem) {
         var limits = cartItem.quantity_limits || {};
         var min = parseNumber(limits.minimum, 1);
@@ -366,33 +483,53 @@
 
         if (existingControls) {
             existingControls.outerHTML = markup;
+        } else {
+            target.insertAdjacentHTML('beforeend', markup);
+        }
+
+        ensureVariationEditor(row, cartItem, 'blocks-checkout');
+    }
+
+    function ensureCartVariationEditor(row, cartItem) {
+        if (!row || !cartItem) {
             return;
         }
 
-        target.insertAdjacentHTML('beforeend', markup);
+        row.setAttribute('data-onepaquc-cart-item-key', cartItem.key || '');
+        ensureProductNameLink(row, cartItem);
+        ensureVariationEditor(row, cartItem, 'blocks-cart');
     }
 
     function render() {
         renderQueued = false;
 
-        if (!hasCheckoutBlocks()) {
+        if (!hasBlocksSurface()) {
             return;
         }
 
-        var rows = document.querySelectorAll(summaryItemSelector);
+        var checkoutRows = document.querySelectorAll(summaryItemSelector);
+        var cartRows = document.querySelectorAll(cartRowSelector);
         var cartItems = getCartItems();
         var i = 0;
 
-        if (!rows.length || !cartItems.length) {
+        if ((!checkoutRows.length && !cartRows.length) || !cartItems.length) {
             return;
         }
 
-        for (i = 0; i < rows.length; i++) {
+        for (i = 0; i < checkoutRows.length; i++) {
             if (!cartItems[i]) {
                 continue;
             }
 
-            ensureControls(rows[i], cartItems[i]);
+            ensureControls(checkoutRows[i], cartItems[i]);
+        }
+
+        for (i = 0; i < cartRows.length; i++) {
+            if (!cartItems[i]) {
+                continue;
+            }
+
+            ensureCartVariationEditor(cartRows[i], cartItems[i]);
         }
     }
 
@@ -416,11 +553,11 @@
             return false;
         }
 
-        if (node.matches && node.matches(summaryItemSelector)) {
+        if (node.matches && (node.matches(summaryItemSelector) || node.matches(cartRowSelector))) {
             return true;
         }
 
-        if (node.querySelector && node.querySelector(summaryItemSelector)) {
+        if (node.querySelector && (node.querySelector(summaryItemSelector) || node.querySelector(cartRowSelector))) {
             return true;
         }
 
@@ -510,7 +647,7 @@
         var lastSnapshot = '';
 
         window.wp.data.subscribe(function () {
-            if (!hasCheckoutBlocks()) {
+            if (!hasBlocksSurface()) {
                 return;
             }
 
@@ -539,7 +676,7 @@
         }
 
         var observer = new MutationObserver(function (mutations) {
-            if (!hasCheckoutBlocks()) {
+            if (!hasBlocksSurface()) {
                 return;
             }
 
@@ -587,7 +724,7 @@
     }
 
     $(function () {
-        if (!hasCheckoutBlocks()) {
+        if (!hasBlocksSurface()) {
             return;
         }
 

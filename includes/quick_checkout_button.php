@@ -171,6 +171,7 @@ function onepaqucpro_get_archive_variation_popup_data($product)
 
             if ($slug === '') {
                 $prod_attrs = $product->get_attributes();
+                $attr_keys_indexed[$attr_key] = true;
 
                 if (!isset($prod_attrs[$attr_key])) {
                     continue;
