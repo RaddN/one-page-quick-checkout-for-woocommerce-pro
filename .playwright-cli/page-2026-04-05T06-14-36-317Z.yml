@@ -1,0 +1,412 @@
+- generic [ref=e1]:
+  - link "Skip to content" [ref=e2] [cursor=pointer]:
+    - /url: "#content"
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e9]:
+        - link "One page quick checkout for woocommerce" [ref=e15] [cursor=pointer]:
+          - /url: http://plugincy-on-page-checkout.local/
+        - navigation "Primary Site Navigation" [ref=e20]:
+          - list [ref=e22]:
+            - listitem [ref=e23]:
+              - link "Buy now button Block" [ref=e24] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/buy-now-button/
+            - listitem [ref=e25]:
+              - link "Buy now button Elementor" [ref=e26] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/buy-now-button-elementor/
+            - listitem [ref=e27]:
+              - link "Cart" [ref=e28] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/cart/
+            - listitem [ref=e29]:
+              - link "Checkout" [ref=e30] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/checkout/
+            - listitem [ref=e31]:
+              - link "Checkout with divi" [ref=e32] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/checkout-with-divi/
+            - listitem [ref=e33]:
+              - link "Checkout with elementor" [ref=e34] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/checkout-with-elementor/
+            - listitem [ref=e35]:
+              - link "classic cart" [ref=e36] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/classic-cart/
+            - listitem [ref=e37]:
+              - link "classic checkout" [ref=e38] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/classic-checkout/
+            - listitem [ref=e39]:
+              - link "My account" [ref=e40] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/my-account/
+            - listitem [ref=e41]:
+              - link "Product landing page" [ref=e42] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/product-landing-page/
+            - listitem [ref=e43]:
+              - link "Product with shortcode" [ref=e44] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/product-with-shortcode/
+            - listitem [ref=e45]:
+              - link "Sample Page" [ref=e46] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/sample-page/
+            - listitem [ref=e47]:
+              - link "Shop" [ref=e48] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/shop/
+    - main [ref=e52]:
+      - generic [ref=e54]:
+        - generic [ref=e55]:
+          - button "View full-screen image gallery" [ref=e56] [cursor=pointer]:
+            - img [ref=e58]
+          - img "Awaiting product image" [ref=e61]
+        - generic [ref=e62]:
+          - navigation "Breadcrumb" [ref=e63]:
+            - link "Home" [ref=e64] [cursor=pointer]:
+              - /url: http://plugincy-on-page-checkout.local
+            - text: /
+            - link "Electronics" [ref=e65] [cursor=pointer]:
+              - /url: http://plugincy-on-page-checkout.local/product-category/electronics/
+            - text: / Bl100 Pro Wireless Gaming Headset For Pc
+          - generic [ref=e66]:
+            - link "Electronics" [ref=e67] [cursor=pointer]:
+              - /url: http://plugincy-on-page-checkout.local/product-category/electronics/
+            - text: ","
+            - link "Laptop" [ref=e68] [cursor=pointer]:
+              - /url: http://plugincy-on-page-checkout.local/product-category/laptop/
+          - heading "Bl100 Pro Wireless Gaming Headset For Pc" [level=1] [ref=e69]
+          - paragraph [ref=e70]:
+            - generic [ref=e72]: 500.00৳
+            - text: –
+            - generic [ref=e74]: 550.00৳
+            - generic [ref=e75]: "Price range: 500.00৳ through 550.00৳"
+          - paragraph [ref=e77]: This WooCommerce hoodie is a must have for any WooCommerce fan. It is made from a soft, comfortable, and durable cotton blend. The hoodie is a perfect way to stay warm and show your WooCommerce pride.
+          - generic [ref=e78]:
+            - text: Brand
+            - combobox "Brand" [ref=e79]:
+              - option "Choose an option" [selected]
+              - option "HP"
+            - text: Processor
+            - combobox "Processor" [ref=e80]:
+              - option "Choose an option" [selected]
+              - option "AMD Athlon"
+              - option "AMD Ryzen 5"
+              - option "AMD Ryzen 7"
+            - alert [ref=e81]
+            - generic [ref=e82]:
+              - generic:
+                - generic [ref=e83]:
+                  - generic [ref=e84]: Bl100 Pro Wireless Gaming Headset For Pc quantity
+                  - spinbutton "Product quantity" [ref=e85]: "1"
+                - button "Add to cart" [ref=e86]:
+                  - img [ref=e88]
+                  - generic [ref=e92]: Add to cart
+                - generic [ref=e93] [cursor=pointer]: Buy Now
+          - generic [ref=e94]:
+            - generic [ref=e95]: "SKU: N/A"
+            - generic [ref=e96]:
+              - text: "Categories:"
+              - link "Electronics" [ref=e97] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/product-category/electronics/
+              - text: ","
+              - link "Laptop" [ref=e98] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/product-category/laptop/
+        - generic [ref=e99]:
+          - heading "Checkout" [level=2] [ref=e100]
+          - paragraph [ref=e101]: Complete your purchase using the form below.
+          - generic [ref=e102]:
+            - generic [ref=e103]:
+              - generic [ref=e104]:
+                - text: 
+                - paragraph [ref=e105]: You must be logged in to proceed with checkout.
+              - generic [ref=e106]:
+                - paragraph [ref=e107]: Please login to continue with your order.
+                - paragraph [ref=e108]:
+                  - generic [ref=e109]:
+                    - text: Username or email *
+                    - generic [ref=e110]: Required
+                  - textbox "Username or email Required" [ref=e111]
+                - paragraph [ref=e112]:
+                  - generic [ref=e113]:
+                    - text: Password *
+                    - generic [ref=e114]: Required
+                  - generic [ref=e115]:
+                    - textbox "Password Required" [ref=e116]
+                    - button "Show password" [ref=e117] [cursor=pointer]
+                - paragraph [ref=e118]:
+                  - generic [ref=e119]:
+                    - checkbox "Remember me" [ref=e120]
+                    - text: Remember me
+                  - button "Login" [ref=e121] [cursor=pointer]
+                - paragraph [ref=e122]:
+                  - link "Lost your password?" [ref=e123] [cursor=pointer]:
+                    - /url: http://plugincy-on-page-checkout.local/my-account/lost-password/
+            - text: 
+            - form "Checkout" [ref=e124]:
+              - generic [ref=e126]:
+                - generic [ref=e127]:
+                  - heading "Billing details" [level=3] [ref=e128]
+                  - generic [ref=e129]:
+                    - paragraph [ref=e130]:
+                      - generic [ref=e131]: First name *
+                      - textbox "First name *" [ref=e133]:
+                        - /placeholder: Enter your first name
+                    - paragraph [ref=e134]:
+                      - generic [ref=e135]: Last name *
+                      - textbox "Last name *" [ref=e137]:
+                        - /placeholder: Enter your last name
+                    - paragraph [ref=e138]:
+                      - generic [ref=e139]: Country / Region *
+                      - generic [ref=e140]:
+                        - combobox [ref=e141] [cursor=pointer]
+                        - combobox "Country / Region" [ref=e144] [cursor=pointer]:
+                          - textbox "Bangladesh" [ref=e145]
+                    - paragraph [ref=e146]:
+                      - generic [ref=e147]: Street address *
+                      - textbox "Street address *" [ref=e149]:
+                        - /placeholder: House number and street name
+                    - paragraph [ref=e150]:
+                      - generic [ref=e151]: Apartment, suite, unit, etc. (optional)
+                      - textbox "Apartment, suite, unit, etc. (optional)" [ref=e153]
+                    - paragraph [ref=e154]:
+                      - generic [ref=e155]: Town / City *
+                      - textbox "Town / City *" [ref=e157]:
+                        - /placeholder: Enter your city
+                    - paragraph [ref=e158]:
+                      - generic [ref=e159]: State / District *
+                      - generic [ref=e160]:
+                        - combobox [ref=e161] [cursor=pointer]
+                        - combobox "State / District" [ref=e164] [cursor=pointer]:
+                          - textbox "Chattogram" [ref=e165]
+                    - paragraph [ref=e166]:
+                      - generic [ref=e167]: Postcode / ZIP *
+                      - textbox "Postcode / ZIP *" [ref=e169]:
+                        - /placeholder: Enter your postcode
+                    - paragraph [ref=e170]:
+                      - generic [ref=e171]: Phone number
+                      - textbox "Phone number" [ref=e173]:
+                        - /placeholder: Enter your phone number
+                    - paragraph [ref=e174]:
+                      - generic [ref=e175]: Email address *
+                      - textbox "Email address *" [ref=e177]:
+                        - /placeholder: Enter your email address
+                - generic [ref=e178]:
+                  - heading "Additional information" [level=3] [ref=e179]
+                  - paragraph [ref=e181]:
+                    - generic [ref=e182]: Order notes
+                    - textbox "Order notes" [ref=e184]:
+                      - /placeholder: Notes about your order, e.g. special notes for delivery.
+              - heading "Your order" [level=3] [ref=e185]
+              - table [ref=e423]:
+                - rowgroup [ref=e424]:
+                  - row "Product Subtotal" [ref=e425]:
+                    - columnheader "Product" [ref=e426]
+                    - columnheader "Subtotal" [ref=e427]
+                - rowgroup [ref=e428]:
+                  - row "Bl100 Pro Wireless Gaming Headset For Pc - HP, AMD Athlon Bl100 Pro Wireless Gaming Headset For Pc - HP, AMD Athlon - 2 + Remove this item Change options Brand HP Processor AMD Ryzen 5 Update Cancel 1,000.00৳" [ref=e481]:
+                    - cell "Bl100 Pro Wireless Gaming Headset For Pc - HP, AMD Athlon Bl100 Pro Wireless Gaming Headset For Pc - HP, AMD Athlon - 2 + Remove this item Change options Brand HP Processor AMD Ryzen 5 Update Cancel" [ref=e482]:
+                      - link "Bl100 Pro Wireless Gaming Headset For Pc - HP, AMD Athlon Bl100 Pro Wireless Gaming Headset For Pc - HP, AMD Athlon" [ref=e431] [cursor=pointer]:
+                        - /url: http://plugincy-on-page-checkout.local/product/bl100-pro-wireless-gaming-headset-for-pc/?attribute_pa_brand=hp&attribute_pa_processor=amd-athlon
+                        - generic [ref=e432]:
+                          - img "Bl100 Pro Wireless Gaming Headset For Pc - HP, AMD Athlon" [ref=e434]
+                          - generic [ref=e435]: Bl100 Pro Wireless Gaming Headset For Pc - HP, AMD Athlon
+                      - generic [ref=e436]:
+                        - button "-" [ref=e437] [cursor=pointer]
+                        - textbox [ref=e438]: "2"
+                        - button "+" [ref=e439] [cursor=pointer]
+                      - generic "Remove this item" [ref=e440] [cursor=pointer]:
+                        - img [ref=e441]
+                      - generic [ref=e443]:
+                        - button "Change options" [expanded] [active] [ref=e444] [cursor=pointer]:
+                          - img [ref=e445]
+                          - generic [ref=e447]: Change options
+                        - generic [ref=e465]:
+                          - generic [ref=e466]:
+                            - generic [ref=e467]:
+                              - generic [ref=e468]: Brand
+                              - combobox "Brand" [ref=e469]:
+                                - option "Select Brand"
+                                - option "HP" [selected]
+                            - generic [ref=e470]:
+                              - generic [ref=e471]: Processor
+                              - combobox "Processor" [ref=e472]:
+                                - option "Select Processor"
+                                - option "AMD Athlon"
+                                - option "AMD Ryzen 5" [selected]
+                                - option "AMD Ryzen 7"
+                          - generic [ref=e473]:
+                            - button "Update" [ref=e474] [cursor=pointer]
+                            - button "Cancel" [ref=e475] [cursor=pointer]
+                          - paragraph
+                    - cell "1,000.00৳" [ref=e448]:
+                      - generic [ref=e450]: 1,000.00৳
+                - rowgroup [ref=e451]:
+                  - row "Subtotal 1,000.00৳" [ref=e452]:
+                    - rowheader "Subtotal" [ref=e453]
+                    - cell "1,000.00৳" [ref=e454]:
+                      - generic [ref=e456]: 1,000.00৳
+                  - row "Total 1,000.00৳" [ref=e457]:
+                    - rowheader "Total" [ref=e458]
+                    - cell "1,000.00৳" [ref=e459]:
+                      - strong [ref=e460]:
+                        - generic [ref=e462]: 1,000.00৳
+            - generic [ref=e228]:
+              - generic [ref=e231]: Secure Payment
+              - generic [ref=e234]: 30-Day Money Back
+              - generic [ref=e237]: Privacy Protected
+        - generic [ref=e238]:
+          - tablist [ref=e239]:
+            - tab "Additional information" [selected] [ref=e240] [cursor=pointer]
+            - tab "Reviews (0)" [ref=e241] [cursor=pointer]
+          - tabpanel "Additional information" [ref=e242]:
+            - table "Product Details" [ref=e243]:
+              - rowgroup [ref=e244]:
+                - row "Brand HP" [ref=e245]:
+                  - rowheader "Brand" [ref=e246]
+                  - cell "HP" [ref=e247]:
+                    - paragraph [ref=e248]: HP
+                - row "Processor AMD Athlon, AMD Ryzen 5, AMD Ryzen 7" [ref=e249]:
+                  - rowheader "Processor" [ref=e250]
+                  - cell "AMD Athlon, AMD Ryzen 5, AMD Ryzen 7" [ref=e251]:
+                    - paragraph [ref=e252]: AMD Athlon, AMD Ryzen 5, AMD Ryzen 7
+          - text:     
+        - generic [ref=e253]:
+          - heading "Related products" [level=2] [ref=e254]
+          - list [ref=e255]:
+            - listitem [ref=e256]:
+              - link "Placeholder" [ref=e258] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/product/desktop-pc-core-i5-12th-gen-8gb-ram-1tb-hdd/
+                - img "Placeholder" [ref=e259]
+              - generic [ref=e260]:
+                - generic [ref=e261]: Desktop
+                - link "Desktop PC Core i5 12th Gen 8GB RAM 1TB HDD" [ref=e262] [cursor=pointer]:
+                  - /url: http://plugincy-on-page-checkout.local/product/desktop-pc-core-i5-12th-gen-8gb-ram-1tb-hdd/
+                  - heading "Desktop PC Core i5 12th Gen 8GB RAM 1TB HDD" [level=2] [ref=e263]
+                - generic [ref=e265]:
+                  - text: sssss
+                  - generic:
+                    - text: SSSSS Rated
+                    - strong: "0"
+                    - text: out of 5
+                - generic [ref=e268]: 570.00৳
+                - 'link "Add to cart: “Desktop PC Core i5 12th Gen 8GB RAM 1TB HDD”" [ref=e269] [cursor=pointer]':
+                  - /url: "?add-to-cart=62"
+                  - img [ref=e271]
+                  - generic [ref=e275]: Add to cart
+                - generic [ref=e276] [cursor=pointer]: Buy Now
+              - link [ref=e279] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=e281]:
+              - link "Placeholder" [ref=e283] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/product/fastest-macbook/
+                - img "Placeholder" [ref=e284]
+              - generic [ref=e285]:
+                - generic [ref=e286]: Electronics
+                - link "Fastest MacBook" [ref=e287] [cursor=pointer]:
+                  - /url: http://plugincy-on-page-checkout.local/product/fastest-macbook/
+                  - heading "Fastest MacBook" [level=2] [ref=e288]
+                - generic [ref=e290]:
+                  - text: sssss
+                  - generic:
+                    - text: SSSSS Rated
+                    - strong: "0"
+                    - text: out of 5
+                - generic [ref=e293]: 650.00৳
+                - 'link "Add to cart: “Fastest MacBook”" [ref=e294] [cursor=pointer]':
+                  - /url: "?add-to-cart=80"
+                  - img [ref=e296]
+                  - generic [ref=e300]: Add to cart
+                - generic [ref=e301] [cursor=pointer]: Buy Now
+              - link [ref=e304] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=e306]:
+              - link "Placeholder" [ref=e308] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/product/surface-pro-11th-edition-sapphire-compare-render/
+                - img "Placeholder" [ref=e309]
+              - generic [ref=e310]:
+                - generic [ref=e311]: Electronics
+                - link "Surface Pro 11th Edition Sapphire Compare Render" [ref=e312] [cursor=pointer]:
+                  - /url: http://plugincy-on-page-checkout.local/product/surface-pro-11th-edition-sapphire-compare-render/
+                  - heading "Surface Pro 11th Edition Sapphire Compare Render" [level=2] [ref=e313]
+                - generic [ref=e315]:
+                  - text: sssss
+                  - generic:
+                    - text: SSSSS Rated
+                    - strong: "0"
+                    - text: out of 5
+                - generic [ref=e318]: 570.00৳
+                - 'link "Add to cart: “Surface Pro 11th Edition Sapphire Compare Render”" [ref=e319] [cursor=pointer]':
+                  - /url: "?add-to-cart=153"
+                  - img [ref=e321]
+                  - generic [ref=e325]: Add to cart
+                - generic [ref=e326] [cursor=pointer]: Buy Now
+              - link [ref=e329] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=e331]:
+              - link "Placeholder" [ref=e333] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/product/lenovo-ideapad-320-15-6-laptop/
+                - img "Placeholder" [ref=e334]
+              - generic [ref=e335]:
+                - generic [ref=e336]: Electronics
+                - link "Lenovo ideapad 320 15.6 Laptop" [ref=e337] [cursor=pointer]:
+                  - /url: http://plugincy-on-page-checkout.local/product/lenovo-ideapad-320-15-6-laptop/
+                  - heading "Lenovo ideapad 320 15.6 Laptop" [level=2] [ref=e338]
+                - generic [ref=e340]:
+                  - text: sssss
+                  - generic:
+                    - text: SSSSS Rated
+                    - strong: "0"
+                    - text: out of 5
+                - generic [ref=e343]: 500.00৳
+                - 'link "Add to cart: “Lenovo ideapad 320 15.6 Laptop”" [ref=e344] [cursor=pointer]':
+                  - /url: "?add-to-cart=69"
+                  - img [ref=e346]
+                  - generic [ref=e350]: Add to cart
+                - generic [ref=e351] [cursor=pointer]: Buy Now
+              - link [ref=e354] [cursor=pointer]:
+                - /url: "#"
+    - contentinfo [ref=e356]:
+      - paragraph [ref=e363]:
+        - text: Copyright © 2026 One page quick checkout for woocommerce | Powered by
+        - link "Astra WordPress Theme" [ref=e364] [cursor=pointer]:
+          - /url: https://wpastra.com
+  - generic:
+    - button "2" [ref=e365] [cursor=pointer]:
+      - img [ref=e367]
+      - generic [ref=e371]: "2"
+    - generic [ref=e373]:
+      - generic [ref=e374]:
+        - heading "Your Cart" [level=2] [ref=e375]
+        - button [ref=e376] [cursor=pointer]
+      - generic [ref=e377]:
+        - generic [ref=e378]:
+          - checkbox "Select All" [ref=e379]
+          - generic [ref=e380]: Select All
+        - generic [ref=e382]: 0 selected
+      - generic [ref=e384]:
+        - checkbox [ref=e386]
+        - generic [ref=e387]:
+          - img "Bl100 Pro Wireless Gaming Headset For Pc - HP, AMD Athlon" [ref=e388]
+          - button [ref=e389] [cursor=pointer]:
+            - img [ref=e390]
+        - generic [ref=e392]:
+          - generic [ref=e393]:
+            - paragraph [ref=e394]: Bl100 Pro Wireless Gaming Headset For Pc - HP, AMD Athlon
+            - paragraph [ref=e395]:
+              - generic [ref=e396]: 500.00৳
+          - generic [ref=e397]:
+            - generic [ref=e398]:
+              - button "-" [ref=e399] [cursor=pointer]
+              - spinbutton [ref=e400]: "2"
+              - button "+" [ref=e401] [cursor=pointer]
+            - button "Change options" [ref=e403] [cursor=pointer]:
+              - img [ref=e404]
+              - generic [ref=e406]: Change options
+      - generic [ref=e408]:
+        - textbox "Enter coupon code" [ref=e409]
+        - button "Apply" [ref=e410] [cursor=pointer]
+      - generic [ref=e411]:
+        - generic [ref=e412]:
+          - generic [ref=e413]: Subtotal
+          - generic [ref=e415]: 1,000.00৳
+        - generic [ref=e416]:
+          - generic [ref=e417]: Total
+          - generic [ref=e419]: 1,000.00৳
+      - generic [ref=e421] [cursor=pointer]: Checkout
+  - generic [ref=e476] [cursor=pointer]:
+    - img [ref=e478]
+    - generic [ref=e480]: Scroll to Top
+  - status [ref=e422]

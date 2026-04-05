@@ -2,6 +2,55 @@
 if (! defined('ABSPATH')) exit; // Exit if accessed directly
 // cart-template.php
 
+function onepaqucpro_render_cart_drawer_item($cart_item_key, $cart_item, $product_title_tag = 'p')
+{
+    $_product = $cart_item['data'];
+    if (!$_product) {
+        return;
+    }
+
+    $thumbnail = $_product->get_image();
+    $product_price = wc_price($_product->get_price());
+    $product_quantity = isset($cart_item['quantity']) ? absint($cart_item['quantity']) : 1;
+    $variation_editor = onepaqucpro_get_cart_item_variation_editor_html($cart_item, $cart_item_key, 'drawer');
+    ?>
+    <div class="cart-item" data-cart-item-key="<?php echo esc_attr($cart_item_key); ?>">
+        <div class="item-select">
+            <input type="checkbox" class="item-checkbox" data-cart-item-key="<?php echo esc_attr($cart_item_key); ?>">
+        </div>
+        <div class="thumbnail">
+            <?php echo wp_kses($thumbnail, array(
+                'img' => array(
+                    'src' => array(),
+                    'alt' => array(),
+                    'class' => array(),
+                ),
+            )); ?>
+            <button class="remove-item" data-cart-item-key="<?php echo esc_attr($cart_item_key); ?>"><svg style="width: 16px; fill: #ff0000;" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 18L18 6M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </button>
+        </div>
+        <div class="item-details">
+            <div class="cart-item__summary">
+                <<?php echo esc_attr($product_title_tag); ?> class="item-title"><?php echo esc_html($_product->get_name()); ?></<?php echo esc_attr($product_title_tag); ?>>
+                <p class="item-price"><?php echo wp_kses_post($product_price); ?></p>
+            </div>
+            <div class="cart-item__actions">
+                <div class="quantity-controls">
+                    <button class="quantity-btn minus" data-action="minus" data-cart-item-key="<?php echo esc_attr($cart_item_key); ?>">-</button>
+                    <input type="number" class="item-quantity" value="<?php echo esc_attr($product_quantity); ?>" min="1" data-cart-item-key="<?php echo esc_attr($cart_item_key); ?>">
+                    <button class="quantity-btn plus" data-action="plus" data-cart-item-key="<?php echo esc_attr($cart_item_key); ?>">+</button>
+                </div>
+                <?php if ($variation_editor !== '') : ?>
+                    <?php echo $variation_editor; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+    <?php
+}
+
 // Shortcode to display cart icon and drawer
 function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $product_title_tag = 'p', $position = "", $top = "", $left = "")
 {
@@ -117,43 +166,8 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
                     <div class="cart-items">
                         <?php
                         foreach ($cart_items as $cart_item_key => $cart_item) {
-                            $_product = $cart_item['data'];
-                            $thumbnail = $_product->get_image();
-                            $product_price = wc_price($_product->get_price());
-                            $product_quantity = $cart_item['quantity'];
-                            $product_total = wc_price($_product->get_price() * $product_quantity);
-                        ?>
-                            <div class="cart-item" data-cart-item-key="<?php echo esc_attr($cart_item_key); ?>">
-                                <div class="item-select">
-                                    <input type="checkbox" class="item-checkbox" data-cart-item-key="<?php echo esc_attr($cart_item_key); ?>">
-                                </div>
-                                <div class="thumbnail">
-                                    <?php echo wp_kses($thumbnail, array(
-                                        'img' => array(
-                                            'src' => array(),
-                                            'alt' => array(),
-                                            'class' => array(),
-                                            // Add other attributes as needed
-                                        ),
-                                    )); ?>
-                                    <button class="remove-item" data-cart-item-key="<?php echo esc_attr($cart_item_key); ?>"><svg style="width: 16px; fill: #ff0000;" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M6 18L18 6M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                                        </svg>
-                                    </button>
-                                </div>
-                                <div class="item-details">
-                                    <div style="display:flex;gap:1rem;">
-                                        <<?php echo esc_attr($product_title_tag); ?> class="item-title"><?php echo esc_html($_product->get_name()); ?></<?php echo esc_attr($product_title_tag); ?>>
-                                        <p class="item-price"><?php echo wp_kses_post($product_price); ?></p>
-                                    </div>
-                                    <div class="quantity-controls">
-                                        <button class="quantity-btn minus" data-action="minus" data-cart-item-key="<?php echo esc_attr($cart_item_key); ?>">-</button>
-                                        <input type="number" class="item-quantity" value="<?php echo esc_attr($product_quantity); ?>" min="1" data-cart-item-key="<?php echo esc_attr($cart_item_key); ?>">
-                                        <button class="quantity-btn plus" data-action="plus" data-cart-item-key="<?php echo esc_attr($cart_item_key); ?>">+</button>
-                                    </div>
-                                </div>
-                            </div>
-                        <?php } ?>
+                            onepaqucpro_render_cart_drawer_item($cart_item_key, $cart_item, $product_title_tag);
+                        } ?>
                     </div>
                     <!-- Coupon Section -->
                     <div class="coupon-section">

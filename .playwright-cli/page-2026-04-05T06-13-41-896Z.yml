@@ -1,0 +1,151 @@
+- generic [active] [ref=e1]:
+  - link "Skip to content" [ref=e2] [cursor=pointer]:
+    - /url: "#content"
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e9]:
+        - link "One page quick checkout for woocommerce" [ref=e15] [cursor=pointer]:
+          - /url: http://plugincy-on-page-checkout.local/
+        - navigation "Primary Site Navigation" [ref=e20]:
+          - list [ref=e22]:
+            - listitem [ref=e23]:
+              - link "Buy now button Block" [ref=e24] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/buy-now-button/
+            - listitem [ref=e25]:
+              - link "Buy now button Elementor" [ref=e26] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/buy-now-button-elementor/
+            - listitem [ref=e27]:
+              - link "Cart" [ref=e28] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/cart/
+            - listitem [ref=e29]:
+              - link "Checkout" [ref=e30] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/checkout/
+            - listitem [ref=e31]:
+              - link "Checkout with divi" [ref=e32] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/checkout-with-divi/
+            - listitem [ref=e33]:
+              - link "Checkout with elementor" [ref=e34] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/checkout-with-elementor/
+            - listitem [ref=e35]:
+              - link "classic cart" [ref=e36] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/classic-cart/
+            - listitem [ref=e37]:
+              - link "classic checkout" [ref=e38] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/classic-checkout/
+            - listitem [ref=e39]:
+              - link "My account" [ref=e40] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/my-account/
+            - listitem [ref=e41]:
+              - link "Product landing page" [ref=e42] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/product-landing-page/
+            - listitem [ref=e43]:
+              - link "Product with shortcode" [ref=e44] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/product-with-shortcode/
+            - listitem [ref=e45]:
+              - link "Sample Page" [ref=e46] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/sample-page/
+            - listitem [ref=e47]:
+              - link "Shop" [ref=e48] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/shop/
+    - main [ref=e52]:
+      - article [ref=e53]:
+        - heading "Checkout" [level=1] [ref=e55]
+        - generic [ref=e57]:
+          - generic [ref=e58]:
+            - text: 
+            - paragraph [ref=e59]: You must be logged in to proceed with checkout.
+          - generic [ref=e60]:
+            - paragraph [ref=e61]: Please login to continue with your order.
+            - paragraph [ref=e62]:
+              - generic [ref=e63]:
+                - text: Username or email *
+                - generic [ref=e64]: Required
+              - textbox "Username or email Required" [ref=e65]
+            - paragraph [ref=e66]:
+              - generic [ref=e67]:
+                - text: Password *
+                - generic [ref=e68]: Required
+              - generic [ref=e69]:
+                - textbox "Password Required" [ref=e70]
+                - button "Show password" [ref=e71] [cursor=pointer]
+            - paragraph [ref=e72]:
+              - generic [ref=e73]:
+                - checkbox "Remember me" [ref=e74]
+                - text: Remember me
+              - button "Login" [ref=e75] [cursor=pointer]
+            - paragraph [ref=e76]:
+              - link "Lost your password?" [ref=e77] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/my-account/lost-password/
+    - contentinfo [ref=e78]:
+      - paragraph [ref=e85]:
+        - text: Copyright © 2026 One page quick checkout for woocommerce | Powered by
+        - link "Astra WordPress Theme" [ref=e86] [cursor=pointer]:
+          - /url: https://wpastra.com
+  - generic:
+    - button "1" [ref=e87] [cursor=pointer]:
+      - img [ref=e89]
+      - generic [ref=e93]: "1"
+    - generic [ref=e95]:
+      - generic [ref=e96]:
+        - heading "Your Cart" [level=2] [ref=e97]
+        - button [ref=e98] [cursor=pointer]
+      - generic [ref=e99]:
+        - generic [ref=e100]:
+          - checkbox "Select All" [ref=e101]
+          - generic [ref=e102]: Select All
+        - generic [ref=e104]: 0 selected
+      - generic [ref=e106]:
+        - checkbox [ref=e108]
+        - generic [ref=e109]:
+          - img "Bl100 Pro Wireless Gaming Headset For Pc - HP, AMD Athlon" [ref=e110]
+          - button [ref=e111] [cursor=pointer]:
+            - img [ref=e112]
+        - generic [ref=e114]:
+          - generic [ref=e115]:
+            - paragraph [ref=e116]: Bl100 Pro Wireless Gaming Headset For Pc - HP, AMD Athlon
+            - paragraph [ref=e117]:
+              - generic [ref=e118]: 500.00৳
+          - generic [ref=e119]:
+            - generic [ref=e120]:
+              - button "-" [ref=e121] [cursor=pointer]
+              - spinbutton [ref=e122]: "1"
+              - button "+" [ref=e123] [cursor=pointer]
+            - button "Change options" [ref=e125] [cursor=pointer]:
+              - img [ref=e126]
+              - generic [ref=e128]: Change options
+      - generic [ref=e130]:
+        - textbox "Enter coupon code" [ref=e131]
+        - button "Apply" [ref=e132] [cursor=pointer]
+      - generic [ref=e133]:
+        - heading "You May Also Like" [level=3] [ref=e134]
+        - generic [ref=e135]:
+          - generic [ref=e136]:
+            - link "Placeholder Lenovo ideapad 320 15.6 Laptop 500.00৳" [ref=e137] [cursor=pointer]:
+              - /url: http://plugincy-on-page-checkout.local/product/lenovo-ideapad-320-15-6-laptop/
+              - img "Placeholder" [ref=e138]
+              - heading "Lenovo ideapad 320 15.6 Laptop" [level=4] [ref=e139]
+              - generic [ref=e141]: 500.00৳
+            - button "Add to cart" [ref=e142] [cursor=pointer]
+          - generic [ref=e143]:
+            - link "Placeholder Fastest MacBook 650.00৳" [ref=e144] [cursor=pointer]:
+              - /url: http://plugincy-on-page-checkout.local/product/fastest-macbook/
+              - img "Placeholder" [ref=e145]
+              - heading "Fastest MacBook" [level=4] [ref=e146]
+              - generic [ref=e148]: 650.00৳
+            - button "Add to cart" [ref=e149] [cursor=pointer]
+          - generic [ref=e150]:
+            - link "Placeholder Desktop Intel Core i7 9th Gen 16GB Ram 1TB SSD 24 LED 500.00৳" [ref=e151] [cursor=pointer]:
+              - /url: http://plugincy-on-page-checkout.local/product/desktop-intel-core-i7-9th-gen-16gb-ram-1tb-ssd-24-led/
+              - img "Placeholder" [ref=e152]
+              - heading "Desktop Intel Core i7 9th Gen 16GB Ram 1TB SSD 24 LED" [level=4] [ref=e153]
+              - generic [ref=e155]: 500.00৳
+            - button "Add to cart" [ref=e156] [cursor=pointer]
+      - generic [ref=e157]:
+        - generic [ref=e158]:
+          - generic [ref=e159]: Subtotal
+          - generic [ref=e161]: 500.00৳
+        - generic [ref=e162]:
+          - generic [ref=e163]: Total
+          - generic [ref=e165]: 500.00৳
+      - button "Checkout" [ref=e167] [cursor=pointer]
+  - status [ref=e170]

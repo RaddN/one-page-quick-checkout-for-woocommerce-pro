@@ -315,6 +315,243 @@ function onepaqucpro_get_validated_variations( $product ) {
     return $result;
 }
 
+function onepaqucpro_cart_item_variation_switch_enabled()
+{
+    return function_exists('onepaqucpro_premium_feature')
+        && onepaqucpro_premium_feature()
+        && '1' === (string) get_option('rmenupro_cart_checkout_variation_switch', 0);
+}
+
+function onepaqucpro_get_cart_item_readd_data($cart_item)
+{
+    $reserved_keys = array(
+        'key',
+        'product_id',
+        'variation_id',
+        'variation',
+        'quantity',
+        'data',
+        'data_hash',
+        'line_tax_data',
+        'line_subtotal',
+        'line_subtotal_tax',
+        'line_total',
+        'line_tax',
+    );
+
+    $cart_item_data = array();
+
+    foreach ((array) $cart_item as $key => $value) {
+        if (in_array($key, $reserved_keys, true)) {
+            continue;
+        }
+
+        $cart_item_data[$key] = $value;
+    }
+
+    return $cart_item_data;
+}
+
+function onepaqucpro_get_normalized_cart_item_variation_attributes($cart_item)
+{
+    $variation = array();
+
+    if (!empty($cart_item['variation']) && is_array($cart_item['variation'])) {
+        foreach ($cart_item['variation'] as $attribute_key => $attribute_value) {
+            if ($attribute_value === '' || $attribute_value === null) {
+                continue;
+            }
+
+            $variation[onepaqucpro_normalize_attr_key($attribute_key)] = onepaqucpro_normalize_attr_value($attribute_value);
+        }
+    }
+
+    if (!empty($cart_item['variation_id'])) {
+        $variation_product = wc_get_product(absint($cart_item['variation_id']));
+
+        if ($variation_product instanceof WC_Product_Variation) {
+            foreach ((array) $variation_product->get_variation_attributes() as $attribute_key => $attribute_value) {
+                if ($attribute_value === '' || $attribute_value === null) {
+                    continue;
+                }
+
+                $normalized_key = onepaqucpro_normalize_attr_key($attribute_key);
+                if (empty($variation[$normalized_key])) {
+                    $variation[$normalized_key] = onepaqucpro_normalize_attr_value($attribute_value);
+                }
+            }
+        }
+    }
+
+    return $variation;
+}
+
+function onepaqucpro_get_cart_item_variation_editor_data($cart_item)
+{
+    if (!onepaqucpro_cart_item_variation_switch_enabled() || !function_exists('onepaqucpro_get_archive_variation_popup_data')) {
+        return array();
+    }
+
+    $product_id = !empty($cart_item['product_id']) ? absint($cart_item['product_id']) : 0;
+    $product = $product_id ? wc_get_product($product_id) : false;
+
+    if (!($product instanceof WC_Product_Variable)) {
+        return array();
+    }
+
+    $editor_data = onepaqucpro_get_archive_variation_popup_data($product);
+    if (empty($editor_data['attributes']) || empty($editor_data['variations'])) {
+        return array();
+    }
+
+    $selected_variation_id = !empty($cart_item['variation_id']) ? (string) absint($cart_item['variation_id']) : '';
+    $selected_attributes = array();
+
+    foreach (onepaqucpro_get_normalized_cart_item_variation_attributes($cart_item) as $attribute_key => $attribute_value) {
+        $selected_attributes[str_replace('attribute_', '', $attribute_key)] = $attribute_value;
+    }
+
+    if ($selected_variation_id !== '') {
+        foreach ((array) $editor_data['variations'] as $variation) {
+            if (!isset($variation['id']) || (string) $variation['id'] !== $selected_variation_id || empty($variation['attrs']) || !is_array($variation['attrs'])) {
+                continue;
+            }
+
+            foreach ($variation['attrs'] as $attribute_key => $attribute_value) {
+                if (empty($selected_attributes[$attribute_key])) {
+                    $selected_attributes[$attribute_key] = (string) $attribute_value;
+                }
+            }
+
+            break;
+        }
+    }
+
+    $attr_keys = !empty($editor_data['attr_keys']) && is_array($editor_data['attr_keys'])
+        ? array_values($editor_data['attr_keys'])
+        : array_keys((array) $editor_data['attributes']);
+
+    if (empty($attr_keys)) {
+        return array();
+    }
+
+    $selected_attributes = array_intersect_key($selected_attributes, array_flip($attr_keys));
+    $editor_data['attr_keys'] = $attr_keys;
+    $editor_data['selected_variation_id'] = $selected_variation_id;
+    $editor_data['selected_attributes'] = $selected_attributes;
+
+    if (count($editor_data['variations']) < 2) {
+        $only_variation = reset($editor_data['variations']);
+
+        if (!is_array($only_variation) || empty($only_variation['id']) || (string) $only_variation['id'] === $selected_variation_id) {
+            return array();
+        }
+    }
+
+    return $editor_data;
+}
+
+function onepaqucpro_get_cart_item_variation_editor_html($cart_item, $cart_item_key, $context = 'checkout')
+{
+    $editor_data = onepaqucpro_get_cart_item_variation_editor_data($cart_item);
+    if (empty($editor_data['attributes']) || empty($editor_data['variations'])) {
+        return '';
+    }
+
+    $selected_attributes = !empty($editor_data['selected_attributes']) && is_array($editor_data['selected_attributes'])
+        ? $editor_data['selected_attributes']
+        : array();
+    $context = sanitize_html_class((string) $context);
+    $toggle_label = esc_attr__('Change options', 'one-page-quick-checkout-for-woocommerce-pro');
+
+    ob_start();
+    ?>
+    <div class="onepaqucpro-cart-variation-editor onepaqucpro-cart-variation-editor--<?php echo esc_attr($context); ?>" data-cart-item-key="<?php echo esc_attr($cart_item_key); ?>">
+        <button type="button" class="onepaqucpro-cart-variation-editor__toggle" aria-expanded="false" aria-label="<?php echo $toggle_label; ?>" title="<?php echo $toggle_label; ?>">
+            <svg class="onepaqucpro-cart-variation-editor__switch-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+                <path class="onepaqucpro-cart-variation-editor__switch-icon-line" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2" d="M3 17V7h11"></path>
+                <path fill="currentColor" d="M14 5.25 16.75 7 14 8.75z"></path>
+                <path class="onepaqucpro-cart-variation-editor__switch-icon-line" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="2" d="M21 7v10H10"></path>
+                <path fill="currentColor" d="M10 15.25 7.25 17 10 18.75z"></path>
+            </svg>
+            <span class="screen-reader-text"><?php esc_html_e('Change options', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+        </button>
+        <div class="onepaqucpro-cart-variation-editor__panel" hidden>
+            <div class="onepaqucpro-cart-variation-editor__fields">
+                <?php foreach ((array) $editor_data['attributes'] as $attribute_key => $attribute_data) : ?>
+                    <?php
+                    $attribute_label = !empty($attribute_data['label']) ? (string) $attribute_data['label'] : wc_attribute_label($attribute_key);
+                    $selected_value = isset($selected_attributes[$attribute_key]) ? (string) $selected_attributes[$attribute_key] : '';
+                    ?>
+                    <label class="onepaqucpro-cart-variation-editor__field">
+                        <span class="onepaqucpro-cart-variation-editor__label"><?php echo esc_html($attribute_label); ?></span>
+                        <select class="onepaqucpro-cart-variation-editor__select" data-variation-attr="<?php echo esc_attr($attribute_key); ?>">
+                            <option value=""><?php echo esc_html(sprintf(__('Select %s', 'one-page-quick-checkout-for-woocommerce-pro'), $attribute_label)); ?></option>
+                            <?php foreach ((array) ($attribute_data['options'] ?? array()) as $option) : ?>
+                                <?php
+                                $option_slug = isset($option['slug']) ? (string) $option['slug'] : '';
+                                $option_label = isset($option['label']) ? (string) $option['label'] : $option_slug;
+                                ?>
+                                <option value="<?php echo esc_attr($option_slug); ?>" <?php selected($selected_value, $option_slug); ?>>
+                                    <?php echo esc_html($option_label); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </label>
+                <?php endforeach; ?>
+            </div>
+            <div class="onepaqucpro-cart-variation-editor__actions">
+                <button type="button" class="onepaqucpro-cart-variation-editor__apply" disabled>
+                    <?php esc_html_e('Update', 'one-page-quick-checkout-for-woocommerce-pro'); ?>
+                </button>
+                <button type="button" class="onepaqucpro-cart-variation-editor__cancel">
+                    <?php esc_html_e('Cancel', 'one-page-quick-checkout-for-woocommerce-pro'); ?>
+                </button>
+            </div>
+            <p class="onepaqucpro-cart-variation-editor__feedback" aria-live="polite"></p>
+        </div>
+        <div class="onepaqucpro-cart-variation-editor__data" hidden data-editor-info="<?php echo esc_attr(wp_json_encode($editor_data)); ?>"></div>
+    </div>
+    <?php
+
+    return ob_get_clean();
+}
+
+function onepaqucpro_append_checkout_cart_item_variation_editor($product_name, $cart_item, $cart_item_key)
+{
+    return $product_name;
+}
+add_filter('woocommerce_cart_item_name', 'onepaqucpro_append_checkout_cart_item_variation_editor', 30, 3);
+
+function onepaqucpro_render_cart_page_variation_editor($cart_item, $cart_item_key)
+{
+    if (!onepaqucpro_cart_item_variation_switch_enabled() || !function_exists('is_cart') || !is_cart()) {
+        return;
+    }
+
+    echo onepaqucpro_get_cart_item_variation_editor_html($cart_item, $cart_item_key, 'cart');
+}
+add_action('woocommerce_after_cart_item_name', 'onepaqucpro_render_cart_page_variation_editor', 20, 2);
+
+function onepaqucpro_append_checkout_quantity_variation_editor($html, $cart_item, $cart_item_key)
+{
+    if (!onepaqucpro_cart_item_variation_switch_enabled()) {
+        return $html;
+    }
+
+    if (!function_exists('is_checkout') || !is_checkout()) {
+        return $html;
+    }
+
+    $editor_html = onepaqucpro_get_cart_item_variation_editor_html($cart_item, $cart_item_key, 'checkout-inline');
+    if ($editor_html === '') {
+        return $html;
+    }
+
+    return '<div class="onepaqucpro-checkout-qty-row">' . $html . $editor_html . '</div>';
+}
+add_filter('woocommerce_checkout_cart_item_quantity', 'onepaqucpro_append_checkout_quantity_variation_editor', 20, 3);
+
 
 
 // add a random product in cart

@@ -1,0 +1,150 @@
+- generic [active] [ref=e1]:
+  - link "Skip to content" [ref=e2] [cursor=pointer]:
+    - /url: "#content"
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e9]:
+        - link "One page quick checkout for woocommerce" [ref=e15] [cursor=pointer]:
+          - /url: http://plugincy-on-page-checkout.local/
+        - navigation "Primary Site Navigation" [ref=e20]:
+          - list [ref=e22]:
+            - listitem [ref=e23]:
+              - link "Buy now button Block" [ref=e24] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/buy-now-button/
+            - listitem [ref=e25]:
+              - link "Buy now button Elementor" [ref=e26] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/buy-now-button-elementor/
+            - listitem [ref=e27]:
+              - link "Cart" [ref=e28] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/cart/
+            - listitem [ref=e29]:
+              - link "Checkout" [ref=e30] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/checkout/
+            - listitem [ref=e31]:
+              - link "Checkout with divi" [ref=e32] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/checkout-with-divi/
+            - listitem [ref=e33]:
+              - link "Checkout with elementor" [ref=e34] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/checkout-with-elementor/
+            - listitem [ref=e35]:
+              - link "classic cart" [ref=e36] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/classic-cart/
+            - listitem [ref=e37]:
+              - link "classic checkout" [ref=e38] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/classic-checkout/
+            - listitem [ref=e39]:
+              - link "My account" [ref=e40] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/my-account/
+            - listitem [ref=e41]:
+              - link "Product landing page" [ref=e42] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/product-landing-page/
+            - listitem [ref=e43]:
+              - link "Product with shortcode" [ref=e44] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/product-with-shortcode/
+            - listitem [ref=e45]:
+              - link "Sample Page" [ref=e46] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/sample-page/
+            - listitem [ref=e47]:
+              - link "Shop" [ref=e48] [cursor=pointer]:
+                - /url: http://plugincy-on-page-checkout.local/shop/
+    - main [ref=e52]:
+      - article [ref=e53]:
+        - heading "Cart" [level=1] [ref=e55]
+        - generic [ref=e60]:
+          - table "Products in cart" [ref=e62]:
+            - caption [ref=e63]:
+              - heading "Products in cart" [level=2] [ref=e64]
+            - rowgroup [ref=e65]:
+              - row "Product Total" [ref=e66]:
+                - columnheader "Product" [ref=e67]
+                - columnheader "Total" [ref=e68]
+            - rowgroup [ref=e69]:
+              - 'row "Bl100 Pro Wireless Gaming Headset For Pc 530.00৳ Brand: HP Processor: AMD Ryzen 7 2 Reduce quantity of Bl100 Pro Wireless Gaming Headset For Pc Increase quantity of Bl100 Pro Wireless Gaming Headset For Pc Remove Bl100 Pro Wireless Gaming Headset For Pc from cart Change options 1,060.00৳" [ref=e70]':
+                - cell [ref=e71]:
+                  - link [ref=e72] [cursor=pointer]:
+                    - /url: http://plugincy-on-page-checkout.local/product/bl100-pro-wireless-gaming-headset-for-pc/?attribute_pa_brand=hp&attribute_pa_processor=amd-ryzen-7
+                    - img [ref=e73]
+                - 'cell "Bl100 Pro Wireless Gaming Headset For Pc 530.00৳ Brand: HP Processor: AMD Ryzen 7 2 Reduce quantity of Bl100 Pro Wireless Gaming Headset For Pc Increase quantity of Bl100 Pro Wireless Gaming Headset For Pc Remove Bl100 Pro Wireless Gaming Headset For Pc from cart Change options" [ref=e74]':
+                  - generic [ref=e75]:
+                    - link "Bl100 Pro Wireless Gaming Headset For Pc" [ref=e76] [cursor=pointer]:
+                      - /url: http://plugincy-on-page-checkout.local/product/bl100-pro-wireless-gaming-headset-for-pc/?attribute_pa_brand=hp&attribute_pa_processor=amd-ryzen-7
+                    - generic [ref=e78]: 530.00৳
+                    - list [ref=e80]:
+                      - listitem [ref=e81]:
+                        - generic [ref=e82]: "Brand:"
+                        - generic [ref=e83]: HP
+                      - listitem [ref=e84]:
+                        - generic [ref=e85]: "Processor:"
+                        - generic [ref=e86]: AMD Ryzen 7
+                    - generic [ref=e87]:
+                      - generic [ref=e88]:
+                        - spinbutton "Quantity of Bl100 Pro Wireless Gaming Headset For Pc in your cart." [ref=e89]: "2"
+                        - button "Reduce quantity of Bl100 Pro Wireless Gaming Headset For Pc" [ref=e90] [cursor=pointer]: －
+                        - button "Increase quantity of Bl100 Pro Wireless Gaming Headset For Pc" [ref=e91] [cursor=pointer]: ＋
+                      - button "Remove Bl100 Pro Wireless Gaming Headset For Pc from cart" [ref=e92] [cursor=pointer]: Remove item
+                      - button "Change options" [ref=e94] [cursor=pointer]:
+                        - generic [ref=e96]: Change options
+                - cell "1,060.00৳" [ref=e97]:
+                  - generic [ref=e99]: 1,060.00৳
+          - generic [ref=e100]:
+            - generic [ref=e101]:
+              - heading "Cart totals" [level=2] [ref=e102]
+              - heading "Add coupons" [level=2] [ref=e104]:
+                - button "Add coupons" [ref=e105] [cursor=pointer]:
+                  - img [ref=e106]
+                  - text: Add coupons
+              - generic [ref=e109]:
+                - generic [ref=e110]: Estimated total
+                - generic [ref=e111]: 1,060.00৳
+            - link "Proceed to Checkout" [ref=e114] [cursor=pointer]:
+              - /url: http://plugincy-on-page-checkout.local/checkout/
+              - generic [ref=e115]: Proceed to Checkout
+    - contentinfo [ref=e116]:
+      - paragraph [ref=e123]:
+        - text: Copyright © 2026 One page quick checkout for woocommerce | Powered by
+        - link "Astra WordPress Theme" [ref=e124] [cursor=pointer]:
+          - /url: https://wpastra.com
+  - generic:
+    - button "2" [ref=e125] [cursor=pointer]:
+      - img [ref=e127]
+      - generic [ref=e131]: "2"
+    - generic [ref=e133]:
+      - generic [ref=e134]:
+        - heading "Your Cart" [level=2] [ref=e135]
+        - button [ref=e136] [cursor=pointer]
+      - generic [ref=e137]:
+        - generic [ref=e138]:
+          - checkbox "Select All" [ref=e139]
+          - generic [ref=e140]: Select All
+        - generic [ref=e142]: 0 selected
+      - generic [ref=e144]:
+        - checkbox [ref=e146]
+        - generic [ref=e147]:
+          - img "Bl100 Pro Wireless Gaming Headset For Pc - HP, AMD Ryzen 7" [ref=e148]
+          - button [ref=e149] [cursor=pointer]:
+            - img [ref=e150]
+        - generic [ref=e152]:
+          - generic [ref=e153]:
+            - paragraph [ref=e154]: Bl100 Pro Wireless Gaming Headset For Pc - HP, AMD Ryzen 7
+            - paragraph [ref=e155]:
+              - generic [ref=e156]: 530.00৳
+          - generic [ref=e157]:
+            - generic [ref=e158]:
+              - button "-" [ref=e159] [cursor=pointer]
+              - spinbutton [ref=e160]: "2"
+              - button "+" [ref=e161] [cursor=pointer]
+            - button "Change options" [ref=e163] [cursor=pointer]:
+              - img [ref=e164]
+              - generic [ref=e166]: Change options
+      - generic [ref=e168]:
+        - textbox "Enter coupon code" [ref=e169]
+        - button "Apply" [ref=e170] [cursor=pointer]
+      - generic [ref=e171]:
+        - generic [ref=e172]:
+          - generic [ref=e173]: Subtotal
+          - generic [ref=e175]: 1,060.00৳
+        - generic [ref=e176]:
+          - generic [ref=e177]: Total
+          - generic [ref=e179]: 1,060.00৳
+      - button "Checkout" [ref=e181] [cursor=pointer]
+  - status [ref=e184]
