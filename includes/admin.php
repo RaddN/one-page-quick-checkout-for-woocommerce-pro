@@ -1764,6 +1764,15 @@ function onepaqucpro_cart_dashboard()
                                 </label>
                             </td>
                         </tr>
+                        <tr valign="top" class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+                            <?php $onepaquc_helper->sec_head('th', '', '', 'Variation Switcher in Cart & Checkout', 'Enable this Pro feature to let customers switch variable-product options directly from the cart drawer, cart page, and checkout instead of adding a new variation and removing the old one manually.'); ?>
+                            <td>
+                                <label class="switch">
+                                    <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="checkbox" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_cart_checkout_variation_switch' : 'rmenupro_cart_checkout_variation_switch'; ?>" value="1" <?php checked(1, get_option("rmenupro_cart_checkout_variation_switch", 0), true); ?> />
+                                    <span class="slider round"></span>
+                                </label>
+                            </td>
+                        </tr>
                         <tr valign="top">
                             <?php $onepaquc_helper->sec_head('th', '', '', 'Add Image Before Product', 'Enable "Add Image Before Product" to display product images before their titles in the checkout form.'); ?>
                             <td>

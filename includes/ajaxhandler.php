@@ -56,6 +56,177 @@ function onepaqucpro_update_cart_item_quantity()
     }
 }
 
+add_action('wp_ajax_onepaqucpro_update_cart_item_variation', 'onepaqucpro_update_cart_item_variation');
+add_action('wp_ajax_nopriv_onepaqucpro_update_cart_item_variation', 'onepaqucpro_update_cart_item_variation');
+function onepaqucpro_update_cart_item_variation()
+{
+    check_ajax_referer('update_cart_item_variation', 'nonce');
+
+    if (!function_exists('onepaqucpro_cart_item_variation_switch_enabled') || !onepaqucpro_cart_item_variation_switch_enabled()) {
+        wp_send_json_error(array(
+            'message' => esc_html__('Variation switching is not enabled.', 'one-page-quick-checkout-for-woocommerce-pro'),
+        ));
+    }
+
+    $cart_item_key = isset($_POST['cart_item_key']) ? sanitize_text_field(wp_unslash($_POST['cart_item_key'])) : '';
+    $cart_items = WC()->cart ? WC()->cart->get_cart() : array();
+
+    if ($cart_item_key === '' || empty($cart_items[$cart_item_key])) {
+        wp_send_json_error(array(
+            'message' => esc_html__('The selected cart item could not be found.', 'one-page-quick-checkout-for-woocommerce-pro'),
+        ));
+    }
+
+    $cart_item = $cart_items[$cart_item_key];
+    $product_id = !empty($cart_item['product_id']) ? absint($cart_item['product_id']) : 0;
+    $variable_product = $product_id ? wc_get_product($product_id) : false;
+
+    if (!($variable_product instanceof WC_Product_Variable)) {
+        wp_send_json_error(array(
+            'message' => esc_html__('This cart item does not support variation switching.', 'one-page-quick-checkout-for-woocommerce-pro'),
+        ));
+    }
+
+    $raw_variations = isset($_POST['variations']) ? wp_unslash($_POST['variations']) : array();
+    $posted_variation_id = isset($_POST['variation_id']) ? absint(wp_unslash($_POST['variation_id'])) : 0;
+    $variation = array();
+
+    if (is_array($raw_variations)) {
+        foreach ($raw_variations as $attribute_key => $attribute_value) {
+            if (!is_scalar($attribute_key) || !is_scalar($attribute_value) || $attribute_value === '') {
+                continue;
+            }
+
+            $variation[onepaqucpro_normalize_attr_key((string) $attribute_key)] = onepaqucpro_normalize_attr_value((string) $attribute_value);
+        }
+    }
+
+    if (empty($variation)) {
+        wp_send_json_error(array(
+            'message' => esc_html__('Please choose a valid variation before updating.', 'one-page-quick-checkout-for-woocommerce-pro'),
+        ));
+    }
+
+    $data_store = WC_Data_Store::load('product');
+    $matched_variation_id = $posted_variation_id > 0
+        ? $posted_variation_id
+        : (int) $data_store->find_matching_product_variation($variable_product, $variation);
+
+    if ($matched_variation_id <= 0) {
+        $matched_variation_id = (int) $data_store->find_matching_product_variation($variable_product, $variation);
+    }
+
+    $variation_product = $matched_variation_id > 0 ? wc_get_product($matched_variation_id) : false;
+    if (!($variation_product instanceof WC_Product_Variation) || $variation_product->get_parent_id() !== $product_id) {
+        wp_send_json_error(array(
+            'message' => esc_html__('The selected variation is invalid.', 'one-page-quick-checkout-for-woocommerce-pro'),
+        ));
+    }
+
+    foreach ((array) $variation_product->get_variation_attributes() as $attribute_key => $attribute_value) {
+        if ($attribute_value === '' || $attribute_value === null) {
+            continue;
+        }
+
+        $normalized_key = onepaqucpro_normalize_attr_key($attribute_key);
+        if (empty($variation[$normalized_key])) {
+            $variation[$normalized_key] = onepaqucpro_normalize_attr_value($attribute_value);
+        }
+    }
+
+    $current_variation_id = !empty($cart_item['variation_id']) ? absint($cart_item['variation_id']) : 0;
+    $current_variation = function_exists('onepaqucpro_get_normalized_cart_item_variation_attributes')
+        ? onepaqucpro_get_normalized_cart_item_variation_attributes($cart_item)
+        : array();
+
+    ksort($variation);
+    ksort($current_variation);
+
+    if ($matched_variation_id === $current_variation_id && $variation === $current_variation) {
+        wp_send_json_success(array(
+            'cart_item_key' => $cart_item_key,
+            'message' => esc_html__('The selected variation is already in your cart.', 'one-page-quick-checkout-for-woocommerce-pro'),
+        ));
+    }
+
+    $quantity = !empty($cart_item['quantity']) ? max(1, absint($cart_item['quantity'])) : 1;
+    $cart_item_data = function_exists('onepaqucpro_get_cart_item_readd_data')
+        ? onepaqucpro_get_cart_item_readd_data($cart_item)
+        : array();
+
+    wc_clear_notices();
+    $passed_validation = apply_filters('woocommerce_add_to_cart_validation', true, $product_id, $quantity, $matched_variation_id, $variation, $cart_item_data);
+
+    if (!$passed_validation || !$variation_product->is_purchasable() || (!$variation_product->is_in_stock() && !$variation_product->backorders_allowed())) {
+        $error_notices = wc_get_notices('error');
+        $message = !empty($error_notices[0]['notice'])
+            ? wp_strip_all_tags($error_notices[0]['notice'])
+            : esc_html__('The selected variation cannot be added to the cart right now.', 'one-page-quick-checkout-for-woocommerce-pro');
+
+        wc_clear_notices();
+
+        wp_send_json_error(array(
+            'message' => $message,
+        ));
+    }
+    wc_clear_notices();
+
+    $original_cart_item_data = $cart_item_data;
+    $original_variation = !empty($cart_item['variation']) && is_array($cart_item['variation'])
+        ? $cart_item['variation']
+        : $current_variation;
+
+    if (!WC()->cart->remove_cart_item($cart_item_key)) {
+        wp_send_json_error(array(
+            'message' => esc_html__('The original cart item could not be updated.', 'one-page-quick-checkout-for-woocommerce-pro'),
+        ));
+    }
+
+    $new_cart_item_key = WC()->cart->add_to_cart($product_id, $quantity, $matched_variation_id, $variation, $cart_item_data);
+
+    if (!$new_cart_item_key) {
+        WC()->cart->add_to_cart($product_id, $quantity, $current_variation_id, $original_variation, $original_cart_item_data);
+
+        wp_send_json_error(array(
+            'message' => esc_html__('Could not update the selected variation. Please try again.', 'one-page-quick-checkout-for-woocommerce-pro'),
+        ));
+    }
+
+    WC()->cart->calculate_totals();
+
+    wp_send_json_success(array(
+        'cart_item_key' => $new_cart_item_key,
+        'message' => esc_html__('Variation updated successfully.', 'one-page-quick-checkout-for-woocommerce-pro'),
+    ));
+}
+
+add_action('wp_ajax_onepaqucpro_get_cart_item_variation_editor', 'onepaqucpro_get_cart_item_variation_editor');
+add_action('wp_ajax_nopriv_onepaqucpro_get_cart_item_variation_editor', 'onepaqucpro_get_cart_item_variation_editor');
+function onepaqucpro_get_cart_item_variation_editor()
+{
+    check_ajax_referer('get_cart_item_variation_editor', 'nonce');
+
+    if (!function_exists('onepaqucpro_cart_item_variation_switch_enabled') || !onepaqucpro_cart_item_variation_switch_enabled()) {
+        wp_send_json_success(array('html' => ''));
+    }
+
+    $cart_item_key = isset($_POST['cart_item_key']) ? sanitize_text_field(wp_unslash($_POST['cart_item_key'])) : '';
+    $context = isset($_POST['context']) ? sanitize_html_class(wp_unslash($_POST['context'])) : 'blocks-cart';
+    $cart_items = WC()->cart ? WC()->cart->get_cart() : array();
+
+    if ($cart_item_key === '' || empty($cart_items[$cart_item_key])) {
+        wp_send_json_success(array('html' => ''));
+    }
+
+    $html = function_exists('onepaqucpro_get_cart_item_variation_editor_html')
+        ? onepaqucpro_get_cart_item_variation_editor_html($cart_items[$cart_item_key], $cart_item_key, $context)
+        : '';
+
+    wp_send_json_success(array(
+        'html' => $html,
+    ));
+}
+
 
 // remove cart item
 add_action('wp_ajax_onepaqucpro_remove_cart_item', 'onepaqucpro_handle_remove_cart_item');
@@ -239,42 +410,9 @@ function onepaqucpro_ajax_add_to_cart()
         $cart_items = WC()->cart->get_cart();
 
         foreach ($cart_items as $cart_item_key => $cart_item) {
-            $_product = $cart_item['data'];
-            $thumbnail = $_product->get_image();
-            $product_price = wc_price($_product->get_price());
-            $product_quantity = $cart_item['quantity'];
-            $product_total = wc_price($_product->get_price() * $product_quantity);
-
-            $cart_items_html .= '<div class="cart-item" data-cart-item-key="' . esc_attr($cart_item_key) . '">
-                <div class="item-select">
-                    <input type="checkbox" class="item-checkbox" data-cart-item-key="' . esc_attr($cart_item_key) . '">
-                </div>
-                <div class="thumbnail">
-                    ' . wp_kses($thumbnail, array(
-                "img" => array(
-                    "src" => array(),
-                    "alt" => array(),
-                    "class" => array(),
-                ),
-            )) . '
-                    <button class="remove-item" data-cart-item-key="' . esc_attr($cart_item_key) . '"><svg style="width: 16px; fill: #ff0000;" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M6 18L18 6M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                                        </svg>
-                    </button>
-                </div>
-                <div class="item-details">
-                    <div style="display:flex;gap:1rem;">
-                        <p class="item-title">' . esc_html($_product->get_name()) . '</p>
-                        <p class="item-price">' . wp_kses_post($product_price) . '</p>
-                    </div>
-                    <div class="quantity-controls">
-                        <button class="quantity-btn minus" data-action="minus" data-cart-item-key="' . esc_attr($cart_item_key) . '">-</button>
-                        <input type="number" class="item-quantity" value="' . esc_attr($product_quantity) . '" min="1" data-cart-item-key="' . esc_attr($cart_item_key) . '">
-                        <button class="quantity-btn plus" data-action="plus" data-cart-item-key="' . esc_attr($cart_item_key) . '">+</button>
-                    </div>
-
-                </div>
-            </div>';
+            ob_start();
+            onepaqucpro_render_cart_drawer_item($cart_item_key, $cart_item, 'p');
+            $cart_items_html .= ob_get_clean();
         }
 
         // Get redirect option
