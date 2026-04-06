@@ -6,6 +6,12 @@ $onepaqucpro_checkoutformfields = [
     "txt_subtotal" => "Subtotal",
     "txt_checkout" => "Checkout",
     "txt-complete_your_purchase" => "Complete your purchase using the form below.",
+    "txt_Select_All"              => __( "Select All", 'one-page-quick-checkout-for-woocommerce-pro' ),
+    "txt_Selected"                => __( "selected", 'one-page-quick-checkout-for-woocommerce-pro' ),
+    "txt_you_may_like"            => __( "You may also like", 'one-page-quick-checkout-for-woocommerce' ),
+    "txt_total"                   => __( "Total", 'one-page-quick-checkout-for-woocommerce' ),
+    "txt_discount"                => __( "Discount", 'one-page-quick-checkout-for-woocommerce' ),
+    "btn_place_order"             => __( "Place Order Button", 'one-page-quick-checkout-for-woocommerce' ),
 ];
 
 // archive & single product page text
