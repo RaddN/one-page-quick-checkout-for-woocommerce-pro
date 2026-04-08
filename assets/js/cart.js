@@ -585,6 +585,63 @@ jQuery(document).ready(function ($) {
         });
     }
 
+    function getVariationEditorBoundaryRect($editor) {
+        var selectors = [];
+        var $boundary = $();
+
+        if ($editor.hasClass('onepaqucpro-cart-variation-editor--drawer')) {
+            selectors = ['.cart-drawer', '.cart-items'];
+        } else if ($editor.hasClass('onepaqucpro-cart-variation-editor--checkout-inline')) {
+            selectors = ['#checkout-form', '.checkout-popup', '.one-page-checkout-container'];
+        } else if (
+            $editor.hasClass('onepaqucpro-cart-variation-editor--blocks-cart') ||
+            $editor.hasClass('onepaqucpro-cart-variation-editor--blocks-checkout')
+        ) {
+            selectors = ['.wc-block-components-sidebar-layout', '.wc-block-checkout', '.wc-block-cart'];
+        }
+
+        selectors = selectors.concat([
+            '#checkout-form',
+            '.checkout-popup',
+            '.cart-drawer',
+            '.wc-block-components-sidebar-layout',
+            '.wc-block-checkout',
+            '.wc-block-cart',
+            '.one-page-checkout-container',
+            '.cart-items'
+        ]);
+
+        $.each(selectors, function (_, selector) {
+            if ($boundary.length) {
+                return false;
+            }
+
+            var $match = $editor.closest(selector).first();
+            if ($match.length) {
+                $boundary = $match;
+            }
+
+            return true;
+        });
+
+        if ($boundary.length) {
+            var boundaryRect = $boundary[0].getBoundingClientRect();
+            return {
+                top: boundaryRect.top,
+                right: boundaryRect.right,
+                bottom: boundaryRect.bottom,
+                left: boundaryRect.left
+            };
+        }
+
+        return {
+            top: 0,
+            right: window.innerWidth,
+            bottom: window.innerHeight,
+            left: 0
+        };
+    }
+
     /**
      * When an ancestor has transform/filter/perspective, position:fixed is laid out
      * relative to that ancestor — not the viewport. Viewport coords must be converted.
@@ -620,26 +677,54 @@ jQuery(document).ready(function ($) {
         clearVariationEditorPanelPosition($editor);
 
         var margin = 8;
-        var vw = window.innerWidth;
-        var vh = window.innerHeight;
+        var viewportRect = {
+            top: 0,
+            right: window.innerWidth,
+            bottom: window.innerHeight,
+            left: 0
+        };
+        var boundaryRect = getVariationEditorBoundaryRect($editor);
+        var bounds = {
+            top: Math.max(viewportRect.top, boundaryRect.top),
+            right: Math.min(viewportRect.right, boundaryRect.right),
+            bottom: Math.min(viewportRect.bottom, boundaryRect.bottom),
+            left: Math.max(viewportRect.left, boundaryRect.left)
+        };
+        var boundsWidth = Math.max(180, bounds.right - bounds.left - margin * 2);
+        var boundsHeight = Math.max(140, bounds.bottom - bounds.top - margin * 2);
         var pw = Math.max($panel.outerWidth(), 260);
         var ph = $panel.outerHeight();
         var rect = $toggle[0].getBoundingClientRect();
         var blockRect = getFixedContainingBlockRect(panelEl);
 
-        var spaceBelow = vh - rect.bottom - margin;
-        var spaceAbove = rect.top - margin;
-        var placeAbove = ph + margin > spaceBelow && spaceAbove > spaceBelow;
+        pw = Math.min(pw, boundsWidth);
 
-        var topV = placeAbove ? rect.top - ph - margin : rect.bottom + margin;
+        var spaceBelow = Math.max(0, bounds.bottom - rect.bottom - margin);
+        var spaceAbove = Math.max(0, rect.top - bounds.top - margin);
+        var preferredHeight = Math.min(ph, 320);
+        var placeAbove = false;
+
+        if (spaceBelow < preferredHeight && spaceAbove > spaceBelow) {
+            placeAbove = true;
+        }
+
+        var availableHeight = placeAbove ? spaceAbove : spaceBelow;
+        var alternateHeight = placeAbove ? spaceBelow : spaceAbove;
+
+        if (availableHeight < 96 && alternateHeight > availableHeight) {
+            placeAbove = !placeAbove;
+            availableHeight = alternateHeight;
+        }
+
+        var maxH = Math.min(380, Math.max(96, availableHeight));
+        maxH = Math.min(maxH, boundsHeight);
+
+        var panelHeightForPlacement = Math.min(ph, maxH);
+        var topV = placeAbove ? rect.top - panelHeightForPlacement - margin : rect.bottom + margin;
         var leftV = rect.right - pw;
 
-        leftV = Math.max(margin, Math.min(leftV, vw - pw - margin));
-        topV = Math.max(margin, Math.min(topV, vh - ph - margin));
-
-        var maxH = placeAbove
-            ? Math.min(380, Math.max(120, rect.top - margin * 2))
-            : Math.min(380, Math.max(120, vh - rect.bottom - margin * 2));
+        leftV = Math.max(bounds.left + margin, Math.min(leftV, bounds.right - pw - margin));
+        topV = Math.max(bounds.top + margin, Math.min(topV, bounds.bottom - panelHeightForPlacement - margin));
 
         var leftPx;
         var topPx;
@@ -684,6 +769,13 @@ jQuery(document).ready(function ($) {
     }
 
     function openVariationEditor($editor) {
+        $('.onepaqucpro-cart-variation-editor.is-open').each(function () {
+            var $otherEditor = $(this);
+            if ($otherEditor[0] !== $editor[0]) {
+                closeVariationEditor($otherEditor);
+            }
+        });
+
         $editor.addClass('is-open');
         $editor.find('.onepaqucpro-cart-variation-editor__toggle').attr('aria-expanded', 'true');
         $editor.find('.onepaqucpro-cart-variation-editor__panel').prop('hidden', false);
