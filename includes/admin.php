@@ -20,6 +20,24 @@ function onepaqucpro_cart_menu()
     );
     add_submenu_page(
         'onepaqucpro_cart',
+        'Cart Recovery',
+        'Cart Recovery',
+        'manage_options',
+        'onepaqucpro_cart_recovery',
+        'onepaqucpro_cart_recovery_page'
+    );
+
+    // Hidden editor page (opened from "Add New Email" / "Edit" links).
+    add_submenu_page(
+        'onepaqucpro_cart',
+        __('Edit Recovery Email', 'one-page-quick-checkout-for-woocommerce-pro'),
+        '',
+        'manage_options',
+        'onepaqucpro_cart_recovery_template',
+        'onepaqucpro_cart_recovery_template_page'
+    );
+    add_submenu_page(
+        'onepaqucpro_cart',
         'Documentation',
         'Documentation',
         'manage_options',
@@ -66,7 +84,7 @@ function onepaqucpro_cart_dashboard()
     ?>
 
     <div class="welcome-banner">
-        <div class="welcome-title">Welcome to One Page Quick Checkout for WooCommerce Pro <span class="version-tag">v1.1.7.1</span></div>
+        <div class="welcome-title">Welcome to One Page Quick Checkout for WooCommerce Pro <span class="version-tag">v1.1.7.4</span></div>
         <p style="max-width: 70%; margin:0 auto;">Thank you for installing One Page Quick Checkout for WooCommerce! Streamline your WooCommerce checkout process and boost your conversion rates with our easy-to-configure solution.</p>
         <div class="feature-grid">
             <div class="feature-item">

@@ -61,7 +61,14 @@ require_once plugin_dir_path(__FILE__) . 'includes/add-to-cart-button.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class_helper.php';
 require_once plugin_dir_path(__FILE__) . 'includes/cart-recovery-tracker.php';
 require_once plugin_dir_path(__FILE__) . 'includes/cart-recovery.php';
+require_once plugin_dir_path(__FILE__) . 'includes/cart-recovery-tracker.php';
+require_once plugin_dir_path(__FILE__) . 'includes/cart-recovery.php';
 require_once plugin_dir_path(__FILE__) . 'includes/blocks/checkout-form-block.php';
+
+if (class_exists('Onepaqucpro_Cart_Recovery_Tracker')) {
+    register_activation_hook(__FILE__, array('Onepaqucpro_Cart_Recovery_Tracker', 'install'));
+    register_deactivation_hook(__FILE__, array('Onepaqucpro_Cart_Recovery_Tracker', 'deactivate'));
+}
 
 if (class_exists('Onepaqucpro_Cart_Recovery_Tracker')) {
     register_activation_hook(__FILE__, array('Onepaqucpro_Cart_Recovery_Tracker', 'install'));
@@ -93,6 +100,7 @@ $onepaqucpro_string_settings_fields = [
     "rmenupro_link_product",
     "rmenupro_allow_analytics",
     "rmenupro_remove_product",
+    "rmenupro_cart_checkout_variation_switch",
     "rmenupro_cart_checkout_variation_switch",
     "rmenupro_add_img_before_product",
     "rmenupro_add_direct_checkout_button",
@@ -248,6 +256,47 @@ function onepaqucpro_get_floating_cart_i18n()
     );
 }
 
+/**
+ * Suffix word for selected-item count ("N …"), matching option txt_Selected when set.
+ */
+function onepaqucpro_get_txt_selected_suffix()
+{
+    $saved = get_option('txt_Selected');
+    if ($saved !== false && $saved !== '') {
+        return $saved;
+    }
+
+    return __('selected', 'one-page-quick-checkout-for-woocommerce-pro');
+}
+
+/**
+ * Strings for floating/side cart UI (JS + translators).
+ */
+function onepaqucpro_get_floating_cart_i18n()
+{
+    $domain = 'one-page-quick-checkout-for-woocommerce-pro';
+
+    return array(
+        'applying'                 => esc_html__('Applying…', $domain),
+        'applying_coupon'          => esc_html__('Applying coupon…', $domain),
+        'apply_coupon'             => esc_html__('Apply coupon', $domain),
+        'apply'                    => esc_html__('Apply', $domain),
+        'coupon_applied'         => esc_html__('Coupon applied successfully!', $domain),
+        'invalid_coupon'          => esc_html__('Invalid coupon code.', $domain),
+        'error_try_again'         => esc_html__('Something went wrong. Please try again.', $domain),
+        'removing'                => esc_html__('Removing…', $domain),
+        'removing_coupon'         => esc_html__('Removing coupon…', $domain),
+        'remove'                  => esc_html__('Remove', $domain),
+        'coupon_removed'          => esc_html__('Coupon removed successfully!', $domain),
+        'failed_remove_coupon'    => esc_html__('Failed to remove coupon. Please try again.', $domain),
+        'applied_coupons_heading' => esc_html__('Applied Coupons:', $domain),
+        'discount'                => esc_html__('Discount', $domain),
+        'preloader_msg'           => esc_html__('Bringing you the goods…', $domain),
+        'preloader_slow'          => esc_html__('This is taking long. Something\'s wrong.', $domain),
+        'iframe_error'            => esc_html__('Error loading checkout. Please try again.', $domain),
+    );
+}
+
 // Enqueue scripts and styles
 function onepaqucpro_cart_enqueue_scripts()
 {
@@ -303,15 +352,21 @@ function onepaqucpro_cart_enqueue_scripts()
         'remove_cart_item' => esc_js(wp_create_nonce('remove_cart_item')),
         'update_cart_item_variation' => esc_js(wp_create_nonce('update_cart_item_variation')),
         'get_cart_item_variation_editor' => esc_js(wp_create_nonce('get_cart_item_variation_editor')),
+        'update_cart_item_variation' => esc_js(wp_create_nonce('update_cart_item_variation')),
+        'get_cart_item_variation_editor' => esc_js(wp_create_nonce('get_cart_item_variation_editor')),
         'onepaqucpro_refresh_checkout_product_list' => esc_js(wp_create_nonce('onepaqucpro_refresh_checkout_product_list')),
         'get_variations_nonce' => esc_js(wp_create_nonce('get_variations_nonce')), // Add this line
         'blocks_quantity_control' => get_option("rmenupro_quantity_control", "1"),
         'blocks_remove_product' => get_option("rmenupro_remove_product", "1"),
         'blocks_link_product' => get_option("rmenupro_link_product", "0"),
         'variation_switch_enabled' => function_exists('onepaqucpro_cart_item_variation_switch_enabled') && onepaqucpro_cart_item_variation_switch_enabled(),
+        'variation_switch_enabled' => function_exists('onepaqucpro_cart_item_variation_switch_enabled') && onepaqucpro_cart_item_variation_switch_enabled(),
         'i18n_remove_item' => esc_html__('Remove this item', 'one-page-quick-checkout-for-woocommerce-pro'),
         'i18n_decrease_quantity' => esc_html__('Decrease quantity', 'one-page-quick-checkout-for-woocommerce-pro'),
         'i18n_increase_quantity' => esc_html__('Increase quantity', 'one-page-quick-checkout-for-woocommerce-pro'),
+        'i18n_select_variation_error' => esc_html__('Please choose a valid variation before updating.', 'one-page-quick-checkout-for-woocommerce-pro'),
+        'i18n_update_variation_error' => esc_html__('Could not update the selected variation. Please try again.', 'one-page-quick-checkout-for-woocommerce-pro'),
+        'txt_selected'               => onepaqucpro_get_txt_selected_suffix(),
         'i18n_select_variation_error' => esc_html__('Please choose a valid variation before updating.', 'one-page-quick-checkout-for-woocommerce-pro'),
         'i18n_update_variation_error' => esc_html__('Could not update the selected variation. Please try again.', 'one-page-quick-checkout-for-woocommerce-pro'),
         'txt_selected'               => onepaqucpro_get_txt_selected_suffix(),
@@ -355,6 +410,8 @@ function onepaqucpro_cart_enqueue_scripts()
         'popup_iframe_fallback_enabled' => $popup_iframe_fallback_enabled,
         'ajax_url' => esc_url(admin_url('admin-ajax.php')),
         'floating_cart' => onepaqucpro_get_floating_cart_i18n(),
+        'ajax_url' => esc_url(admin_url('admin-ajax.php')),
+        'floating_cart' => onepaqucpro_get_floating_cart_i18n(),
     ));
 }
 add_action('wp_enqueue_scripts', 'onepaqucpro_cart_enqueue_scripts', 20);
@@ -371,7 +428,30 @@ function onepaqucpro_cart_admin_styles($hook)
         wp_enqueue_style('onepaqucpro_cart_admin_css', plugin_dir_url(__FILE__) . 'assets/css/admin-style.css', array(), "1.1.7");
         wp_enqueue_style('select2-css', plugin_dir_url(__FILE__) . 'assets/css/select2.min.css', array(), "1.1.7");
         wp_enqueue_script('select2-js', plugin_dir_url(__FILE__) . 'assets/js/select2.min.js', array('jquery'), "1.1.7", true);
+    $current_page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
+
+    if ($hook === 'toplevel_page_onepaqucpro_cart' || $current_page === 'onepaqucpro_cart_recovery') {
+        wp_enqueue_style('onepaqucpro_cart_admin_css', plugin_dir_url(__FILE__) . 'assets/css/admin-style.css', array(), "1.1.7");
+        wp_enqueue_style('select2-css', plugin_dir_url(__FILE__) . 'assets/css/select2.min.css', array(), "1.1.7");
+        wp_enqueue_script('select2-js', plugin_dir_url(__FILE__) . 'assets/js/select2.min.js', array('jquery'), "1.1.7", true);
     }
+    if ($current_page === 'onepaqucpro_cart_recovery' || $current_page === 'onepaqucpro_cart_recovery_template') {
+        wp_enqueue_style(
+            'onepaqucpro_cart_recovery_admin_css',
+            plugin_dir_url(__FILE__) . 'assets/css/cart-recovery-admin.css',
+            array('onepaqucpro_cart_admin_css'),
+            filemtime(plugin_dir_path(__FILE__) . 'assets/css/cart-recovery-admin.css')
+        );
+        wp_enqueue_script(
+            'onepaqucpro_cart_recovery_admin_js',
+            plugin_dir_url(__FILE__) . 'assets/js/cart-recovery-admin.js',
+            array(),
+            filemtime(plugin_dir_path(__FILE__) . 'assets/js/cart-recovery-admin.js'),
+            true
+        );
+    }
+    wp_enqueue_style('onepaqucpro_cart_admin_css', plugin_dir_url(__FILE__) . 'assets/css/admin-documentation.css', array(), "1.1.7");
+    wp_enqueue_script('rmenupro-admin-script', plugin_dir_url(__FILE__) . 'assets/js/admin-documentation.js', array('jquery'), "1.1.7", true);
     if ($current_page === 'onepaqucpro_cart_recovery' || $current_page === 'onepaqucpro_cart_recovery_template') {
         wp_enqueue_style(
             'onepaqucpro_cart_recovery_admin_css',
@@ -440,7 +520,10 @@ function onepaqucpro_is_popup_iframe_fallback_enabled()
 }
 
 function onepaqucpro_request_has_checkout_context_marker($marker_name)
+function onepaqucpro_request_has_checkout_context_marker($marker_name)
 {
+    if (isset($_POST[$marker_name])) {
+        $value = strtolower(trim((string) wp_unslash($_POST[$marker_name])));
     if (isset($_POST[$marker_name])) {
         $value = strtolower(trim((string) wp_unslash($_POST[$marker_name])));
         return in_array($value, array('1', 'true', 'yes', 'on'), true);
@@ -458,6 +541,31 @@ function onepaqucpro_request_has_checkout_context_marker($marker_name)
 
     return false;
 }
+
+function onepaqucpro_request_has_popup_checkout_context()
+{
+    return onepaqucpro_request_has_checkout_context_marker('onepaqucpro_popup_checkout_context');
+}
+
+function onepaqucpro_request_has_inline_checkout_context()
+{
+    return onepaqucpro_request_has_checkout_context_marker('onepaqucpro_inline_checkout_context');
+}
+
+function onepaqucpro_is_rendering_inline_checkout()
+{
+    return !empty($GLOBALS['onepaqucpro_inline_checkout_context_active']);
+}
+
+function onepaqucpro_render_inline_checkout_context_marker()
+{
+    if (!onepaqucpro_is_rendering_inline_checkout() && !onepaqucpro_request_has_inline_checkout_context()) {
+        return;
+    }
+
+    echo '<input type="hidden" name="onepaqucpro_inline_checkout_context" value="1" />';
+}
+add_action('woocommerce_review_order_after_submit', 'onepaqucpro_render_inline_checkout_context_marker', 6);
 
 function onepaqucpro_request_has_popup_checkout_context()
 {
@@ -791,9 +899,14 @@ function onepaqucpro_checkout_already_rendered(): bool
 function onepaqucpro_display_one_page_checkout_form(): bool
 {
     if (onepaqucpro_checkout_already_rendered() || !function_exists('WC') || !WC()->cart) {
+    if (onepaqucpro_checkout_already_rendered() || !function_exists('WC') || !WC()->cart) {
         return false;
     }
 
+    $context_key = 'onepaqucpro_inline_checkout_context_active';
+    $had_context = array_key_exists($context_key, $GLOBALS);
+    $previous_context = $had_context ? $GLOBALS[$context_key] : null;
+    $GLOBALS[$context_key] = true;
     $context_key = 'onepaqucpro_inline_checkout_context_active';
     $had_context = array_key_exists($context_key, $GLOBALS);
     $previous_context = $had_context ? $GLOBALS[$context_key] : null;
@@ -806,6 +919,12 @@ function onepaqucpro_display_one_page_checkout_form(): bool
         <?php echo do_shortcode('[woocommerce_checkout]'); ?>
     </div>
     <?php
+
+    if ($had_context) {
+        $GLOBALS[$context_key] = $previous_context;
+    } else {
+        unset($GLOBALS[$context_key]);
+    }
 
     if ($had_context) {
         $GLOBALS[$context_key] = $previous_context;
@@ -2103,6 +2222,7 @@ function onepaqucpro_validate_cart_item($passed, $product_id, $quantity)
 function onepaqucpro_allow_popup_checkout_update_order_review_expired($should_expire)
 {
     if (onepaqucpro_request_has_popup_checkout_context() || onepaqucpro_request_has_inline_checkout_context()) {
+    if (onepaqucpro_request_has_popup_checkout_context() || onepaqucpro_request_has_inline_checkout_context()) {
         return false;
     }
 
@@ -2117,6 +2237,10 @@ function onepaqucpro_maybe_redirect_empty_checkout_cart($should_redirect)
     }
 
     if (function_exists('onepaqucpro_is_rendering_popup_checkout') && onepaqucpro_is_rendering_popup_checkout()) {
+        return false;
+    }
+
+    if (onepaqucpro_is_rendering_inline_checkout() || onepaqucpro_request_has_inline_checkout_context()) {
         return false;
     }
 

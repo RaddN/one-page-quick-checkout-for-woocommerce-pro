@@ -629,7 +629,7 @@ class onepaqucpro_License_Manager
                         <?php if ($is_valid && !$is_expired): ?>
                             <?php $version_info = $this->get_version_info($license_key); ?>
                             <?php if ($version_info && isset($version_info->new_version)):
-                                $current_version = defined('RMENUPRO_VERSION') ? RMENUPRO_VERSION : '1.1.9.20'; ?>
+                                $current_version = defined('RMENUPRO_VERSION') ? RMENUPRO_VERSION : '1.1.7.1'; ?>
                                 <div style="margin-top: 15px;padding: 15px;background: #fbfbfb;border-radius: 6px;">
                                     <strong style="display: flex; align-items: center; gap: 8px;">
                                         <div style="background: #dce6ff;padding: 5px;border-radius: 5px;">
