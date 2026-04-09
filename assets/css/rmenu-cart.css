@@ -185,7 +185,6 @@ button.rwc_cart-button span.cart-icon img {
   display: flex;
   align-items: flex-start;
   gap: 1rem;
-  flex-wrap: wrap;
 }
 
 .cart-drawer .cart-item__actions {
