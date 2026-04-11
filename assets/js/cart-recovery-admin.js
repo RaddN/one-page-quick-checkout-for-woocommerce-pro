@@ -435,6 +435,12 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   document.addEventListener("click", function (event) {
+    const confirmTarget = event.target.closest("[data-cr-confirm]");
+    if (confirmTarget && !window.confirm(confirmTarget.getAttribute("data-cr-confirm"))) {
+      event.preventDefault();
+      return;
+    }
+
     const openButton = event.target.closest(".onepaqucpro-cr-open-modal");
     if (openButton) {
       event.preventDefault();
@@ -481,6 +487,15 @@ document.addEventListener("DOMContentLoaded", function () {
   document.addEventListener("change", function (event) {
     if (event.target.matches("[data-cr-check-all]")) {
       toggleCheckAll(event.target);
+      return;
+    }
+
+    if (event.target.matches("[data-cr-template-autosave]")) {
+      const form = event.target.closest("form");
+      if (form) {
+        form.classList.add("is-autosaving");
+        form.submit();
+      }
     }
   });
 
