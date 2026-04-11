@@ -306,6 +306,50 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  function activateTab(tabButton, shouldFocus) {
+    const tabsRoot = tabButton ? tabButton.closest("[data-cr-tabs]") : null;
+    if (!tabsRoot) {
+      return;
+    }
+
+    const targetPanel = tabButton.getAttribute("data-cr-tab-button");
+    const tabButtons = tabsRoot.querySelectorAll("[data-cr-tab-button]");
+    const tabPanels = tabsRoot.querySelectorAll("[data-cr-tab-panel]");
+
+    tabButtons.forEach(function (button) {
+      const isActive = button === tabButton;
+      button.classList.toggle("is-active", isActive);
+      button.setAttribute("aria-selected", isActive ? "true" : "false");
+      button.setAttribute("tabindex", isActive ? "0" : "-1");
+    });
+
+    tabPanels.forEach(function (panel) {
+      const isActive = panel.getAttribute("data-cr-tab-panel") === targetPanel;
+      panel.classList.toggle("is-active", isActive);
+      panel.hidden = !isActive;
+    });
+
+    if (shouldFocus) {
+      tabButton.focus();
+    }
+  }
+
+  function initializeModalTabs(scope) {
+    if (!scope) {
+      return;
+    }
+
+    scope.querySelectorAll("[data-cr-tabs]").forEach(function (tabsRoot) {
+      const activeTab =
+        tabsRoot.querySelector('[data-cr-tab-button][aria-selected="true"]') ||
+        tabsRoot.querySelector("[data-cr-tab-button]");
+
+      if (activeTab) {
+        activateTab(activeTab, false);
+      }
+    });
+  }
+
   function openModal(templateId) {
     if (!modal || !modalContent) {
       return;
@@ -317,7 +361,21 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     modalContent.innerHTML = template.innerHTML;
+    modalContent
+      .querySelectorAll(".onepaqucpro-cr-detail__identity > div")
+      .forEach(function (content) {
+        content
+          .querySelectorAll("p:not(.onepaqucpro-cr-detail__eyebrow):not(.onepaqucpro-cr-detail__subtitle)")
+          .forEach(function (duplicateLine) {
+            duplicateLine.remove();
+          });
+      });
+    initializeModalTabs(modalContent);
     modal.hidden = false;
+    const dialog = modal.querySelector(".onepaqucpro-cr-modal__dialog");
+    if (dialog) {
+      dialog.scrollTop = 0;
+    }
     body.classList.add("onepaqucpro-cr-modal-open");
   }
 
@@ -378,6 +436,13 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
+    const tabButton = event.target.closest("[data-cr-tab-button]");
+    if (tabButton) {
+      event.preventDefault();
+      activateTab(tabButton, true);
+      return;
+    }
+
     const removeButton = event.target.closest("[data-cr-template-remove]");
     if (removeButton) {
       event.preventDefault();
@@ -395,6 +460,31 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   document.addEventListener("keydown", function (event) {
+    if (event.target && event.target.matches("[data-cr-tab-button]")) {
+      const tabsRoot = event.target.closest("[data-cr-tabs]");
+      const tabButtons = tabsRoot ? Array.from(tabsRoot.querySelectorAll("[data-cr-tab-button]")) : [];
+      const currentIndex = tabButtons.indexOf(event.target);
+
+      if (tabButtons.length && ["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) {
+        event.preventDefault();
+
+        if (event.key === "Home") {
+          activateTab(tabButtons[0], true);
+          return;
+        }
+
+        if (event.key === "End") {
+          activateTab(tabButtons[tabButtons.length - 1], true);
+          return;
+        }
+
+        const direction = event.key === "ArrowLeft" ? -1 : 1;
+        const nextIndex = (currentIndex + direction + tabButtons.length) % tabButtons.length;
+        activateTab(tabButtons[nextIndex], true);
+        return;
+      }
+    }
+
     if (event.key === "Escape") {
       closeModal();
     }
