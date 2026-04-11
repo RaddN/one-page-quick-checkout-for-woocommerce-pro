@@ -460,6 +460,364 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  function cleanResponsiveText(value) {
+    return String(value || "").replace(/\s+/g, " ").trim();
+  }
+
+  function getResponsiveCellText(cell) {
+    const clone = cell.cloneNode(true);
+
+    clone
+      .querySelectorAll(
+        "script, style, input[type='hidden'], .screen-reader-text, .onepaqucpro-cr-row-toggle, .toggle-row"
+      )
+      .forEach(function (node) {
+        node.remove();
+      });
+
+    clone.querySelectorAll("input, select, textarea, button, a").forEach(function (control) {
+      let replacement = "";
+
+      if (control.matches("input[type='checkbox']")) {
+        replacement = control.checked ? "Enabled" : "Disabled";
+      } else if (control.matches("input, select, textarea")) {
+        replacement = control.value || control.getAttribute("value") || "";
+      } else {
+        replacement =
+          control.getAttribute("title") ||
+          control.getAttribute("aria-label") ||
+          control.textContent ||
+          "";
+      }
+
+      control.replaceWith(document.createTextNode(" " + replacement + " "));
+    });
+
+    return cleanResponsiveText(clone.textContent);
+  }
+
+  function getResponsiveHeaderLabels(table) {
+    const headerRow = table.querySelector("thead tr:last-child");
+
+    if (!headerRow) {
+      return [];
+    }
+
+    return Array.from(headerRow.children)
+      .filter(function (cell) {
+        return cell.matches("th, td");
+      })
+      .map(function (cell) {
+        return cleanResponsiveText(cell.getAttribute("data-cr-label") || cell.textContent);
+      });
+  }
+
+  function getResponsiveTableType(table) {
+    const form = table.closest("form");
+
+    if (table.classList.contains("onepaqucpro-cr-table--carts")) {
+      return "carts";
+    }
+
+    if (table.classList.contains("onepaqucpro-cr-template-table--list")) {
+      return "templates";
+    }
+
+    if (
+      form &&
+      form.querySelector(
+        'input[name="action"][value="onepaqucpro_cart_recovery_export_activity"]'
+      )
+    ) {
+      return "activity";
+    }
+
+    return "generic";
+  }
+
+  function getResponsivePrimaryIndex(cells) {
+    let index = cells.findIndex(function (cell) {
+      return (
+        cell.classList.contains("column-primary") ||
+        cell.classList.contains("onepaqucpro-cr-email-cell")
+      );
+    });
+
+    if (index !== -1) {
+      return index;
+    }
+
+    index = cells.findIndex(function (cell) {
+      return !cell.classList.contains("check-column");
+    });
+
+    return index === -1 ? 0 : index;
+  }
+
+  function isResponsivePinnedCell(cell, index, primaryIndex) {
+    if (index === primaryIndex || cell.classList.contains("check-column")) {
+      return true;
+    }
+
+    return (
+      cell.classList.contains("column-status") ||
+      cell.classList.contains("onepaqucpro-cr-template-actions") ||
+      Boolean(cell.querySelector(".switch"))
+    );
+  }
+
+  function getResponsiveHideClass(tableType, rank, candidateCount) {
+    const laptop = "onepaqucpro-cr-hide-laptop";
+    const tablet = "onepaqucpro-cr-hide-tablet";
+    const mobile = "onepaqucpro-cr-hide-mobile";
+
+    if (tableType === "carts") {
+      if (rank <= 2) {
+        return mobile;
+      }
+
+      if (rank === 3) {
+        return tablet;
+      }
+
+      return laptop;
+    }
+
+    if (tableType === "activity") {
+      return [mobile, tablet, laptop, mobile, tablet][rank - 1] || laptop;
+    }
+
+    if (tableType === "templates") {
+      if (rank === 1) {
+        return tablet;
+      }
+
+      if (rank === 2) {
+        return mobile;
+      }
+
+      return laptop;
+    }
+
+    if (candidateCount <= 1) {
+      return mobile;
+    }
+
+    if (rank === 1) {
+      return mobile;
+    }
+
+    if (rank === 2) {
+      return tablet;
+    }
+
+    return laptop;
+  }
+
+  function addResponsiveAvailabilityClass(table, hideClass) {
+    if (hideClass === "onepaqucpro-cr-hide-laptop") {
+      table.classList.add("has-laptop-hidden");
+      return;
+    }
+
+    if (hideClass === "onepaqucpro-cr-hide-tablet") {
+      table.classList.add("has-tablet-hidden");
+      return;
+    }
+
+    if (hideClass === "onepaqucpro-cr-hide-mobile") {
+      table.classList.add("has-mobile-hidden");
+    }
+  }
+
+  function setResponsiveToggleState(button, expanded) {
+    const row = button.closest("tr");
+    const detailRow = document.getElementById(button.getAttribute("aria-controls"));
+    const label = button.querySelector(".onepaqucpro-cr-row-toggle__label");
+
+    button.setAttribute("aria-expanded", expanded ? "true" : "false");
+    button.classList.toggle("is-expanded", expanded);
+
+    if (label) {
+      label.textContent = expanded ? "Hide details" : "Details";
+    }
+
+    if (row) {
+      row.classList.toggle("is-expanded", expanded);
+    }
+
+    if (detailRow) {
+      detailRow.hidden = !expanded;
+      detailRow.classList.toggle("is-expanded", expanded);
+    }
+  }
+
+  function toggleResponsiveRow(button) {
+    setResponsiveToggleState(button, button.getAttribute("aria-expanded") !== "true");
+  }
+
+  function initResponsiveTable(table, tableIndex) {
+    if (table.getAttribute("data-cr-responsive-ready") === "1") {
+      return;
+    }
+
+    let labels = getResponsiveHeaderLabels(table);
+    const rows = Array.from(table.querySelectorAll("tbody > tr"));
+    const sampleRow = rows.find(function (row) {
+      return !row.classList.contains("onepaqucpro-cr-responsive-details");
+    });
+
+    if (!sampleRow) {
+      return;
+    }
+
+    const sampleCells = Array.from(sampleRow.children).filter(function (cell) {
+      return cell.matches("th, td");
+    });
+
+    if (sampleCells.length <= 1 || sampleCells.some(function (cell) { return cell.colSpan > 1; })) {
+      return;
+    }
+
+    if (!labels.length) {
+      labels = sampleCells.map(function (cell, index) {
+        return index === 0 ? "Item" : "Details";
+      });
+    }
+
+    const tableType = getResponsiveTableType(table);
+    const primaryIndex = getResponsivePrimaryIndex(sampleCells);
+    const headers = Array.from(table.querySelectorAll("thead tr:last-child > th, thead tr:last-child > td"));
+    const hiddenByIndex = {};
+    const candidateIndexes = [];
+
+    sampleCells.forEach(function (cell, index) {
+      if (!isResponsivePinnedCell(cell, index, primaryIndex)) {
+        candidateIndexes.push(index);
+      }
+    });
+
+    candidateIndexes.forEach(function (index, candidateIndex) {
+      const hideClass = getResponsiveHideClass(tableType, candidateIndex + 1, candidateIndexes.length);
+      hiddenByIndex[index] = hideClass;
+      addResponsiveAvailabilityClass(table, hideClass);
+
+      if (headers[index]) {
+        headers[index].classList.add(hideClass);
+      }
+    });
+
+    if (!Object.keys(hiddenByIndex).length) {
+      return;
+    }
+
+    table.classList.add("onepaqucpro-cr-responsive-table");
+    table.setAttribute("data-cr-responsive-ready", "1");
+
+    rows.forEach(function (row, rowIndex) {
+      if (row.classList.contains("onepaqucpro-cr-responsive-details")) {
+        return;
+      }
+
+      const cells = Array.from(row.children).filter(function (cell) {
+        return cell.matches("th, td");
+      });
+
+      if (cells.length <= 1 || cells.some(function (cell) { return cell.colSpan > 1; })) {
+        return;
+      }
+
+      const detailItems = [];
+      const primaryCell = cells[primaryIndex] || cells[0];
+
+      row.classList.add("onepaqucpro-cr-responsive-row");
+
+      cells.forEach(function (cell, index) {
+        const label = labels[index] || "";
+
+        if (label) {
+          cell.setAttribute("data-cr-label", label);
+        }
+
+        if (cell.classList.contains("check-column")) {
+          row.classList.add("has-check-column");
+        }
+
+        if (index === primaryIndex) {
+          cell.classList.add("onepaqucpro-cr-responsive-primary-cell");
+        }
+
+        if (isResponsivePinnedCell(cell, index, primaryIndex)) {
+          cell.classList.add("onepaqucpro-cr-responsive-pin-cell");
+          if (index !== primaryIndex && !cell.classList.contains("check-column")) {
+            row.classList.add("has-pinned-cells");
+          }
+        }
+
+        if (!hiddenByIndex[index]) {
+          return;
+        }
+
+        cell.classList.add(hiddenByIndex[index]);
+
+        const value = getResponsiveCellText(cell);
+
+        if (!value) {
+          return;
+        }
+
+        detailItems.push(
+          '<div class="onepaqucpro-cr-responsive-detail-item ' +
+            hiddenByIndex[index] +
+            '"><dt>' +
+            escapeHtml(label || "Details") +
+            "</dt><dd>" +
+            escapeHtml(value) +
+            "</dd></div>"
+        );
+      });
+
+      if (!detailItems.length || !primaryCell) {
+        return;
+      }
+
+      const detailId = "onepaqucpro-cr-responsive-" + tableIndex + "-" + rowIndex;
+      let toggle = primaryCell.querySelector("[data-cr-row-toggle]");
+
+      if (!toggle) {
+        toggle = document.createElement("button");
+        toggle.type = "button";
+        toggle.className = "button-link onepaqucpro-cr-row-toggle";
+        toggle.setAttribute("data-cr-row-toggle", "");
+        toggle.setAttribute("aria-expanded", "false");
+        toggle.setAttribute("aria-controls", detailId);
+        toggle.innerHTML =
+          '<span class="dashicons dashicons-arrow-down-alt2" aria-hidden="true"></span><span class="onepaqucpro-cr-row-toggle__label">Details</span>';
+        primaryCell.appendChild(toggle);
+      }
+
+      const detailRow = document.createElement("tr");
+      const detailCell = document.createElement("td");
+
+      detailRow.id = detailId;
+      detailRow.hidden = true;
+      detailRow.className = "onepaqucpro-cr-responsive-details";
+      detailCell.colSpan = cells.length;
+      detailCell.innerHTML =
+        '<dl class="onepaqucpro-cr-responsive-detail-list">' + detailItems.join("") + "</dl>";
+      detailRow.appendChild(detailCell);
+      row.insertAdjacentElement("afterend", detailRow);
+    });
+  }
+
+  function initResponsiveTables() {
+    document
+      .querySelectorAll(".onepaqucpro-cr-table, .onepaqucpro-cr-template-table--list")
+      .forEach(function (table, tableIndex) {
+        initResponsiveTable(table, tableIndex);
+      });
+  }
+
   function addTemplateRow() {
     const wrapper = document.querySelector("[data-cr-template-rows]");
     const template = document.getElementById("onepaqucpro-cr-template-row-template");
@@ -503,6 +861,13 @@ document.addEventListener("DOMContentLoaded", function () {
     if (openButton) {
       event.preventDefault();
       openModal(openButton.getAttribute("data-template"));
+      return;
+    }
+
+    const responsiveToggle = event.target.closest("[data-cr-row-toggle]");
+    if (responsiveToggle) {
+      event.preventDefault();
+      toggleResponsiveRow(responsiveToggle);
       return;
     }
 
@@ -599,5 +964,6 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   initEnhancedSelects();
+  initResponsiveTables();
   renderCharts();
 });
