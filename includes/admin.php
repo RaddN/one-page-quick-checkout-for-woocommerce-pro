@@ -4,6 +4,7 @@ if (! defined('ABSPATH')) exit; // Exit if accessed directly
 
 // Admin Menu
 add_action('admin_menu', 'onepaqucpro_cart_menu');
+add_action('admin_head', 'onepaqucpro_cart_recovery_menu_badge_styles');
 
 
 function onepaqucpro_cart_menu()
@@ -21,7 +22,7 @@ function onepaqucpro_cart_menu()
     add_submenu_page(
         'onepaqucpro_cart',
         'Cart Recovery',
-        'Cart Recovery',
+        'Cart Recovery <span class="onepaqucpro-menu-new-badge">NEW!</span>',
         'manage_options',
         'onepaqucpro_cart_recovery',
         'onepaqucpro_cart_recovery_page'
@@ -48,6 +49,25 @@ function onepaqucpro_cart_menu()
         // add_submenu_page('bd-affiliate-marketing', 'Manage Posts', 'Manage Posts', 'manage_options', 'bd-manage-posts', 'onepaqucpro_marketing_manage_posts');
         // add_submenu_page('bd-affiliate-marketing', 'Send Notification', 'Send Notification', 'manage_options', 'bd-send-notification', 'onepaqucpro_marketing_send_notification');
     }
+}
+
+function onepaqucpro_cart_recovery_menu_badge_styles()
+{
+    ?>
+    <style>
+        #adminmenu .onepaqucpro-menu-new-badge {
+            display: inline-block;
+            margin-left: 5px;
+            color: #f59e0b;
+            font-size: 9px;
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: 0;
+            text-transform: uppercase;
+            vertical-align: super;
+        }
+    </style>
+    <?php
 }
 
 // Display the form for Side Cart and PopUp settings
