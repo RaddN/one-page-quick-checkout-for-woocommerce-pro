@@ -368,7 +368,7 @@ function onepaqucpro_cart_admin_styles($hook)
 {
     $current_page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
 
-    if ($hook === 'toplevel_page_onepaqucpro_cart' || $current_page === 'onepaqucpro_cart_recovery') {
+    if ($hook === 'toplevel_page_onepaqucpro_cart' || $current_page === 'onepaqucpro_cart_recovery' || $current_page === 'onepaqucpro_cart_recovery_template') {
         wp_enqueue_style('onepaqucpro_cart_admin_css', plugin_dir_url(__FILE__) . 'assets/css/admin-style.css', array(), "1.1.9.20");
         wp_enqueue_style('select2-css', plugin_dir_url(__FILE__) . 'assets/css/select2.min.css', array(), "1.1.9.20");
         wp_enqueue_script('select2-js', plugin_dir_url(__FILE__) . 'assets/js/select2.min.js', array('jquery'), "1.1.9.20", true);
@@ -383,7 +383,7 @@ function onepaqucpro_cart_admin_styles($hook)
         wp_enqueue_script(
             'onepaqucpro_cart_recovery_admin_js',
             plugin_dir_url(__FILE__) . 'assets/js/cart-recovery-admin.js',
-            array(),
+            array('jquery', 'select2-js'),
             filemtime(plugin_dir_path(__FILE__) . 'assets/js/cart-recovery-admin.js'),
             true
         );

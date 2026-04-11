@@ -306,6 +306,64 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  function initEnhancedSelects() {
+    const $ = window.jQuery;
+    if (!$ || !$.fn || !$.fn.select2) {
+      return;
+    }
+
+    $("[data-cr-select2]").each(function () {
+      const select = this;
+      const $select = $(select);
+      if ($select.data("select2")) {
+        return;
+      }
+
+      const minimumInputLength = Number(select.getAttribute("data-minimum-input-length") || 0);
+      const placeholder = select.getAttribute("data-placeholder") || "";
+      const options = {
+        width: "100%",
+        placeholder: placeholder,
+        allowClear: true,
+        closeOnSelect: false,
+        minimumInputLength: minimumInputLength,
+        language: {
+          inputTooShort: function (args) {
+            const remaining = args.minimum - args.input.length;
+            return "Type " + remaining + " more character" + (remaining === 1 ? "" : "s") + " to search.";
+          },
+          noResults: function () {
+            return "No matches found.";
+          },
+          searching: function () {
+            return "Searching...";
+          },
+        },
+      };
+
+      if (select.getAttribute("data-cr-select2") === "ajax") {
+        options.ajax = {
+          url: window.ajaxurl || "admin-ajax.php",
+          dataType: "json",
+          delay: 250,
+          data: function (params) {
+            return {
+              action: select.getAttribute("data-cr-select2-action"),
+              nonce: select.getAttribute("data-cr-select2-nonce"),
+              term: params.term || "",
+            };
+          },
+          processResults: function (data) {
+            return data && Array.isArray(data.results) ? data : { results: [] };
+          },
+          cache: true,
+        };
+      }
+
+      $select.select2(options);
+    });
+  }
+
   function activateTab(tabButton, shouldFocus) {
     const tabsRoot = tabButton ? tabButton.closest("[data-cr-tabs]") : null;
     if (!tabsRoot) {
@@ -540,5 +598,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
+  initEnhancedSelects();
   renderCharts();
 });

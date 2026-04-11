@@ -25,6 +25,8 @@ class Onepaqucpro_Cart_Recovery_Admin
         add_action('admin_post_onepaqucpro_cart_recovery_save_cart_meta', array(__CLASS__, 'handle_save_cart_meta'));
         add_action('admin_post_onepaqucpro_cart_recovery_queue_action', array(__CLASS__, 'handle_queue_action'));
         add_action('admin_post_onepaqucpro_cart_recovery_send_test_email', array(__CLASS__, 'handle_send_test_email'));
+        add_action('wp_ajax_onepaqucpro_cr_search_products', array(__CLASS__, 'handle_search_products'));
+        add_action('wp_ajax_onepaqucpro_cr_search_categories', array(__CLASS__, 'handle_search_categories'));
         add_action('current_screen', array(__CLASS__, 'maybe_save_screen_options'));
         add_filter('screen_settings', array(__CLASS__, 'render_screen_settings'), 10, 2);
         add_filter('screen_options_show_screen', array(__CLASS__, 'show_screen_options'), 10, 2);
@@ -91,7 +93,7 @@ class Onepaqucpro_Cart_Recovery_Admin
         $per_page = self::get_screen_option_per_page($screen_context);
 
         ob_start();
-        ?>
+?>
         <fieldset class="metabox-prefs">
             <legend><?php esc_html_e('Columns', 'one-page-quick-checkout-for-woocommerce-pro'); ?></legend>
             <label for="onepaqucpro-cr-screen-primary">
@@ -105,8 +107,7 @@ class Onepaqucpro_Cart_Recovery_Admin
                         id="onepaqucpro-cr-screen-<?php echo esc_attr($tab . '-' . $column_key); ?>"
                         name="onepaqucpro_cr_screen_options[columns][]"
                         value="<?php echo esc_attr($column_key); ?>"
-                        <?php checked(in_array($column_key, $visible_columns, true)); ?>
-                    >
+                        <?php checked(in_array($column_key, $visible_columns, true)); ?>>
                     <?php echo esc_html($label); ?>
                 </label>
             <?php endforeach; ?>
@@ -122,10 +123,9 @@ class Onepaqucpro_Cart_Recovery_Admin
                 value="<?php echo esc_attr($per_page); ?>"
                 min="5"
                 max="100"
-                step="5"
-            >
+                step="5">
         </fieldset>
-        <?php
+    <?php
 
         return $settings . ob_get_clean();
     }
@@ -157,7 +157,7 @@ class Onepaqucpro_Cart_Recovery_Admin
             return ! empty($template['enabled']);
         }));
 
-        ?>
+    ?>
         <div class="onepaqucpro-cr-page">
             <?php self::render_notice(); ?>
 
@@ -223,7 +223,7 @@ class Onepaqucpro_Cart_Recovery_Admin
             <?php self::render_modal_shell(); ?>
             <?php self::render_detail_templates($carts); ?>
         </div>
-        <?php
+    <?php
     }
 
     public static function handle_save_settings()
@@ -244,6 +244,11 @@ class Onepaqucpro_Cart_Recovery_Admin
         foreach ($setting_keys as $key) {
             if (in_array($key, $checkbox_keys, true)) {
                 $stored_settings[$key] = empty($posted_settings[$key]) ? 0 : 1;
+                continue;
+            }
+
+            if ('settings' === $context && in_array($key, array('excluded_product_ids', 'excluded_category_ids', 'excluded_roles'), true) && ! array_key_exists($key, $posted_settings)) {
+                $stored_settings[$key] = array();
                 continue;
             }
 
@@ -682,6 +687,89 @@ class Onepaqucpro_Cart_Recovery_Admin
         self::redirect_with_notice_from_referer('test_sent', array('tab' => 'email', 'cr_email_view' => 'settings'));
     }
 
+    public static function handle_search_products()
+    {
+        self::assert_admin_access();
+        check_ajax_referer('onepaqucpro_cart_recovery_search', 'nonce');
+
+        $term = sanitize_text_field(isset($_GET['term']) ? wp_unslash($_GET['term']) : '');
+        if (strlen($term) < 3) {
+            wp_send_json(array('results' => array()));
+        }
+
+        $ids = array();
+        if (class_exists('WC_Data_Store')) {
+            $data_store = WC_Data_Store::load('product');
+            if (is_object($data_store) && is_callable(array($data_store, 'search_products'))) {
+                $ids = $data_store->search_products($term, '', true, false, 20);
+            }
+        }
+
+        if (empty($ids) && function_exists('wc_get_products')) {
+            $ids = wc_get_products(array(
+                'status' => array('publish', 'private'),
+                'limit'  => 20,
+                's'      => $term,
+                'return' => 'ids',
+            ));
+        } elseif (empty($ids)) {
+            $query = new WP_Query(array(
+                'post_type'      => 'product',
+                'post_status'    => array('publish', 'private'),
+                'posts_per_page' => 20,
+                's'              => $term,
+                'fields'         => 'ids',
+            ));
+            $ids = $query->posts;
+        }
+
+        $results = array();
+        foreach (array_unique(array_map('absint', (array) $ids)) as $product_id) {
+            if (! $product_id) {
+                continue;
+            }
+
+            $results[] = array(
+                'id'   => $product_id,
+                'text' => self::get_product_label($product_id),
+            );
+        }
+
+        wp_send_json(array('results' => $results));
+    }
+
+    public static function handle_search_categories()
+    {
+        self::assert_admin_access();
+        check_ajax_referer('onepaqucpro_cart_recovery_search', 'nonce');
+
+        $term = sanitize_text_field(isset($_GET['term']) ? wp_unslash($_GET['term']) : '');
+        if (strlen($term) < 3) {
+            wp_send_json(array('results' => array()));
+        }
+
+        $terms = get_terms(array(
+            'taxonomy'   => 'product_cat',
+            'hide_empty' => false,
+            'number'     => 20,
+            'search'     => $term,
+        ));
+
+        if (is_wp_error($terms)) {
+            wp_send_json(array('results' => array()));
+        }
+
+        $results = array();
+        foreach ($terms as $term_row) {
+            $results[] = array(
+                'id'   => (int) $term_row->term_id,
+                'text' => self::get_category_label($term_row->term_id),
+            );
+        }
+
+        wp_send_json(array('results' => $results));
+    }
+
     private static function render_notice()
     {
         $notice = isset($_GET['cr_notice']) ? sanitize_key(wp_unslash($_GET['cr_notice'])) : '';
@@ -715,11 +803,11 @@ class Onepaqucpro_Cart_Recovery_Admin
         }
 
         list($type, $message) = $messages[$notice];
-        ?>
+    ?>
         <div class="notice notice-<?php echo esc_attr($type); ?> is-dismissible">
             <p><?php echo esc_html($message); ?></p>
         </div>
-        <?php
+    <?php
     }
 
     private static function render_carts_tab($context)
@@ -730,7 +818,7 @@ class Onepaqucpro_Cart_Recovery_Admin
         $pagination = $context['pagination'];
         $template_options = self::get_template_name_options();
         $visible_columns = self::get_screen_option_visible_columns('carts');
-        ?>
+    ?>
         <section class="onepaqucpro-cr-section">
             <div class="onepaqucpro-cr-stat-grid">
                 <div class="onepaqucpro-cr-stat-card">
@@ -812,7 +900,7 @@ class Onepaqucpro_Cart_Recovery_Admin
                     </label>
                     <button type="submit" class="button button-primary"><?php esc_html_e('Apply', 'one-page-quick-checkout-for-woocommerce-pro'); ?></button>
                     <a class="button button-secondary" href="<?php echo esc_url(self::get_page_url(array('tab' => 'carts'))); ?>"><?php esc_html_e('Reset', 'one-page-quick-checkout-for-woocommerce-pro'); ?></a>
-                
+
                 </div>
             </form>
 
@@ -1015,7 +1103,7 @@ class Onepaqucpro_Cart_Recovery_Admin
                 <?php endif; ?>
             </form>
         </section>
-        <?php
+    <?php
     }
 
     private static function render_analytics_tab($context)
@@ -1035,7 +1123,7 @@ class Onepaqucpro_Cart_Recovery_Admin
             'click_rate'        => array('label' => __('Click Rate', 'one-page-quick-checkout-for-woocommerce-pro'), 'type' => 'percent'),
             'unsubscribe_rate'  => array('label' => __('Unsubscribe Rate', 'one-page-quick-checkout-for-woocommerce-pro'), 'type' => 'percent'),
         );
-        ?>
+    ?>
         <section class="onepaqucpro-cr-section">
             <?php self::render_range_toolbar('analytics', $range); ?>
 
@@ -1211,7 +1299,7 @@ class Onepaqucpro_Cart_Recovery_Admin
                 </article>
             </div>
         </section>
-        <?php
+    <?php
     }
 
     private static function render_journey_tab($context)
@@ -1219,7 +1307,7 @@ class Onepaqucpro_Cart_Recovery_Admin
         $range       = $context['range'];
         $funnel      = $context['funnel'];
         $stage_keys  = array('created', 'abandoned', 'emailed', 'opened', 'clicked', 'restored', 'recovered');
-        ?>
+    ?>
         <section class="onepaqucpro-cr-section">
             <?php self::render_range_toolbar('journey', $range); ?>
 
@@ -1390,7 +1478,7 @@ class Onepaqucpro_Cart_Recovery_Admin
                 <?php endif; ?>
             </div>
         </section>
-        <?php
+    <?php
     }
 
     private static function render_activity_tab($context)
@@ -1400,7 +1488,7 @@ class Onepaqucpro_Cart_Recovery_Admin
         $pagination = $context['pagination'];
         $template_options = self::get_template_name_options();
         $visible_columns = self::get_screen_option_visible_columns('activity');
-        ?>
+    ?>
         <section class="onepaqucpro-cr-section">
             <form method="get" class="onepaqucpro-cr-toolbar">
                 <input type="hidden" name="page" value="<?php echo esc_attr(self::PAGE_SLUG); ?>">
@@ -1568,7 +1656,9 @@ class Onepaqucpro_Cart_Recovery_Admin
             </form>
 
             <?php foreach ($items as $row) : ?>
-                <?php if (empty($row['payload'])) { continue; } ?>
+                <?php if (empty($row['payload'])) {
+                    continue;
+                } ?>
                 <template id="onepaqucpro-cr-activity-<?php echo esc_attr($row['id']); ?>">
                     <div class="onepaqucpro-cr-detail">
                         <div class="onepaqucpro-cr-detail__header">
@@ -1593,18 +1683,20 @@ class Onepaqucpro_Cart_Recovery_Admin
                 </template>
             <?php endforeach; ?>
         </section>
-        <?php
+    <?php
     }
 
     private static function render_settings_tab($settings)
     {
-        ?>
+        $search_nonce = wp_create_nonce('onepaqucpro_cart_recovery_search');
+        $role_options = self::get_role_options();
+    ?>
         <section class="onepaqucpro-cr-section">
-            <div class="plugincy_card onepaqucpro-cr-settings-card">
+            <div class="plugincy_card onepaqucpro-cr-settings-card onepaqucpro-cr-settings-card--controls">
                 <div class="onepaqucpro-cr-card-heading">
                     <div>
                         <h2><?php esc_html_e('Recovery Controls', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h2>
-                        <p><?php esc_html_e('Configure when carts become recoverable and how long recovery data is retained.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
+                        <p><?php esc_html_e('Control when carts are treated as lost, which customers are ignored, and which catalog items should never enter recovery.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
                     </div>
                 </div>
 
@@ -1613,67 +1705,141 @@ class Onepaqucpro_Cart_Recovery_Admin
                     <input type="hidden" name="settings_context" value="settings">
                     <?php wp_nonce_field('onepaqucpro_cart_recovery_save_settings'); ?>
 
-                    <div class="onepaqucpro-cr-setting-row">
-                        <div>
-                            <h3><?php esc_html_e('Enable Cart Recovery', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
-                            <p><?php esc_html_e('Recover lost revenue by automatically sending targeted recovery emails to shoppers who leave the checkout flow.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
-                        </div>
-                        <label class="switch">
-                            <input type="checkbox" name="settings[enabled]" value="1" <?php checked(! empty($settings['enabled'])); ?>>
-                            <span class="slider round"></span>
-                        </label>
-                    </div>
-
-                    <div class="onepaqucpro-cr-setting-row">
-                        <div>
-                            <h3><?php esc_html_e('Track Free Carts', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
-                            <p><?php esc_html_e('When disabled, carts with a zero total are excluded from the recovery queue.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
-                        </div>
-                        <label class="switch">
-                            <input type="checkbox" name="settings[track_free_carts]" value="1" <?php checked(! empty($settings['track_free_carts'])); ?>>
-                            <span class="slider round"></span>
-                        </label>
-                    </div>
-
-                    <div class="onepaqucpro-cr-setting-grid">
-                        <label>
-                            <span><?php esc_html_e('Inactivity Timeout', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
-                            <div class="onepaqucpro-cr-unit-field">
-                                <input type="number" min="1" name="settings[inactivity_timeout]" value="<?php echo esc_attr($settings['inactivity_timeout']); ?>">
-                                <span><?php esc_html_e('minutes', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                    <div class="onepaqucpro-cr-settings-panel">
+                        <div class="onepaqucpro-cr-settings-option">
+                            <div class="onepaqucpro-cr-settings-copy">
+                                <h3><?php esc_html_e('Enable Cart Recovery', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
+                                <p><?php esc_html_e('Start tracking recoverable carts and schedule follow-up emails for shoppers who leave checkout.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
                             </div>
-                        </label>
-                        <label>
-                            <span><?php esc_html_e('Retention Period', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
-                            <div class="onepaqucpro-cr-unit-field">
-                                <input type="number" min="1" name="settings[retention_days]" value="<?php echo esc_attr($settings['retention_days']); ?>">
-                                <span><?php esc_html_e('days', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                            <div class="onepaqucpro-cr-settings-control">
+                                <label class="switch">
+                                    <input type="checkbox" name="settings[enabled]" value="1" <?php checked(! empty($settings['enabled'])); ?>>
+                                    <span class="slider round"></span>
+                                </label>
                             </div>
-                        </label>
-                        <label>
-                            <span><?php esc_html_e('High Value Threshold', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
-                            <input type="number" min="0" step="0.01" name="settings[high_value_threshold]" value="<?php echo esc_attr($settings['high_value_threshold']); ?>">
-                        </label>
-                        <label>
-                            <span><?php esc_html_e('Default Per Page', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
-                            <input type="number" min="5" max="100" step="10" name="settings[per_page]" value="<?php echo esc_attr($settings['per_page']); ?>">
-                        </label>
-                        <label>
-                            <span><?php esc_html_e('Excluded Product IDs', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
-                            <input type="text" name="settings[excluded_product_ids]" value="<?php echo esc_attr(implode(', ', $settings['excluded_product_ids'])); ?>" placeholder="<?php esc_attr_e('12, 48, 91', 'one-page-quick-checkout-for-woocommerce-pro'); ?>">
-                        </label>
-                        <label>
-                            <span><?php esc_html_e('Excluded Category IDs', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
-                            <input type="text" name="settings[excluded_category_ids]" value="<?php echo esc_attr(implode(', ', $settings['excluded_category_ids'])); ?>" placeholder="<?php esc_attr_e('2, 5, 9', 'one-page-quick-checkout-for-woocommerce-pro'); ?>">
-                        </label>
-                        <label>
-                            <span><?php esc_html_e('Excluded Roles', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
-                            <input type="text" name="settings[excluded_roles]" value="<?php echo esc_attr(implode(', ', $settings['excluded_roles'])); ?>" placeholder="<?php esc_attr_e('administrator, shop_manager', 'one-page-quick-checkout-for-woocommerce-pro'); ?>">
-                        </label>
-                        <label>
-                            <span><?php esc_html_e('Webhook URL', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
-                            <input type="url" name="settings[webhook_url]" value="<?php echo esc_attr($settings['webhook_url']); ?>" placeholder="<?php esc_attr_e('https://example.com/webhook', 'one-page-quick-checkout-for-woocommerce-pro'); ?>">
-                        </label>
+                        </div>
+
+                        <div class="onepaqucpro-cr-settings-option">
+                            <div class="onepaqucpro-cr-settings-copy">
+                                <h3><?php esc_html_e('Track Free Carts', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
+                                <p><?php esc_html_e('Include zero-value carts in reporting and recovery automation.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
+                            </div>
+                            <div class="onepaqucpro-cr-settings-control">
+                                <label class="switch">
+                                    <input type="checkbox" name="settings[track_free_carts]" value="1" <?php checked(! empty($settings['track_free_carts'])); ?>>
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="onepaqucpro-cr-settings-option">
+                            <div class="onepaqucpro-cr-settings-copy">
+                                <h3><?php esc_html_e('Abandoned Cart Lost Time', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
+                                <p><?php esc_html_e('Mark a cart recoverable after this many minutes without shopper activity.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
+                            </div>
+                            <div class="onepaqucpro-cr-settings-control">
+                                <div class="onepaqucpro-cr-unit-field onepaqucpro-cr-unit-field--compact">
+                                    <input type="number" min="1" name="settings[inactivity_timeout]" value="<?php echo esc_attr($settings['inactivity_timeout']); ?>">
+                                    <span><?php esc_html_e('minutes', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="onepaqucpro-cr-settings-option">
+                            <div class="onepaqucpro-cr-settings-copy">
+                                <h3><?php esc_html_e('Retention Period', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
+                                <p><?php esc_html_e('Keep cart recovery records for this many days before cleanup.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
+                            </div>
+                            <div class="onepaqucpro-cr-settings-control">
+                                <div class="onepaqucpro-cr-unit-field onepaqucpro-cr-unit-field--compact">
+                                    <input type="number" min="1" name="settings[retention_days]" value="<?php echo esc_attr($settings['retention_days']); ?>">
+                                    <span><?php esc_html_e('days', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="onepaqucpro-cr-settings-option">
+                            <div class="onepaqucpro-cr-settings-copy">
+                                <h3><?php esc_html_e('High Value Threshold', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
+                                <p><?php esc_html_e('Highlight carts at or above this value for faster follow-up.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
+                            </div>
+                            <div class="onepaqucpro-cr-settings-control">
+                                <input type="number" min="0" step="0.01" name="settings[high_value_threshold]" value="<?php echo esc_attr($settings['high_value_threshold']); ?>">
+                            </div>
+                        </div>
+
+                        <div class="onepaqucpro-cr-settings-option onepaqucpro-cr-settings-option--stacked">
+                            <div class="onepaqucpro-cr-settings-copy">
+                                <h3><?php esc_html_e('Exclude Products', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
+                                <p><?php esc_html_e('Ignore carts containing selected products. Type at least 3 characters to search.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
+                            </div>
+                            <div class="onepaqucpro-cr-settings-control is-wide">
+                                <select
+                                    name="settings[excluded_product_ids][]"
+                                    class="onepaqucpro-cr-enhanced-select"
+                                    multiple
+                                    data-cr-select2="ajax"
+                                    data-cr-select2-action="onepaqucpro_cr_search_products"
+                                    data-cr-select2-nonce="<?php echo esc_attr($search_nonce); ?>"
+                                    data-minimum-input-length="3"
+                                    data-placeholder="<?php esc_attr_e('Search products to exclude', 'one-page-quick-checkout-for-woocommerce-pro'); ?>">
+                                    <?php foreach (self::sanitize_integer_list($settings['excluded_product_ids']) as $product_id) : ?>
+                                        <option value="<?php echo esc_attr($product_id); ?>" selected><?php echo esc_html(self::get_product_label($product_id)); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="onepaqucpro-cr-settings-option onepaqucpro-cr-settings-option--stacked">
+                            <div class="onepaqucpro-cr-settings-copy">
+                                <h3><?php esc_html_e('Exclude Categories', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
+                                <p><?php esc_html_e('Ignore carts containing products from selected categories. Type at least 3 characters to search.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
+                            </div>
+                            <div class="onepaqucpro-cr-settings-control is-wide">
+                                <select
+                                    name="settings[excluded_category_ids][]"
+                                    class="onepaqucpro-cr-enhanced-select"
+                                    multiple
+                                    data-cr-select2="ajax"
+                                    data-cr-select2-action="onepaqucpro_cr_search_categories"
+                                    data-cr-select2-nonce="<?php echo esc_attr($search_nonce); ?>"
+                                    data-minimum-input-length="3"
+                                    data-placeholder="<?php esc_attr_e('Search categories to exclude', 'one-page-quick-checkout-for-woocommerce-pro'); ?>">
+                                    <?php foreach (self::sanitize_integer_list($settings['excluded_category_ids']) as $category_id) : ?>
+                                        <option value="<?php echo esc_attr($category_id); ?>" selected><?php echo esc_html(self::get_category_label($category_id)); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="onepaqucpro-cr-settings-option onepaqucpro-cr-settings-option--stacked">
+                            <div class="onepaqucpro-cr-settings-copy">
+                                <h3><?php esc_html_e('Disable Tracking For', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
+                                <p><?php esc_html_e('Logged-in users with these roles will not be included in abandonment tracking or recovery emails.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
+                            </div>
+                            <div class="onepaqucpro-cr-settings-control is-wide">
+                                <select
+                                    name="settings[excluded_roles][]"
+                                    class="onepaqucpro-cr-enhanced-select"
+                                    multiple
+                                    data-cr-select2="static"
+                                    data-placeholder="<?php esc_attr_e('Select user roles', 'one-page-quick-checkout-for-woocommerce-pro'); ?>">
+                                    <?php foreach ($role_options as $role_key => $role_label) : ?>
+                                        <option value="<?php echo esc_attr($role_key); ?>" <?php selected(in_array($role_key, (array) $settings['excluded_roles'], true)); ?>><?php echo esc_html($role_label); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="onepaqucpro-cr-settings-option onepaqucpro-cr-settings-option--stacked">
+                            <div class="onepaqucpro-cr-settings-copy">
+                                <h3><?php esc_html_e('Webhook URL', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
+                                <p><?php esc_html_e('Send cart recovery events to an external automation endpoint.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
+                            </div>
+                            <div class="onepaqucpro-cr-settings-control is-wide">
+                                <input type="url" name="settings[webhook_url]" value="<?php echo esc_attr($settings['webhook_url']); ?>" placeholder="<?php esc_attr_e('https://example.com/webhook', 'one-page-quick-checkout-for-woocommerce-pro'); ?>">
+                            </div>
+                        </div>
                     </div>
 
                     <div class="onepaqucpro-cr-form-actions">
@@ -1682,14 +1848,14 @@ class Onepaqucpro_Cart_Recovery_Admin
                 </form>
             </div>
         </section>
-        <?php
+    <?php
     }
 
     private static function render_email_tab($settings, $templates, $carts)
     {
         $email_view = self::get_active_email_view();
         $template_context = 'templates' === $email_view ? self::get_template_table_context($templates, $carts) : array();
-        ?>
+    ?>
         <section class="onepaqucpro-cr-section">
             <div class="onepaqucpro-cr-subtabs" role="tablist" aria-label="<?php esc_attr_e('Email recovery sections', 'one-page-quick-checkout-for-woocommerce-pro'); ?>">
                 <a class="onepaqucpro-cr-subtab <?php echo 'templates' === $email_view ? 'is-active' : ''; ?>" role="tab" aria-selected="<?php echo 'templates' === $email_view ? 'true' : 'false'; ?>" href="<?php echo esc_url(self::get_page_url(array('tab' => 'email', 'cr_email_view' => 'templates'))); ?>">
@@ -1716,147 +1882,147 @@ class Onepaqucpro_Cart_Recovery_Admin
                 </div>
             <?php else : ?>
                 <div class="plugincy_card onepaqucpro-cr-settings-card">
-                <div class="onepaqucpro-cr-card-heading">
-                    <div>
-                        <h2><?php esc_html_e('Email Delivery Settings', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h2>
-                        <p><?php esc_html_e('Control sender details, send windows, tracking behavior, and domain-level email exclusions from a dedicated workspace.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
+                    <div class="onepaqucpro-cr-card-heading">
+                        <div>
+                            <h2><?php esc_html_e('Email Delivery Settings', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h2>
+                            <p><?php esc_html_e('Control sender details, send windows, tracking behavior, and domain-level email exclusions from a dedicated workspace.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
+                        </div>
                     </div>
+
+                    <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" class="onepaqucpro-cr-settings-form">
+                        <input type="hidden" name="action" value="onepaqucpro_cart_recovery_save_settings">
+                        <input type="hidden" name="settings_context" value="email">
+                        <?php wp_nonce_field('onepaqucpro_cart_recovery_save_settings'); ?>
+
+                        <div class="onepaqucpro-cr-setting-grid">
+                            <label>
+                                <span><?php esc_html_e('Sender', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                                <select name="settings[sender]">
+                                    <option value="default" <?php selected($settings['sender'], 'default'); ?>><?php esc_html_e('Default', 'one-page-quick-checkout-for-woocommerce-pro'); ?></option>
+                                    <option value="wordpress" <?php selected($settings['sender'], 'wordpress'); ?>><?php esc_html_e('WordPress', 'one-page-quick-checkout-for-woocommerce-pro'); ?></option>
+                                    <option value="store" <?php selected($settings['sender'], 'store'); ?>><?php esc_html_e('Store Email', 'one-page-quick-checkout-for-woocommerce-pro'); ?></option>
+                                </select>
+                            </label>
+                            <label>
+                                <span><?php esc_html_e('Sender Name', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                                <input type="text" name="settings[sender_name]" value="<?php echo esc_attr($settings['sender_name']); ?>" placeholder="<?php esc_attr_e('Store Team', 'one-page-quick-checkout-for-woocommerce-pro'); ?>">
+                            </label>
+                            <label>
+                                <span><?php esc_html_e('Reply-To', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                                <input type="email" name="settings[reply_to]" value="<?php echo esc_attr($settings['reply_to']); ?>" placeholder="<?php esc_attr_e('support@example.com', 'one-page-quick-checkout-for-woocommerce-pro'); ?>">
+                            </label>
+                            <label>
+                                <span><?php esc_html_e('Max Emails Per Cart', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                                <input type="number" min="1" name="settings[max_emails_per_cart]" value="<?php echo esc_attr($settings['max_emails_per_cart']); ?>">
+                            </label>
+                            <label>
+                                <span><?php esc_html_e('Quiet Hours Start', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                                <input type="time" name="settings[send_window_start]" value="<?php echo esc_attr($settings['send_window_start']); ?>">
+                            </label>
+                            <label>
+                                <span><?php esc_html_e('Quiet Hours End', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                                <input type="time" name="settings[send_window_end]" value="<?php echo esc_attr($settings['send_window_end']); ?>">
+                            </label>
+                            <label>
+                                <span><?php esc_html_e('Excluded Domains', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                                <input type="text" name="settings[excluded_domains]" value="<?php echo esc_attr(implode(', ', $settings['excluded_domains'])); ?>" placeholder="<?php esc_attr_e('example.com, internal.test', 'one-page-quick-checkout-for-woocommerce-pro'); ?>">
+                            </label>
+                            <label>
+                                <span><?php esc_html_e('UTM Source', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                                <input type="text" name="settings[utm_source]" value="<?php echo esc_attr($settings['utm_source']); ?>">
+                            </label>
+                            <label>
+                                <span><?php esc_html_e('UTM Medium', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                                <input type="text" name="settings[utm_medium]" value="<?php echo esc_attr($settings['utm_medium']); ?>">
+                            </label>
+                            <label>
+                                <span><?php esc_html_e('UTM Campaign', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                                <input type="text" name="settings[utm_campaign]" value="<?php echo esc_attr($settings['utm_campaign']); ?>">
+                            </label>
+                        </div>
+
+                        <div class="onepaqucpro-cr-setting-row">
+                            <div>
+                                <h3><?php esc_html_e('Quiet Hours', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
+                                <p><?php esc_html_e('Only send recovery emails during the configured sending window.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" name="settings[quiet_hours_enabled]" value="1" <?php checked(! empty($settings['quiet_hours_enabled'])); ?>>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+
+                        <div class="onepaqucpro-cr-setting-row">
+                            <div>
+                                <h3><?php esc_html_e('Stop After Restore', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
+                                <p><?php esc_html_e('Stop additional queued emails after the cart is restored.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" name="settings[stop_after_restore]" value="1" <?php checked(! empty($settings['stop_after_restore'])); ?>>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+
+                        <div class="onepaqucpro-cr-setting-row">
+                            <div>
+                                <h3><?php esc_html_e('Append UTM Parameters', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
+                                <p><?php esc_html_e('Add UTM source, medium, and campaign tags to recovery links.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" name="settings[append_utm]" value="1" <?php checked(! empty($settings['append_utm'])); ?>>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+
+                        <div class="onepaqucpro-cr-setting-row">
+                            <div>
+                                <h3><?php esc_html_e('Open Tracking Pixel', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
+                                <p><?php esc_html_e('Disable this if you want a privacy-first email flow without open tracking.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" name="settings[tracking_pixel_enabled]" value="1" <?php checked(! empty($settings['tracking_pixel_enabled'])); ?>>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+
+                        <div class="onepaqucpro-cr-form-actions">
+                            <button type="submit" class="button button-primary"><?php esc_html_e('Save Changes', 'one-page-quick-checkout-for-woocommerce-pro'); ?></button>
+                        </div>
+                    </form>
                 </div>
 
-                <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" class="onepaqucpro-cr-settings-form">
-                    <input type="hidden" name="action" value="onepaqucpro_cart_recovery_save_settings">
-                    <input type="hidden" name="settings_context" value="email">
-                    <?php wp_nonce_field('onepaqucpro_cart_recovery_save_settings'); ?>
-
-                    <div class="onepaqucpro-cr-setting-grid">
-                        <label>
-                            <span><?php esc_html_e('Sender', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
-                            <select name="settings[sender]">
-                                <option value="default" <?php selected($settings['sender'], 'default'); ?>><?php esc_html_e('Default', 'one-page-quick-checkout-for-woocommerce-pro'); ?></option>
-                                <option value="wordpress" <?php selected($settings['sender'], 'wordpress'); ?>><?php esc_html_e('WordPress', 'one-page-quick-checkout-for-woocommerce-pro'); ?></option>
-                                <option value="store" <?php selected($settings['sender'], 'store'); ?>><?php esc_html_e('Store Email', 'one-page-quick-checkout-for-woocommerce-pro'); ?></option>
-                            </select>
-                        </label>
-                        <label>
-                            <span><?php esc_html_e('Sender Name', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
-                            <input type="text" name="settings[sender_name]" value="<?php echo esc_attr($settings['sender_name']); ?>" placeholder="<?php esc_attr_e('Store Team', 'one-page-quick-checkout-for-woocommerce-pro'); ?>">
-                        </label>
-                        <label>
-                            <span><?php esc_html_e('Reply-To', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
-                            <input type="email" name="settings[reply_to]" value="<?php echo esc_attr($settings['reply_to']); ?>" placeholder="<?php esc_attr_e('support@example.com', 'one-page-quick-checkout-for-woocommerce-pro'); ?>">
-                        </label>
-                        <label>
-                            <span><?php esc_html_e('Max Emails Per Cart', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
-                            <input type="number" min="1" name="settings[max_emails_per_cart]" value="<?php echo esc_attr($settings['max_emails_per_cart']); ?>">
-                        </label>
-                        <label>
-                            <span><?php esc_html_e('Quiet Hours Start', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
-                            <input type="time" name="settings[send_window_start]" value="<?php echo esc_attr($settings['send_window_start']); ?>">
-                        </label>
-                        <label>
-                            <span><?php esc_html_e('Quiet Hours End', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
-                            <input type="time" name="settings[send_window_end]" value="<?php echo esc_attr($settings['send_window_end']); ?>">
-                        </label>
-                        <label>
-                            <span><?php esc_html_e('Excluded Domains', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
-                            <input type="text" name="settings[excluded_domains]" value="<?php echo esc_attr(implode(', ', $settings['excluded_domains'])); ?>" placeholder="<?php esc_attr_e('example.com, internal.test', 'one-page-quick-checkout-for-woocommerce-pro'); ?>">
-                        </label>
-                        <label>
-                            <span><?php esc_html_e('UTM Source', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
-                            <input type="text" name="settings[utm_source]" value="<?php echo esc_attr($settings['utm_source']); ?>">
-                        </label>
-                        <label>
-                            <span><?php esc_html_e('UTM Medium', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
-                            <input type="text" name="settings[utm_medium]" value="<?php echo esc_attr($settings['utm_medium']); ?>">
-                        </label>
-                        <label>
-                            <span><?php esc_html_e('UTM Campaign', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
-                            <input type="text" name="settings[utm_campaign]" value="<?php echo esc_attr($settings['utm_campaign']); ?>">
-                        </label>
-                    </div>
-
-                    <div class="onepaqucpro-cr-setting-row">
+                <div class="plugincy_card onepaqucpro-cr-settings-card">
+                    <div class="onepaqucpro-cr-card-heading">
                         <div>
-                            <h3><?php esc_html_e('Quiet Hours', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
-                            <p><?php esc_html_e('Only send recovery emails during the configured sending window.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
+                            <h2><?php esc_html_e('Test Email', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h2>
+                            <p><?php esc_html_e('Send any recovery template to a specific inbox using the latest tracked cart as sample data.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
                         </div>
-                        <label class="switch">
-                            <input type="checkbox" name="settings[quiet_hours_enabled]" value="1" <?php checked(! empty($settings['quiet_hours_enabled'])); ?>>
-                            <span class="slider round"></span>
-                        </label>
                     </div>
-
-                    <div class="onepaqucpro-cr-setting-row">
-                        <div>
-                            <h3><?php esc_html_e('Stop After Restore', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
-                            <p><?php esc_html_e('Stop additional queued emails after the cart is restored.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
+                    <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" class="onepaqucpro-cr-settings-form">
+                        <input type="hidden" name="action" value="onepaqucpro_cart_recovery_send_test_email">
+                        <?php wp_nonce_field('onepaqucpro_cart_recovery_send_test_email'); ?>
+                        <div class="onepaqucpro-cr-setting-grid">
+                            <label>
+                                <span><?php esc_html_e('Template', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                                <select name="test_template_id">
+                                    <?php foreach ($templates as $template) : ?>
+                                        <option value="<?php echo esc_attr($template['id']); ?>"><?php echo esc_html($template['name']); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </label>
+                            <label>
+                                <span><?php esc_html_e('Recipient Email', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                                <input type="email" name="test_recipient" value="<?php echo esc_attr(get_option('admin_email')); ?>">
+                            </label>
                         </div>
-                        <label class="switch">
-                            <input type="checkbox" name="settings[stop_after_restore]" value="1" <?php checked(! empty($settings['stop_after_restore'])); ?>>
-                            <span class="slider round"></span>
-                        </label>
-                    </div>
-
-                    <div class="onepaqucpro-cr-setting-row">
-                        <div>
-                            <h3><?php esc_html_e('Append UTM Parameters', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
-                            <p><?php esc_html_e('Add UTM source, medium, and campaign tags to recovery links.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
+                        <div class="onepaqucpro-cr-form-actions">
+                            <button type="submit" class="button button-secondary"><?php esc_html_e('Send Test Email', 'one-page-quick-checkout-for-woocommerce-pro'); ?></button>
                         </div>
-                        <label class="switch">
-                            <input type="checkbox" name="settings[append_utm]" value="1" <?php checked(! empty($settings['append_utm'])); ?>>
-                            <span class="slider round"></span>
-                        </label>
-                    </div>
-
-                    <div class="onepaqucpro-cr-setting-row">
-                        <div>
-                            <h3><?php esc_html_e('Open Tracking Pixel', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
-                            <p><?php esc_html_e('Disable this if you want a privacy-first email flow without open tracking.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
-                        </div>
-                        <label class="switch">
-                            <input type="checkbox" name="settings[tracking_pixel_enabled]" value="1" <?php checked(! empty($settings['tracking_pixel_enabled'])); ?>>
-                            <span class="slider round"></span>
-                        </label>
-                    </div>
-
-                    <div class="onepaqucpro-cr-form-actions">
-                        <button type="submit" class="button button-primary"><?php esc_html_e('Save Changes', 'one-page-quick-checkout-for-woocommerce-pro'); ?></button>
-                    </div>
-                </form>
-            </div>
-
-            <div class="plugincy_card onepaqucpro-cr-settings-card">
-                <div class="onepaqucpro-cr-card-heading">
-                    <div>
-                        <h2><?php esc_html_e('Test Email', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h2>
-                        <p><?php esc_html_e('Send any recovery template to a specific inbox using the latest tracked cart as sample data.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
-                    </div>
+                    </form>
                 </div>
-                <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" class="onepaqucpro-cr-settings-form">
-                    <input type="hidden" name="action" value="onepaqucpro_cart_recovery_send_test_email">
-                    <?php wp_nonce_field('onepaqucpro_cart_recovery_send_test_email'); ?>
-                    <div class="onepaqucpro-cr-setting-grid">
-                        <label>
-                            <span><?php esc_html_e('Template', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
-                            <select name="test_template_id">
-                                <?php foreach ($templates as $template) : ?>
-                                    <option value="<?php echo esc_attr($template['id']); ?>"><?php echo esc_html($template['name']); ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </label>
-                        <label>
-                            <span><?php esc_html_e('Recipient Email', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
-                            <input type="email" name="test_recipient" value="<?php echo esc_attr(get_option('admin_email')); ?>">
-                        </label>
-                    </div>
-                    <div class="onepaqucpro-cr-form-actions">
-                        <button type="submit" class="button button-secondary"><?php esc_html_e('Send Test Email', 'one-page-quick-checkout-for-woocommerce-pro'); ?></button>
-                    </div>
-                </form>
-            </div>
             <?php endif; ?>
         </section>
-        <?php
+    <?php
     }
 
     private static function render_template_list($context)
@@ -1866,7 +2032,7 @@ class Onepaqucpro_Cart_Recovery_Admin
         $pagination      = $context['pagination'];
         $summary         = $context['summary'];
         $visible_columns = self::get_screen_option_visible_columns('email_templates');
-        ?>
+    ?>
         <form method="get" class="onepaqucpro-cr-toolbar onepaqucpro-cr-toolbar--templates">
             <input type="hidden" name="page" value="<?php echo esc_attr(self::PAGE_SLUG); ?>">
             <input type="hidden" name="tab" value="email">
@@ -1961,30 +2127,30 @@ class Onepaqucpro_Cart_Recovery_Admin
                                     <td><?php echo esc_html($row['trigger_label']); ?></td>
                                 <?php endif; ?>
                                 <?php if (in_array('sent', $visible_columns, true)) : ?>
-                                    <td class="onepaqucpro-cr-col--number"><strong><?php echo esc_html(number_format_i18n($row['sent'])); ?></strong></td>
+                                    <td ><strong><?php echo esc_html(number_format_i18n($row['sent'])); ?></strong></td>
                                 <?php endif; ?>
                                 <?php if (in_array('open_rate', $visible_columns, true)) : ?>
-                                    <td class="onepaqucpro-cr-col--number"><?php echo esc_html(self::format_percent($row['open_rate'])); ?></td>
+                                    <td ><?php echo esc_html(self::format_percent($row['open_rate'])); ?></td>
                                 <?php endif; ?>
                                 <?php if (in_array('click_rate', $visible_columns, true)) : ?>
-                                    <td class="onepaqucpro-cr-col--number"><?php echo esc_html(self::format_percent($row['click_rate'])); ?></td>
+                                    <td ><?php echo esc_html(self::format_percent($row['click_rate'])); ?></td>
                                 <?php endif; ?>
                                 <?php if (in_array('conversion_rate', $visible_columns, true)) : ?>
-                                    <td class="onepaqucpro-cr-col--number"><?php echo esc_html(self::format_percent($row['conversion_rate'])); ?></td>
+                                    <td ><?php echo esc_html(self::format_percent($row['conversion_rate'])); ?></td>
                                 <?php endif; ?>
                                 <?php if (in_array('unsubscribed', $visible_columns, true)) : ?>
-                                    <td class="onepaqucpro-cr-col--number"><?php echo esc_html(number_format_i18n($row['unsubscribed'])); ?></td>
+                                    <td ><?php echo esc_html(number_format_i18n($row['unsubscribed'])); ?></td>
                                 <?php endif; ?>
                                 <?php if (in_array('updated', $visible_columns, true)) : ?>
                                     <td><span class="onepaqucpro-cr-template-date"><?php echo esc_html(self::format_datetime($template['updated_at'])); ?></span></td>
                                 <?php endif; ?>
                                 <?php if (in_array('status', $visible_columns, true)) : ?>
                                     <td class="column-status">
-                                    <label class="switch">
-                                        <?php echo self::render_template_hidden_fields($template, $index); ?>
-                                        <input type="checkbox" name="templates[<?php echo esc_attr($index); ?>][enabled]" value="1" <?php checked(! empty($template['enabled'])); ?> data-cr-template-autosave>
-                                        <span class="slider round"></span>
-                                    </label>
+                                        <label class="switch">
+                                            <?php echo self::render_template_hidden_fields($template, $index); ?>
+                                            <input type="checkbox" name="templates[<?php echo esc_attr($index); ?>][enabled]" value="1" <?php checked(! empty($template['enabled'])); ?> data-cr-template-autosave>
+                                            <span class="slider round"></span>
+                                        </label>
                                     </td>
                                 <?php endif; ?>
                                 <?php if (in_array('actions', $visible_columns, true)) : ?>
@@ -2017,7 +2183,7 @@ class Onepaqucpro_Cart_Recovery_Admin
             'cr_template_sort',
             'cr_template_order',
         )); ?>
-        <?php
+    <?php
     }
 
     private static function get_template_page_url($template_id = 'new', $args = array())
@@ -2168,20 +2334,20 @@ class Onepaqucpro_Cart_Recovery_Admin
     {
         return wp_kses_post(
             "<p>Hi {customer_firstname},</p>\n" .
-            "<p>Looks like you left something behind. Your cart is still saved and ready whenever you are.</p>\n" .
-            "<h3>Your Cart</h3>\n" .
-            "<p>{cart_items}</p>\n" .
-            "<p><strong>Total:</strong> {cart_total}</p>\n" .
-            "<p><a class=\"button\" href=\"{cart_link}\">Resume Checkout</a></p>\n" .
-            "<p>If you already completed your purchase, you can ignore this email.</p>\n" .
-            "<p>Best,<br>{sitename}</p>\n" .
-            "<p><a href=\"{unsubscribe_link}\">Unsubscribe</a></p>"
+                "<p>Looks like you left something behind. Your cart is still saved and ready whenever you are.</p>\n" .
+                "<h3>Your Cart</h3>\n" .
+                "<p>{cart_items}</p>\n" .
+                "<p><strong>Total:</strong> {cart_total}</p>\n" .
+                "<p><a class=\"button\" href=\"{cart_link}\">Resume Checkout</a></p>\n" .
+                "<p>If you already completed your purchase, you can ignore this email.</p>\n" .
+                "<p>Best,<br>{sitename}</p>\n" .
+                "<p><a href=\"{unsubscribe_link}\">Unsubscribe</a></p>"
         );
     }
 
     private static function render_template_editor($template)
     {
-        ?>
+    ?>
         <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" class="onepaqucpro-cr-template-form onepaqucpro-cr-template-form--editor">
             <input type="hidden" name="action" value="onepaqucpro_cart_recovery_save_template">
             <?php wp_nonce_field('onepaqucpro_cart_recovery_save_template'); ?>
@@ -2330,12 +2496,12 @@ class Onepaqucpro_Cart_Recovery_Admin
                 </aside>
             </div>
         </form>
-        <?php
+    <?php
     }
 
     private static function render_range_toolbar($tab, $range)
     {
-        ?>
+    ?>
         <form method="get" class="onepaqucpro-cr-toolbar onepaqucpro-cr-toolbar--range">
             <input type="hidden" name="page" value="<?php echo esc_attr(self::PAGE_SLUG); ?>">
             <input type="hidden" name="tab" value="<?php echo esc_attr($tab); ?>">
@@ -2359,7 +2525,7 @@ class Onepaqucpro_Cart_Recovery_Admin
             </div>
             <div class="onepaqucpro-cr-range-label"><?php echo esc_html($range['label']); ?></div>
         </form>
-        <?php
+    <?php
     }
 
     private static function render_chart_card($title, $description, $config, $embedded = false)
@@ -2368,7 +2534,7 @@ class Onepaqucpro_Cart_Recovery_Admin
         if ($embedded) {
             $classes .= ' is-embedded';
         }
-        ?>
+    ?>
         <article class="<?php echo esc_attr($classes); ?>">
             <div class="onepaqucpro-cr-card-heading">
                 <div>
@@ -2378,12 +2544,12 @@ class Onepaqucpro_Cart_Recovery_Admin
             </div>
             <div class="onepaqucpro-cr-chart" data-chart-config="<?php echo esc_attr(wp_json_encode($config)); ?>"></div>
         </article>
-        <?php
+    <?php
     }
 
     private static function render_modal_shell()
     {
-        ?>
+    ?>
         <div class="onepaqucpro-cr-modal" hidden>
             <div class="onepaqucpro-cr-modal__backdrop" data-cr-modal-close></div>
             <div class="onepaqucpro-cr-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="onepaqucpro-cr-modal-title">
@@ -2417,7 +2583,7 @@ class Onepaqucpro_Cart_Recovery_Admin
                 'tab'              => 'activity',
                 'cr_activity_cart' => $cart['id'],
             ));
-            ?>
+        ?>
             <template id="onepaqucpro-cr-detail-<?php echo esc_attr($cart['id']); ?>">
                 <div class="onepaqucpro-cr-detail onepaqucpro-cr-cart-detail">
                     <div class="onepaqucpro-cr-detail__header onepaqucpro-cr-detail__header--cart">
@@ -2442,8 +2608,8 @@ class Onepaqucpro_Cart_Recovery_Admin
                                     <?php endif; ?>
                                     <span><span class="dashicons <?php echo esc_attr($device_icon); ?>" aria-hidden="true"></span><?php echo esc_html(ucfirst($cart['device_type']) . ' / ' . $cart['browser']); ?></span>
                                 </div>
-                            <p><?php echo esc_html($cart['customer_name']); ?> · <?php echo esc_html($cart['email']); ?></p>
-                        </div>
+                                <p><?php echo esc_html($cart['customer_name']); ?> · <?php echo esc_html($cart['email']); ?></p>
+                            </div>
                         </div>
                         <div class="onepaqucpro-cr-detail__header-aside">
                             <?php echo wp_kses_post(self::render_cart_status_badges($cart)); ?>
@@ -2512,20 +2678,53 @@ class Onepaqucpro_Cart_Recovery_Admin
                             <section id="<?php echo esc_attr($tab_ids['overview']); ?>" class="onepaqucpro-cr-tabs__panel is-active" role="tabpanel" data-cr-tab-panel="<?php echo esc_attr($tab_ids['overview']); ?>">
                                 <div class="onepaqucpro-cr-panel-grid">
                                     <div class="onepaqucpro-cr-detail__section">
-                        <h3><?php esc_html_e('Customer', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
-                        <dl class="onepaqucpro-cr-meta-grid">
-                            <div><dt><?php esc_html_e('Name', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html($cart['customer_name']); ?></dd></div>
-                            <div><dt><?php esc_html_e('Email', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html($cart['email'] ? $cart['email'] : '-'); ?></dd></div>
-                            <div><dt><?php esc_html_e('Phone', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html($cart['customer_phone'] ? $cart['customer_phone'] : '-'); ?></dd></div>
-                            <div><dt><?php esc_html_e('Company', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html($cart['customer_company'] ? $cart['customer_company'] : '-'); ?></dd></div>
-                            <div><dt><?php esc_html_e('Customer ID', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html($cart['customer_id'] ? $cart['customer_id'] : '-'); ?></dd></div>
-                            <div><dt><?php esc_html_e('IP Address', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html($cart['ip_address']); ?></dd></div>
-                            <div><dt><?php esc_html_e('Customer Type', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html(ucfirst($cart['customer_type'])); ?></dd></div>
-                            <div><dt><?php esc_html_e('Device / Browser', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html(ucfirst($cart['device_type']) . ' / ' . $cart['browser']); ?></dd></div>
-                            <div><dt><?php esc_html_e('Billing Address', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html(self::format_profile_address($cart['billing_address'])); ?></dd></div>
-                            <div><dt><?php esc_html_e('Shipping Address', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html(self::format_profile_address($cart['shipping_address'])); ?></dd></div>
-                            <div><dt><?php esc_html_e('Order Notes', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html($cart['order_notes'] ? $cart['order_notes'] : '-'); ?></dd></div>
-                        </dl>
+                                        <h3><?php esc_html_e('Customer', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
+                                        <dl class="onepaqucpro-cr-meta-grid">
+                                            <div>
+                                                <dt><?php esc_html_e('Name', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt>
+                                                <dd><?php echo esc_html($cart['customer_name']); ?></dd>
+                                            </div>
+                                            <div>
+                                                <dt><?php esc_html_e('Email', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt>
+                                                <dd><?php echo esc_html($cart['email'] ? $cart['email'] : '-'); ?></dd>
+                                            </div>
+                                            <div>
+                                                <dt><?php esc_html_e('Phone', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt>
+                                                <dd><?php echo esc_html($cart['customer_phone'] ? $cart['customer_phone'] : '-'); ?></dd>
+                                            </div>
+                                            <div>
+                                                <dt><?php esc_html_e('Company', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt>
+                                                <dd><?php echo esc_html($cart['customer_company'] ? $cart['customer_company'] : '-'); ?></dd>
+                                            </div>
+                                            <div>
+                                                <dt><?php esc_html_e('Customer ID', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt>
+                                                <dd><?php echo esc_html($cart['customer_id'] ? $cart['customer_id'] : '-'); ?></dd>
+                                            </div>
+                                            <div>
+                                                <dt><?php esc_html_e('IP Address', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt>
+                                                <dd><?php echo esc_html($cart['ip_address']); ?></dd>
+                                            </div>
+                                            <div>
+                                                <dt><?php esc_html_e('Customer Type', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt>
+                                                <dd><?php echo esc_html(ucfirst($cart['customer_type'])); ?></dd>
+                                            </div>
+                                            <div>
+                                                <dt><?php esc_html_e('Device / Browser', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt>
+                                                <dd><?php echo esc_html(ucfirst($cart['device_type']) . ' / ' . $cart['browser']); ?></dd>
+                                            </div>
+                                            <div>
+                                                <dt><?php esc_html_e('Billing Address', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt>
+                                                <dd><?php echo esc_html(self::format_profile_address($cart['billing_address'])); ?></dd>
+                                            </div>
+                                            <div>
+                                                <dt><?php esc_html_e('Shipping Address', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt>
+                                                <dd><?php echo esc_html(self::format_profile_address($cart['shipping_address'])); ?></dd>
+                                            </div>
+                                            <div>
+                                                <dt><?php esc_html_e('Order Notes', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt>
+                                                <dd><?php echo esc_html($cart['order_notes'] ? $cart['order_notes'] : '-'); ?></dd>
+                                            </div>
+                                        </dl>
                                     </div>
                                 </div>
                             </section>
@@ -2533,232 +2732,301 @@ class Onepaqucpro_Cart_Recovery_Admin
                             <section id="<?php echo esc_attr($tab_ids['items']); ?>" class="onepaqucpro-cr-tabs__panel" role="tabpanel" data-cr-tab-panel="<?php echo esc_attr($tab_ids['items']); ?>" hidden>
                                 <div class="onepaqucpro-cr-panel-grid">
                                     <div class="onepaqucpro-cr-detail__section">
-                        <h3><?php esc_html_e('Cart Items', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
-                        <div class="onepaqucpro-cr-item-list">
-                            <?php foreach ($cart['items'] as $item) : ?>
-                                <details class="onepaqucpro-cr-item-card">
-                                    <summary class="onepaqucpro-cr-item-card__summary">
-                                        <span class="onepaqucpro-cr-item-card__image">
-                                            <?php if (! empty($item['image_url'])) : ?>
-                                                <img src="<?php echo esc_url($item['image_url']); ?>" alt="<?php echo esc_attr($item['name']); ?>">
-                                            <?php else : ?>
-                                                <span class="dashicons dashicons-format-image" aria-hidden="true"></span>
-                                            <?php endif; ?>
-                                        </span>
-                                        <span class="onepaqucpro-cr-item-card__body">
-                                            <strong><?php echo esc_html($item['name']); ?></strong>
-                                            <span><?php echo esc_html(sprintf(__('Qty: %d', 'one-page-quick-checkout-for-woocommerce-pro'), $item['quantity'])); ?></span>
-                                            <?php if (! empty($item['sku'])) : ?>
-                                                <span><?php echo esc_html(sprintf(__('SKU: %s', 'one-page-quick-checkout-for-woocommerce-pro'), $item['sku'])); ?></span>
-                                            <?php endif; ?>
-                                        </span>
-                                        <span class="onepaqucpro-cr-item-card__price">
-                                            <span><?php esc_html_e('Line Total', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
-                                            <strong><?php echo wp_kses_post(self::format_currency($item['price'], $cart['currency'])); ?></strong>
-                                        </span>
-                                        <span class="onepaqucpro-cr-item-card__toggle" aria-hidden="true">
-                                            <span class="dashicons dashicons-arrow-down-alt2"></span>
-                                        </span>
-                                    </summary>
-                                    <div class="onepaqucpro-cr-item-card__details">
-                                        <dl class="onepaqucpro-cr-meta-grid is-compact">
-                                            <div><dt><?php esc_html_e('Product ID', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html($item['product_id'] ? '#' . $item['product_id'] : '-'); ?></dd></div>
-                                            <div><dt><?php esc_html_e('Variation ID', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html($item['variation_id'] ? '#' . $item['variation_id'] : '-'); ?></dd></div>
-                                            <div><dt><?php esc_html_e('Unit Price', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo wp_kses_post(self::format_currency($item['unit_price'], $cart['currency'])); ?></dd></div>
-                                            <div><dt><?php esc_html_e('Subtotal', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo wp_kses_post(self::format_currency($item['subtotal'], $cart['currency'])); ?></dd></div>
-                                            <div><dt><?php esc_html_e('Discount', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo wp_kses_post(self::format_currency($item['discount'], $cart['currency'])); ?></dd></div>
-                                            <div><dt><?php esc_html_e('Stock', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html($item['stock_status'] ? ucfirst(str_replace('_', ' ', $item['stock_status'])) : '-'); ?></dd></div>
-                                            <div><dt><?php esc_html_e('Type', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html($item['product_type'] ? ucfirst(str_replace('_', ' ', $item['product_type'])) : '-'); ?></dd></div>
-                                            <div><dt><?php esc_html_e('Categories', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html(! empty($item['categories']) ? implode(', ', $item['categories']) : '-'); ?></dd></div>
-                                            <?php if (! empty($item['product_url'])) : ?>
-                                                <div><dt><?php esc_html_e('Product Link', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><a href="<?php echo esc_url($item['product_url']); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e('Open product', 'one-page-quick-checkout-for-woocommerce-pro'); ?></a></dd></div>
-                                            <?php endif; ?>
-                                        </dl>
+                                        <h3><?php esc_html_e('Cart Items', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
+                                        <div class="onepaqucpro-cr-item-list">
+                                            <?php foreach ($cart['items'] as $item) : ?>
+                                                <details class="onepaqucpro-cr-item-card">
+                                                    <summary class="onepaqucpro-cr-item-card__summary">
+                                                        <span class="onepaqucpro-cr-item-card__image">
+                                                            <?php if (! empty($item['image_url'])) : ?>
+                                                                <img src="<?php echo esc_url($item['image_url']); ?>" alt="<?php echo esc_attr($item['name']); ?>">
+                                                            <?php else : ?>
+                                                                <span class="dashicons dashicons-format-image" aria-hidden="true"></span>
+                                                            <?php endif; ?>
+                                                        </span>
+                                                        <span class="onepaqucpro-cr-item-card__body">
+                                                            <strong><?php echo esc_html($item['name']); ?></strong>
+                                                            <span><?php echo esc_html(sprintf(__('Qty: %d', 'one-page-quick-checkout-for-woocommerce-pro'), $item['quantity'])); ?></span>
+                                                            <?php if (! empty($item['sku'])) : ?>
+                                                                <span><?php echo esc_html(sprintf(__('SKU: %s', 'one-page-quick-checkout-for-woocommerce-pro'), $item['sku'])); ?></span>
+                                                            <?php endif; ?>
+                                                        </span>
+                                                        <span class="onepaqucpro-cr-item-card__price">
+                                                            <span><?php esc_html_e('Line Total', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                                                            <strong><?php echo wp_kses_post(self::format_currency($item['price'], $cart['currency'])); ?></strong>
+                                                        </span>
+                                                        <span class="onepaqucpro-cr-item-card__toggle" aria-hidden="true">
+                                                            <span class="dashicons dashicons-arrow-down-alt2"></span>
+                                                        </span>
+                                                    </summary>
+                                                    <div class="onepaqucpro-cr-item-card__details">
+                                                        <dl class="onepaqucpro-cr-meta-grid is-compact">
+                                                            <div>
+                                                                <dt><?php esc_html_e('Product ID', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt>
+                                                                <dd><?php echo esc_html($item['product_id'] ? '#' . $item['product_id'] : '-'); ?></dd>
+                                                            </div>
+                                                            <div>
+                                                                <dt><?php esc_html_e('Variation ID', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt>
+                                                                <dd><?php echo esc_html($item['variation_id'] ? '#' . $item['variation_id'] : '-'); ?></dd>
+                                                            </div>
+                                                            <div>
+                                                                <dt><?php esc_html_e('Unit Price', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt>
+                                                                <dd><?php echo wp_kses_post(self::format_currency($item['unit_price'], $cart['currency'])); ?></dd>
+                                                            </div>
+                                                            <div>
+                                                                <dt><?php esc_html_e('Subtotal', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt>
+                                                                <dd><?php echo wp_kses_post(self::format_currency($item['subtotal'], $cart['currency'])); ?></dd>
+                                                            </div>
+                                                            <div>
+                                                                <dt><?php esc_html_e('Discount', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt>
+                                                                <dd><?php echo wp_kses_post(self::format_currency($item['discount'], $cart['currency'])); ?></dd>
+                                                            </div>
+                                                            <div>
+                                                                <dt><?php esc_html_e('Stock', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt>
+                                                                <dd><?php echo esc_html($item['stock_status'] ? ucfirst(str_replace('_', ' ', $item['stock_status'])) : '-'); ?></dd>
+                                                            </div>
+                                                            <div>
+                                                                <dt><?php esc_html_e('Type', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt>
+                                                                <dd><?php echo esc_html($item['product_type'] ? ucfirst(str_replace('_', ' ', $item['product_type'])) : '-'); ?></dd>
+                                                            </div>
+                                                            <div>
+                                                                <dt><?php esc_html_e('Categories', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt>
+                                                                <dd><?php echo esc_html(! empty($item['categories']) ? implode(', ', $item['categories']) : '-'); ?></dd>
+                                                            </div>
+                                                            <?php if (! empty($item['product_url'])) : ?>
+                                                                <div>
+                                                                    <dt><?php esc_html_e('Product Link', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt>
+                                                                    <dd><a href="<?php echo esc_url($item['product_url']); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e('Open product', 'one-page-quick-checkout-for-woocommerce-pro'); ?></a></dd>
+                                                                </div>
+                                                            <?php endif; ?>
+                                                        </dl>
 
-                                        <?php if (! empty($item['variation'])) : ?>
-                                            <div class="onepaqucpro-cr-item-card__meta-block">
-                                                <h4><?php esc_html_e('Selected Options', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h4>
-                                                <dl class="onepaqucpro-cr-meta-grid is-compact">
-                                                    <?php foreach ($item['variation'] as $label => $value) : ?>
-                                                        <div>
-                                                            <dt><?php echo esc_html(self::format_item_meta_label($label)); ?></dt>
-                                                            <dd><?php echo esc_html(is_scalar($value) ? (string) $value : wp_json_encode($value)); ?></dd>
-                                                        </div>
-                                                    <?php endforeach; ?>
-                                                </dl>
-                                            </div>
-                                        <?php endif; ?>
+                                                        <?php if (! empty($item['variation'])) : ?>
+                                                            <div class="onepaqucpro-cr-item-card__meta-block">
+                                                                <h4><?php esc_html_e('Selected Options', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h4>
+                                                                <dl class="onepaqucpro-cr-meta-grid is-compact">
+                                                                    <?php foreach ($item['variation'] as $label => $value) : ?>
+                                                                        <div>
+                                                                            <dt><?php echo esc_html(self::format_item_meta_label($label)); ?></dt>
+                                                                            <dd><?php echo esc_html(is_scalar($value) ? (string) $value : wp_json_encode($value)); ?></dd>
+                                                                        </div>
+                                                                    <?php endforeach; ?>
+                                                                </dl>
+                                                            </div>
+                                                        <?php endif; ?>
 
-                                        <?php if (! empty($item['cart_item_data'])) : ?>
-                                            <div class="onepaqucpro-cr-item-card__meta-block">
-                                                <h4><?php esc_html_e('Additional Item Data', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h4>
-                                                <code><?php echo esc_html(wp_json_encode($item['cart_item_data'])); ?></code>
-                                            </div>
-                                        <?php endif; ?>
-                                    </div>
-                                </details>
-                            <?php endforeach; ?>
-                        </div>
+                                                        <?php if (! empty($item['cart_item_data'])) : ?>
+                                                            <div class="onepaqucpro-cr-item-card__meta-block">
+                                                                <h4><?php esc_html_e('Additional Item Data', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h4>
+                                                                <code><?php echo esc_html(wp_json_encode($item['cart_item_data'])); ?></code>
+                                                            </div>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </details>
+                                            <?php endforeach; ?>
+                                        </div>
                                     </div>
                                 </div>
                             </section>
 
                             <section id="<?php echo esc_attr($tab_ids['journey']); ?>" class="onepaqucpro-cr-tabs__panel" role="tabpanel" data-cr-tab-panel="<?php echo esc_attr($tab_ids['journey']); ?>" hidden>
                                 <div class="onepaqucpro-cr-detail__section">
-                        <h3><?php esc_html_e('Totals', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
-                        <dl class="onepaqucpro-cr-meta-grid">
-                            <div><dt><?php esc_html_e('Cart Total', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo wp_kses_post(self::format_currency($cart['cart_total'], $cart['currency'])); ?></dd></div>
-                            <div><dt><?php esc_html_e('Currency', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html($cart['currency']); ?></dd></div>
-                            <div><dt><?php esc_html_e('Item Count', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html(number_format_i18n($cart['item_count'])); ?></dd></div>
-                            <div><dt><?php esc_html_e('Last Updated', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html(self::format_datetime($cart['updated_at'])); ?></dd></div>
-                            <div><dt><?php esc_html_e('Coupons', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html(! empty($cart['coupon_codes']) ? implode(', ', $cart['coupon_codes']) : '-'); ?></dd></div>
-                            <div><dt><?php esc_html_e('Recovery Source', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html($cart['recovery_source'] ? ucfirst(str_replace('_', ' ', $cart['recovery_source'])) : '-'); ?></dd></div>
-                            <div><dt><?php esc_html_e('Recovered Order', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html($cart['recovered_order_id'] ? '#' . $cart['recovered_order_id'] : '-'); ?></dd></div>
-                            <div><dt><?php esc_html_e('Time To Recover', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html(self::format_duration($cart['time_to_recovery_seconds'])); ?></dd></div>
-                        </dl>
+                                    <h3><?php esc_html_e('Totals', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
+                                    <dl class="onepaqucpro-cr-meta-grid">
+                                        <div>
+                                            <dt><?php esc_html_e('Cart Total', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt>
+                                            <dd><?php echo wp_kses_post(self::format_currency($cart['cart_total'], $cart['currency'])); ?></dd>
+                                        </div>
+                                        <div>
+                                            <dt><?php esc_html_e('Currency', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt>
+                                            <dd><?php echo esc_html($cart['currency']); ?></dd>
+                                        </div>
+                                        <div>
+                                            <dt><?php esc_html_e('Item Count', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt>
+                                            <dd><?php echo esc_html(number_format_i18n($cart['item_count'])); ?></dd>
+                                        </div>
+                                        <div>
+                                            <dt><?php esc_html_e('Last Updated', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt>
+                                            <dd><?php echo esc_html(self::format_datetime($cart['updated_at'])); ?></dd>
+                                        </div>
+                                        <div>
+                                            <dt><?php esc_html_e('Coupons', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt>
+                                            <dd><?php echo esc_html(! empty($cart['coupon_codes']) ? implode(', ', $cart['coupon_codes']) : '-'); ?></dd>
+                                        </div>
+                                        <div>
+                                            <dt><?php esc_html_e('Recovery Source', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt>
+                                            <dd><?php echo esc_html($cart['recovery_source'] ? ucfirst(str_replace('_', ' ', $cart['recovery_source'])) : '-'); ?></dd>
+                                        </div>
+                                        <div>
+                                            <dt><?php esc_html_e('Recovered Order', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt>
+                                            <dd><?php echo esc_html($cart['recovered_order_id'] ? '#' . $cart['recovered_order_id'] : '-'); ?></dd>
+                                        </div>
+                                        <div>
+                                            <dt><?php esc_html_e('Time To Recover', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt>
+                                            <dd><?php echo esc_html(self::format_duration($cart['time_to_recovery_seconds'])); ?></dd>
+                                        </div>
+                                    </dl>
                                 </div>
                             </section>
 
                             <section id="<?php echo esc_attr($tab_ids['emails']); ?>" class="onepaqucpro-cr-tabs__panel" role="tabpanel" data-cr-tab-panel="<?php echo esc_attr($tab_ids['emails']); ?>" hidden>
                                 <div class="onepaqucpro-cr-detail__section">
-                        <h3><?php esc_html_e('Customer Journey', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
-                        <div class="onepaqucpro-cr-journey-list">
-                            <?php foreach ($cart['journey'] as $event) : ?>
-                                <article class="onepaqucpro-cr-journey-event">
-                                    <div class="onepaqucpro-cr-journey-event__icon">
-                                        <span class="dashicons <?php echo esc_attr(self::get_event_icon($event['type'])); ?>"></span>
-                                    </div>
-                                    <div class="onepaqucpro-cr-journey-event__body">
-                                        <div class="onepaqucpro-cr-journey-event__header">
-                                            <strong><?php echo esc_html($event['title']); ?></strong>
-                                            <span><?php echo esc_html(self::get_relative_time($event['time'])); ?></span>
-                                        </div>
-                                        <dl class="onepaqucpro-cr-meta-grid is-compact">
-                                            <?php foreach ($event['meta'] as $label => $value) : ?>
-                                                <div>
-                                                    <dt><?php echo esc_html($label); ?></dt>
-                                                    <dd><?php echo is_string($value) && false !== strpos($value, 'Mozilla/') ? '<code>' . esc_html($value) . '</code>' : wp_kses_post($value); ?></dd>
+                                    <h3><?php esc_html_e('Customer Journey', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
+                                    <div class="onepaqucpro-cr-journey-list">
+                                        <?php foreach ($cart['journey'] as $event) : ?>
+                                            <article class="onepaqucpro-cr-journey-event">
+                                                <div class="onepaqucpro-cr-journey-event__icon">
+                                                    <span class="dashicons <?php echo esc_attr(self::get_event_icon($event['type'])); ?>"></span>
                                                 </div>
-                                            <?php endforeach; ?>
-                                        </dl>
+                                                <div class="onepaqucpro-cr-journey-event__body">
+                                                    <div class="onepaqucpro-cr-journey-event__header">
+                                                        <strong><?php echo esc_html($event['title']); ?></strong>
+                                                        <span><?php echo esc_html(self::get_relative_time($event['time'])); ?></span>
+                                                    </div>
+                                                    <dl class="onepaqucpro-cr-meta-grid is-compact">
+                                                        <?php foreach ($event['meta'] as $label => $value) : ?>
+                                                            <div>
+                                                                <dt><?php echo esc_html($label); ?></dt>
+                                                                <dd><?php echo is_string($value) && false !== strpos($value, 'Mozilla/') ? '<code>' . esc_html($value) . '</code>' : wp_kses_post($value); ?></dd>
+                                                            </div>
+                                                        <?php endforeach; ?>
+                                                    </dl>
+                                                </div>
+                                            </article>
+                                        <?php endforeach; ?>
                                     </div>
-                                </article>
-                            <?php endforeach; ?>
-                        </div>
                                 </div>
                             </section>
 
                             <section id="<?php echo esc_attr($tab_ids['admin']); ?>" class="onepaqucpro-cr-tabs__panel" role="tabpanel" data-cr-tab-panel="<?php echo esc_attr($tab_ids['admin']); ?>" hidden>
                                 <div class="onepaqucpro-cr-panel-grid onepaqucpro-cr-panel-grid--sidebar">
                                     <div class="onepaqucpro-cr-detail__section">
-                        <h3><?php esc_html_e('Email History', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
-                        <?php if (! empty($cart['email_history'])) : ?>
-                            <div class="onepaqucpro-cr-email-history">
-                                <?php foreach ($cart['email_history'] as $email) : ?>
-                                    <article class="onepaqucpro-cr-email-history__item">
-                                        <div>
-                                            <strong><?php echo esc_html($email['subject']); ?></strong>
-                                            <span><?php echo esc_html(self::format_datetime($email['sent_at'])); ?></span>
-                                        </div>
-                                        <?php echo wp_kses_post(self::render_email_status_badge($email['status'])); ?>
-                                    </article>
-                                <?php endforeach; ?>
-                            </div>
-                        <?php else : ?>
-                            <div class="onepaqucpro-cr-empty-state">
-                                <span class="dashicons dashicons-email-alt" aria-hidden="true"></span>
-                                <p><?php esc_html_e('No recovery emails have been sent for this cart yet.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
-                            </div>
-                        <?php endif; ?>
-                        <a class="button button-secondary" href="<?php echo esc_url($activity_url); ?>"><?php esc_html_e('View Activity', 'one-page-quick-checkout-for-woocommerce-pro'); ?></a>
-                    </div>
-
-                    <div class="onepaqucpro-cr-detail__section">
-                        <h3><?php esc_html_e('Metadata', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
-                        <dl class="onepaqucpro-cr-meta-grid">
-                            <div><dt><?php esc_html_e('Session ID', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><code><?php echo esc_html($cart['session_id']); ?></code></dd></div>
-                            <div><dt><?php esc_html_e('Status', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html(ucfirst($cart['status'])); ?></dd></div>
-                            <div><dt><?php esc_html_e('Created', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html(self::format_datetime($cart['created_at'])); ?></dd></div>
-                            <div><dt><?php esc_html_e('Updated', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html(self::format_datetime($cart['updated_at'])); ?></dd></div>
-                            <div><dt><?php esc_html_e('Referrer', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html($cart['referrer_url'] ? $cart['referrer_url'] : '-'); ?></dd></div>
-                            <div><dt><?php esc_html_e('Entry URL', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html($cart['entry_url'] ? $cart['entry_url'] : '-'); ?></dd></div>
-                        </dl>
-                    </div>
-
-                    <div class="onepaqucpro-cr-detail__section onepaqucpro-cr-notes-panel">
-                        <div class="onepaqucpro-cr-section-heading">
-                            <div>
-                                <h3><?php esc_html_e('Marketing Notes', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
-                                <p><?php esc_html_e('Private context for follow-up, segmentation, and recovery decisions.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
-                            </div>
-                        </div>
-
-                        <div class="onepaqucpro-cr-notes-summary">
-                            <div class="onepaqucpro-cr-saved-note">
-                                <div class="onepaqucpro-cr-note-header">
-                                    <span><?php esc_html_e('Saved note', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
-                                    <div class="onepaqucpro-cr-note-actions">
-                                        <button type="button" class="button button-secondary button-small" data-cr-note-edit="<?php echo esc_attr($note_form_id); ?>">
-                                            <?php echo esc_html(! empty($cart['notes']) ? __('Edit', 'one-page-quick-checkout-for-woocommerce-pro') : __('Add Note', 'one-page-quick-checkout-for-woocommerce-pro')); ?>
-                                        </button>
-                                        <?php if (! empty($cart['notes'])) : ?>
-                                            <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" class="onepaqucpro-cr-note-delete-form" data-cr-note-delete>
-                                                <input type="hidden" name="action" value="onepaqucpro_cart_recovery_save_cart_meta">
-                                                <input type="hidden" name="cart_id" value="<?php echo esc_attr($cart['id']); ?>">
-                                                <input type="hidden" name="cart_tags" value="<?php echo esc_attr(implode(', ', $cart['tags'])); ?>">
-                                                <input type="hidden" name="cart_notes" value="">
-                                                <?php wp_nonce_field('onepaqucpro_cart_recovery_save_cart_meta_' . $cart['id']); ?>
-                                                <button type="submit" class="button button-link-delete button-small"><?php esc_html_e('Delete', 'one-page-quick-checkout-for-woocommerce-pro'); ?></button>
-                                            </form>
+                                        <h3><?php esc_html_e('Email History', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
+                                        <?php if (! empty($cart['email_history'])) : ?>
+                                            <div class="onepaqucpro-cr-email-history">
+                                                <?php foreach ($cart['email_history'] as $email) : ?>
+                                                    <article class="onepaqucpro-cr-email-history__item">
+                                                        <div>
+                                                            <strong><?php echo esc_html($email['subject']); ?></strong>
+                                                            <span><?php echo esc_html(self::format_datetime($email['sent_at'])); ?></span>
+                                                        </div>
+                                                        <?php echo wp_kses_post(self::render_email_status_badge($email['status'])); ?>
+                                                    </article>
+                                                <?php endforeach; ?>
+                                            </div>
+                                        <?php else : ?>
+                                            <div class="onepaqucpro-cr-empty-state">
+                                                <span class="dashicons dashicons-email-alt" aria-hidden="true"></span>
+                                                <p><?php esc_html_e('No recovery emails have been sent for this cart yet.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
+                                            </div>
                                         <?php endif; ?>
+                                        <a class="button button-secondary" href="<?php echo esc_url($activity_url); ?>"><?php esc_html_e('View Activity', 'one-page-quick-checkout-for-woocommerce-pro'); ?></a>
                                     </div>
-                                </div>
-                                <?php if (! empty($cart['notes'])) : ?>
-                                    <p><?php echo nl2br(esc_html($cart['notes'])); ?></p>
-                                <?php else : ?>
-                                    <p class="is-empty"><?php esc_html_e('No internal note has been added yet.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
-                                <?php endif; ?>
-                            </div>
-                            <div>
-                                <span><?php esc_html_e('Tags', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
-                                <?php if (! empty($cart['tags'])) : ?>
-                                    <div class="onepaqucpro-cr-note-tags">
-                                        <?php foreach ($cart['tags'] as $tag) : ?>
-                                            <span><?php echo esc_html($tag); ?></span>
-                                        <?php endforeach; ?>
-                                    </div>
-                                <?php else : ?>
-                                    <p class="is-empty"><?php esc_html_e('No tags assigned.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
-                                <?php endif; ?>
-                            </div>
-                        </div>
 
-                        <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" id="<?php echo esc_attr($note_form_id); ?>" class="onepaqucpro-cr-settings-form onepaqucpro-cr-notes-form <?php echo ! empty($cart['notes']) ? 'is-hidden' : ''; ?>" data-cr-note-form>
-                            <input type="hidden" name="action" value="onepaqucpro_cart_recovery_save_cart_meta">
-                            <input type="hidden" name="cart_id" value="<?php echo esc_attr($cart['id']); ?>">
-                            <?php wp_nonce_field('onepaqucpro_cart_recovery_save_cart_meta_' . $cart['id']); ?>
-                            <label>
-                                <span><?php esc_html_e('Edit Tags', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
-                                <input type="text" name="cart_tags" value="<?php echo esc_attr(implode(', ', $cart['tags'])); ?>" placeholder="<?php esc_attr_e('vip, warm-lead', 'one-page-quick-checkout-for-woocommerce-pro'); ?>">
-                                <small><?php esc_html_e('Separate multiple tags with commas.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></small>
-                            </label>
-                            <label>
-                                <span><?php esc_html_e('Edit Internal Note', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
-                                <textarea name="cart_notes" rows="5" placeholder="<?php esc_attr_e('Example: Asked for a discount, prefers WhatsApp follow-up, interested in headset bundles.', 'one-page-quick-checkout-for-woocommerce-pro'); ?>"><?php echo esc_textarea($cart['notes']); ?></textarea>
-                                <small><?php esc_html_e('Visible only to admins. Use this for marketing context, not customer-facing order notes.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></small>
-                            </label>
-                            <div class="onepaqucpro-cr-form-actions">
-                                <button type="submit" class="button button-primary"><?php esc_html_e('Save Marketing Notes', 'one-page-quick-checkout-for-woocommerce-pro'); ?></button>
-                            </div>
-                        </form>
-                    </div>
+                                    <div class="onepaqucpro-cr-detail__section">
+                                        <h3><?php esc_html_e('Metadata', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
+                                        <dl class="onepaqucpro-cr-meta-grid">
+                                            <div>
+                                                <dt><?php esc_html_e('Session ID', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt>
+                                                <dd><code><?php echo esc_html($cart['session_id']); ?></code></dd>
+                                            </div>
+                                            <div>
+                                                <dt><?php esc_html_e('Status', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt>
+                                                <dd><?php echo esc_html(ucfirst($cart['status'])); ?></dd>
+                                            </div>
+                                            <div>
+                                                <dt><?php esc_html_e('Created', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt>
+                                                <dd><?php echo esc_html(self::format_datetime($cart['created_at'])); ?></dd>
+                                            </div>
+                                            <div>
+                                                <dt><?php esc_html_e('Updated', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt>
+                                                <dd><?php echo esc_html(self::format_datetime($cart['updated_at'])); ?></dd>
+                                            </div>
+                                            <div>
+                                                <dt><?php esc_html_e('Referrer', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt>
+                                                <dd><?php echo esc_html($cart['referrer_url'] ? $cart['referrer_url'] : '-'); ?></dd>
+                                            </div>
+                                            <div>
+                                                <dt><?php esc_html_e('Entry URL', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt>
+                                                <dd><?php echo esc_html($cart['entry_url'] ? $cart['entry_url'] : '-'); ?></dd>
+                                            </div>
+                                        </dl>
+                                    </div>
+
+                                    <div class="onepaqucpro-cr-detail__section onepaqucpro-cr-notes-panel">
+                                        <div class="onepaqucpro-cr-section-heading">
+                                            <div>
+                                                <h3><?php esc_html_e('Marketing Notes', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
+                                                <p><?php esc_html_e('Private context for follow-up, segmentation, and recovery decisions.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
+                                            </div>
+                                        </div>
+
+                                        <div class="onepaqucpro-cr-notes-summary">
+                                            <div class="onepaqucpro-cr-saved-note">
+                                                <div class="onepaqucpro-cr-note-header">
+                                                    <span><?php esc_html_e('Saved note', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                                                    <div class="onepaqucpro-cr-note-actions">
+                                                        <button type="button" class="button button-secondary button-small" data-cr-note-edit="<?php echo esc_attr($note_form_id); ?>">
+                                                            <?php echo esc_html(! empty($cart['notes']) ? __('Edit', 'one-page-quick-checkout-for-woocommerce-pro') : __('Add Note', 'one-page-quick-checkout-for-woocommerce-pro')); ?>
+                                                        </button>
+                                                        <?php if (! empty($cart['notes'])) : ?>
+                                                            <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" class="onepaqucpro-cr-note-delete-form" data-cr-note-delete>
+                                                                <input type="hidden" name="action" value="onepaqucpro_cart_recovery_save_cart_meta">
+                                                                <input type="hidden" name="cart_id" value="<?php echo esc_attr($cart['id']); ?>">
+                                                                <input type="hidden" name="cart_tags" value="<?php echo esc_attr(implode(', ', $cart['tags'])); ?>">
+                                                                <input type="hidden" name="cart_notes" value="">
+                                                                <?php wp_nonce_field('onepaqucpro_cart_recovery_save_cart_meta_' . $cart['id']); ?>
+                                                                <button type="submit" class="button button-link-delete button-small"><?php esc_html_e('Delete', 'one-page-quick-checkout-for-woocommerce-pro'); ?></button>
+                                                            </form>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </div>
+                                                <?php if (! empty($cart['notes'])) : ?>
+                                                    <p><?php echo nl2br(esc_html($cart['notes'])); ?></p>
+                                                <?php else : ?>
+                                                    <p class="is-empty"><?php esc_html_e('No internal note has been added yet.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
+                                                <?php endif; ?>
+                                            </div>
+                                            <div>
+                                                <span><?php esc_html_e('Tags', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                                                <?php if (! empty($cart['tags'])) : ?>
+                                                    <div class="onepaqucpro-cr-note-tags">
+                                                        <?php foreach ($cart['tags'] as $tag) : ?>
+                                                            <span><?php echo esc_html($tag); ?></span>
+                                                        <?php endforeach; ?>
+                                                    </div>
+                                                <?php else : ?>
+                                                    <p class="is-empty"><?php esc_html_e('No tags assigned.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+
+                                        <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" id="<?php echo esc_attr($note_form_id); ?>" class="onepaqucpro-cr-settings-form onepaqucpro-cr-notes-form <?php echo ! empty($cart['notes']) ? 'is-hidden' : ''; ?>" data-cr-note-form>
+                                            <input type="hidden" name="action" value="onepaqucpro_cart_recovery_save_cart_meta">
+                                            <input type="hidden" name="cart_id" value="<?php echo esc_attr($cart['id']); ?>">
+                                            <?php wp_nonce_field('onepaqucpro_cart_recovery_save_cart_meta_' . $cart['id']); ?>
+                                            <label>
+                                                <span><?php esc_html_e('Edit Tags', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                                                <input type="text" name="cart_tags" value="<?php echo esc_attr(implode(', ', $cart['tags'])); ?>" placeholder="<?php esc_attr_e('vip, warm-lead', 'one-page-quick-checkout-for-woocommerce-pro'); ?>">
+                                                <small><?php esc_html_e('Separate multiple tags with commas.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></small>
+                                            </label>
+                                            <label>
+                                                <span><?php esc_html_e('Edit Internal Note', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                                                <textarea name="cart_notes" rows="5" placeholder="<?php esc_attr_e('Example: Asked for a discount, prefers WhatsApp follow-up, interested in headset bundles.', 'one-page-quick-checkout-for-woocommerce-pro'); ?>"><?php echo esc_textarea($cart['notes']); ?></textarea>
+                                                <small><?php esc_html_e('Visible only to admins. Use this for marketing context, not customer-facing order notes.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></small>
+                                            </label>
+                                            <div class="onepaqucpro-cr-form-actions">
+                                                <button type="submit" class="button button-primary"><?php esc_html_e('Save Marketing Notes', 'one-page-quick-checkout-for-woocommerce-pro'); ?></button>
+                                            </div>
+                                        </form>
+                                    </div>
                                 </div>
                             </section>
                         </div>
                     </div>
                 </div>
             </template>
-            <?php
+        <?php
         }
     }
 
@@ -2861,7 +3129,6 @@ class Onepaqucpro_Cart_Recovery_Admin
             'inactivity_timeout',
             'retention_days',
             'high_value_threshold',
-            'per_page',
             'excluded_product_ids',
             'excluded_category_ids',
             'excluded_roles',
@@ -2932,6 +3199,52 @@ class Onepaqucpro_Cart_Recovery_Admin
         $base = array('page' => self::PAGE_SLUG);
 
         return add_query_arg(array_merge($base, $args), admin_url('admin.php'));
+    }
+
+    private static function get_product_label($product_id)
+    {
+        $product_id = absint($product_id);
+        $label      = '';
+
+        if (function_exists('wc_get_product')) {
+            $product = wc_get_product($product_id);
+            if ($product) {
+                $label = $product->get_name();
+                if ($product->get_sku()) {
+                    $label .= ' - ' . sprintf(__('SKU: %s', 'one-page-quick-checkout-for-woocommerce-pro'), $product->get_sku());
+                }
+            }
+        }
+
+        if (! $label) {
+            $label = get_the_title($product_id);
+        }
+
+        return $label ? sprintf('#%1$d - %2$s', $product_id, $label) : sprintf(__('Product #%d', 'one-page-quick-checkout-for-woocommerce-pro'), $product_id);
+    }
+
+    private static function get_category_label($category_id)
+    {
+        $category_id = absint($category_id);
+        $term        = get_term($category_id, 'product_cat');
+
+        if ($term && ! is_wp_error($term)) {
+            return sprintf('#%1$d - %2$s', $category_id, $term->name);
+        }
+
+        return sprintf(__('Category #%d', 'one-page-quick-checkout-for-woocommerce-pro'), $category_id);
+    }
+
+    private static function get_role_options()
+    {
+        $roles = array();
+        if (function_exists('wp_roles')) {
+            foreach (wp_roles()->roles as $role_key => $role) {
+                $roles[$role_key] = isset($role['name']) ? translate_user_role($role['name']) : $role_key;
+            }
+        }
+
+        return $roles;
     }
 
     private static function get_status_action_url($cart_id, $status)
@@ -4855,7 +5168,7 @@ class Onepaqucpro_Cart_Recovery_Admin
                 <?php endfor; ?>
             </div>
         </div>
-        <?php
+<?php
     }
 
     private static function get_cart_action_url($cart_id, $action)
