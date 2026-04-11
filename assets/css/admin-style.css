@@ -554,13 +554,13 @@ span.plugincy_sec_icon {
   box-sizing: border-box;
 }
 .plugincy_card {
-  padding: 2rem;
+  padding: 20px;
   background: #fff;
   box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
   border-radius: 8px;
 }
 .plugincy_nav_card {
-  padding: 2rem 0 0;
+  padding: 20px 0 0;
   box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
   border-radius: 8px;
   max-width: 98.5%;

@@ -634,12 +634,14 @@ document.addEventListener("DOMContentLoaded", function () {
     const row = button.closest("tr");
     const detailRow = document.getElementById(button.getAttribute("aria-controls"));
     const label = button.querySelector(".onepaqucpro-cr-row-toggle__label");
+    const closedLabel = button.getAttribute("data-cr-toggle-label") || "Details";
+    const openLabel = button.getAttribute("data-cr-toggle-open-label") || "Hide details";
 
     button.setAttribute("aria-expanded", expanded ? "true" : "false");
     button.classList.toggle("is-expanded", expanded);
 
     if (label) {
-      label.textContent = expanded ? "Hide details" : "Details";
+      label.textContent = expanded ? openLabel : closedLabel;
     }
 
     if (row) {
@@ -712,6 +714,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     table.classList.add("onepaqucpro-cr-responsive-table");
+    table.classList.add("onepaqucpro-cr-responsive-table--" + tableType);
     table.setAttribute("data-cr-responsive-ready", "1");
 
     rows.forEach(function (row, rowIndex) {
@@ -791,8 +794,15 @@ document.addEventListener("DOMContentLoaded", function () {
         toggle.setAttribute("data-cr-row-toggle", "");
         toggle.setAttribute("aria-expanded", "false");
         toggle.setAttribute("aria-controls", detailId);
+        toggle.setAttribute("data-cr-toggle-label", tableType === "templates" ? "Detail" : "Details");
+        toggle.setAttribute(
+          "data-cr-toggle-open-label",
+          tableType === "templates" ? "Hide detail" : "Hide details"
+        );
         toggle.innerHTML =
-          '<span class="dashicons dashicons-arrow-down-alt2" aria-hidden="true"></span><span class="onepaqucpro-cr-row-toggle__label">Details</span>';
+          '<span class="dashicons dashicons-arrow-down-alt2" aria-hidden="true"></span><span class="onepaqucpro-cr-row-toggle__label">' +
+          escapeHtml(tableType === "templates" ? "Detail" : "Details") +
+          "</span>";
         primaryCell.appendChild(toggle);
       }
 
