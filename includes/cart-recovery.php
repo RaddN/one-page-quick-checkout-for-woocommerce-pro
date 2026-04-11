@@ -1307,6 +1307,17 @@ class Onepaqucpro_Cart_Recovery_Admin
         $range       = $context['range'];
         $funnel      = $context['funnel'];
         $stage_keys  = array('created', 'abandoned', 'emailed', 'opened', 'clicked', 'restored', 'recovered');
+        $dropoff_labels = array();
+        $dropoff_values = array();
+
+        foreach ($funnel['stages'] as $index => $stage) {
+            if (0 === $index) {
+                continue;
+            }
+
+            $dropoff_labels[] = $stage['label'];
+            $dropoff_values[] = max(0, isset($stage['drop_off']) ? absint($stage['drop_off']) : 0);
+        }
     ?>
         <section class="onepaqucpro-cr-section">
             <?php self::render_range_toolbar('journey', $range); ?>
@@ -1319,24 +1330,39 @@ class Onepaqucpro_Cart_Recovery_Admin
                     </div>
                 </div>
 
-                <?php
-                self::render_chart_card(
-                    sprintf(
-                        /* translators: %s: date range label. */
-                        __('Customer Journey Funnel - %s', 'one-page-quick-checkout-for-woocommerce-pro'),
-                        $range['label']
-                    ),
-                    __('Unique carts that reached each stage of the recovery journey.', 'one-page-quick-checkout-for-woocommerce-pro'),
-                    array(
-                        'type'   => 'bar',
-                        'labels' => wp_list_pluck($funnel['stages'], 'label'),
-                        'values' => wp_list_pluck($funnel['stages'], 'count'),
-                        'colors' => array('#317ca8', '#279d7f', '#ddb64a', '#f4a51c', '#e16262', '#a06ad7', '#8c98a5'),
-                        'format' => 'number',
-                    ),
-                    true
-                );
-                ?>
+                <div class="onepaqucpro-cr-journey-chart-grid">
+                    <?php
+                    self::render_chart_card(
+                        sprintf(
+                            /* translators: %s: date range label. */
+                            __('Customer Journey Funnel - %s', 'one-page-quick-checkout-for-woocommerce-pro'),
+                            $range['label']
+                        ),
+                        __('Unique carts that reached each stage of the recovery journey.', 'one-page-quick-checkout-for-woocommerce-pro'),
+                        array(
+                            'type'   => 'bar',
+                            'labels' => wp_list_pluck($funnel['stages'], 'label'),
+                            'values' => wp_list_pluck($funnel['stages'], 'count'),
+                            'colors' => array('#317ca8', '#279d7f', '#ddb64a', '#f4a51c', '#e16262', '#a06ad7', '#8c98a5'),
+                            'format' => 'number',
+                        ),
+                        true
+                    );
+
+                    self::render_chart_card(
+                        __('Stage Drop-Off', 'one-page-quick-checkout-for-woocommerce-pro'),
+                        __('Carts lost before reaching each next recovery milestone.', 'one-page-quick-checkout-for-woocommerce-pro'),
+                        array(
+                            'type'   => 'bar',
+                            'labels' => $dropoff_labels,
+                            'values' => $dropoff_values,
+                            'colors' => array('#e16262', '#f4a51c', '#ddb64a', '#a06ad7', '#317ca8', '#8c98a5'),
+                            'format' => 'number',
+                        ),
+                        true
+                    );
+                    ?>
+                </div>
                 <div class="onepaqucpro-cr-stage-table-wrap">
                     <h3><?php esc_html_e('Funnel Stage Metrics', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
                     <table class="widefat fixed striped onepaqucpro-cr-table">

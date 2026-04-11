@@ -885,6 +885,13 @@
   margin-top: 20px;
 }
 
+.onepaqucpro-cr-journey-chart-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+  align-items: start;
+}
+
 .onepaqucpro-cr-card-heading {
   display: flex;
   align-items: flex-start;
@@ -2214,6 +2221,11 @@
   .onepaqucpro-cr-chart-grid {
     grid-template-columns: 1fr;
   }
+
+  .onepaqucpro-cr-journey-chart-grid {
+    grid-template-columns: 1fr;
+  }
+
   .onepaqucpro-cr-toolbar__filters select, .onepaqucpro-cr-toolbar__filters input, .onepaqucpro-cr-inline-field {
     min-width: 220px;
     width: 100%;
