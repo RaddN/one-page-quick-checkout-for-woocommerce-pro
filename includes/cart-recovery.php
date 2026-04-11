@@ -2914,13 +2914,13 @@ class Onepaqucpro_Cart_Recovery_Admin
                                                     </article>
                                                 <?php endforeach; ?>
                                             </div>
+                                            <a class="button button-secondary button-view-activity" href="<?php echo esc_url($activity_url); ?>"><span class="dashicons dashicons-backup"></span> <?php esc_html_e('View Activity', 'one-page-quick-checkout-for-woocommerce-pro'); ?></a>
                                         <?php else : ?>
                                             <div class="onepaqucpro-cr-empty-state">
                                                 <span class="dashicons dashicons-email-alt" aria-hidden="true"></span>
                                                 <p><?php esc_html_e('No recovery emails have been sent for this cart yet.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
                                             </div>
                                         <?php endif; ?>
-                                        <a class="button button-secondary" href="<?php echo esc_url($activity_url); ?>"><?php esc_html_e('View Activity', 'one-page-quick-checkout-for-woocommerce-pro'); ?></a>
                                     </div>
 
                                     <div class="onepaqucpro-cr-detail__section">

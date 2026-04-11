@@ -53,7 +53,7 @@ function onepaqucpro_cart_menu()
 
 function onepaqucpro_cart_recovery_menu_badge_styles()
 {
-    ?>
+?>
     <style>
         #adminmenu .onepaqucpro-menu-new-badge {
             display: inline-block;
@@ -65,6 +65,11 @@ function onepaqucpro_cart_recovery_menu_badge_styles()
             letter-spacing: 0;
             text-transform: uppercase;
             vertical-align: super;
+        }
+
+        .onepaqucpro-hidden-menu-item,
+        #adminmenu a[href="admin.php?page=onepaqucpro_cart_recovery_template"] {
+            display: none !important;
         }
     </style>
     <?php
@@ -83,7 +88,7 @@ function onepaqucpro_cart_text_change_form($textvariable)
     foreach (array_chunk($textvariable, 4, true) as $column) {
         foreach ($column as $name => $label) {
             $value = esc_attr(get_option($name, ''));
-?>
+    ?>
             <label>
                 <?php $onepaquc_helper->sec_head('p', '', '', esc_html($label), 'You can find "' . esc_html($label) . '" in the checkout form or drawer' . ($name === "txt-complete_your_purchase" ? " on single product pages." : ".")); ?>
                 <input type="text" name="<?php echo esc_attr($name); ?>" value="<?php echo esc_attr($value); ?>" />
