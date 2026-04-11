@@ -360,6 +360,7 @@ class Onepaqucpro_Cart_Recovery_Tracker
 
         foreach ($carts as $cart) {
             $items         = self::decode_json(isset($cart['cart_snapshot']) ? $cart['cart_snapshot'] : '', array());
+            $formatted_items = self::format_items_for_admin($items);
             $events        = isset($events_map[(int) $cart['id']]) ? $events_map[(int) $cart['id']] : array();
             $email_history = isset($emails_map[(int) $cart['id']]) ? $emails_map[(int) $cart['id']] : array();
 
@@ -379,12 +380,13 @@ class Onepaqucpro_Cart_Recovery_Tracker
                 'recovered_at'    => $cart['recovered_at'],
                 'recovered_order_id' => (int) $cart['recovered_order_id'],
                 'session_id'      => $cart['session_id'],
-                'product_context' => $cart['product_context'],
+                'product_context' => ! empty($formatted_items) ? implode(', ', array_filter(wp_list_pluck($formatted_items, 'name'))) : $cart['product_context'],
                 'ip_address'      => $cart['ip_address'],
                 'user_agent'      => $cart['user_agent'],
-                'items'           => self::format_items_for_admin($items),
+                'items'           => $formatted_items,
                 'journey'         => $events,
                 'email_history'   => $email_history,
+                'checkout_data'   => self::decode_json(isset($cart['checkout_data']) ? $cart['checkout_data'] : '', array()),
                 'metadata'        => self::decode_json(isset($cart['metadata']) ? $cart['metadata'] : '', array()),
             );
         }
@@ -539,6 +541,10 @@ class Onepaqucpro_Cart_Recovery_Tracker
         );
 
         foreach ($rows as $row) {
+            $metadata = self::decode_json(isset($row['metadata']) ? $row['metadata'] : '', array());
+            unset($metadata['customer_profile']);
+            $metadata['privacy_state'] = 'anonymized';
+
             self::update_cart_row(
                 (int) $row['id'],
                 array(
@@ -547,12 +553,7 @@ class Onepaqucpro_Cart_Recovery_Tracker
                     'ip_address'    => '',
                     'user_agent'    => '',
                     'checkout_data' => wp_json_encode(array()),
-                    'metadata'      => wp_json_encode(array_merge(
-                        self::decode_json(isset($row['metadata']) ? $row['metadata'] : '', array()),
-                        array(
-                            'privacy_state' => 'anonymized',
-                        )
-                    )),
+                    'metadata'      => wp_json_encode($metadata),
                 )
             );
         }
@@ -586,7 +587,7 @@ class Onepaqucpro_Cart_Recovery_Tracker
         $checkout_data = isset($context['checkout_data']) && is_array($context['checkout_data']) ? $context['checkout_data'] : array();
         $identity      = self::build_customer_identity($checkout_data);
 
-        if (empty($identity['email']) && empty($identity['customer_id'])) {
+        if (empty($identity['email']) && empty($identity['customer_id']) && empty($identity['phone'])) {
             return;
         }
 
@@ -723,13 +724,14 @@ class Onepaqucpro_Cart_Recovery_Tracker
         global $wpdb;
 
         $now = $order->get_date_created() ? $order->get_date_created()->date('Y-m-d H:i:s') : current_time('mysql');
+        $order_identity = self::build_customer_identity_from_order($order);
 
         $wpdb->update(
             self::get_carts_table(),
             array(
                 'status'             => 'recovered',
                 'customer_id'        => (int) $order->get_customer_id(),
-                'customer_name'      => trim($order->get_billing_first_name() . ' ' . $order->get_billing_last_name()),
+                'customer_name'      => $order_identity['customer_name'],
                 'email'              => $order->get_billing_email(),
                 'recovered_at'       => $now,
                 'recovered_order_id' => (int) $order->get_id(),
@@ -740,6 +742,11 @@ class Onepaqucpro_Cart_Recovery_Tracker
             array('%d')
         );
 
+        $existing_metadata = self::decode_json(isset($cart['metadata']) ? $cart['metadata'] : '', array());
+        self::merge_cart_metadata((int) $cart['id'], array(
+            'customer_profile' => self::build_customer_profile($order_identity, $existing_metadata),
+        ));
+
         self::insert_event(
             (int) $cart['id'],
             'cart_recovered',
@@ -748,6 +755,7 @@ class Onepaqucpro_Cart_Recovery_Tracker
             array(
                 __('Order', 'one-page-quick-checkout-for-woocommerce-pro')             => '#' . $order->get_order_number(),
                 __('Recovered Revenue', 'one-page-quick-checkout-for-woocommerce-pro') => wc_price($order->get_total(), array('currency' => $order->get_currency())),
+                __('Phone', 'one-page-quick-checkout-for-woocommerce-pro')             => $order_identity['phone'],
                 __('Status', 'one-page-quick-checkout-for-woocommerce-pro')            => __('Recovered', 'one-page-quick-checkout-for-woocommerce-pro'),
             )
         );
@@ -1239,6 +1247,27 @@ class Onepaqucpro_Cart_Recovery_Tracker
             $line_subtotal = isset($cart_item['line_subtotal']) ? (float) $cart_item['line_subtotal'] : $line_total;
             $variation     = isset($cart_item['variation']) && is_array($cart_item['variation']) ? array_map('wc_clean', $cart_item['variation']) : array();
             $custom_data   = $cart_item;
+            $parent_product = $product_id ? wc_get_product($product_id) : null;
+            $image_id       = method_exists($product, 'get_image_id') ? absint($product->get_image_id()) : 0;
+
+            if (! $image_id && $parent_product && method_exists($parent_product, 'get_image_id')) {
+                $image_id = absint($parent_product->get_image_id());
+            }
+
+            $image_url = $image_id ? wp_get_attachment_image_url($image_id, 'thumbnail') : '';
+            if (! $image_url && function_exists('wc_placeholder_img_src')) {
+                $image_url = wc_placeholder_img_src('thumbnail');
+            }
+
+            $product_url = method_exists($product, 'get_permalink') ? $product->get_permalink() : '';
+            if (! $product_url && $product_id) {
+                $product_url = get_permalink($product_id);
+            }
+
+            $categories = $product_id ? wp_get_post_terms($product_id, 'product_cat', array('fields' => 'names')) : array();
+            if (is_wp_error($categories)) {
+                $categories = array();
+            }
 
             unset($custom_data['data']);
             unset($custom_data['line_tax_data']);
@@ -1256,10 +1285,18 @@ class Onepaqucpro_Cart_Recovery_Tracker
             $items[] = array(
                 'product_id'     => $product_id,
                 'variation_id'   => $variation_id,
-                'name'           => self::get_item_name($product, $variation),
+                'name'           => self::get_item_name($product, $variation, $product_id),
                 'quantity'       => $quantity,
+                'unit_price'     => $quantity > 0 ? $line_total / $quantity : $line_total,
+                'subtotal'       => $line_subtotal,
                 'price'          => $line_total,
                 'discount'       => max(0, $line_subtotal - $line_total),
+                'sku'            => method_exists($product, 'get_sku') ? $product->get_sku() : '',
+                'product_url'    => $product_url ? esc_url_raw($product_url) : '',
+                'image_url'      => $image_url ? esc_url_raw($image_url) : '',
+                'product_type'   => method_exists($product, 'get_type') ? $product->get_type() : '',
+                'stock_status'   => method_exists($product, 'get_stock_status') ? $product->get_stock_status() : '',
+                'categories'     => array_values(array_filter(array_map('sanitize_text_field', $categories))),
                 'variation'      => $variation,
                 'cart_item_data' => self::sanitize_recursive($custom_data),
             );
@@ -1278,27 +1315,14 @@ class Onepaqucpro_Cart_Recovery_Tracker
     private static function build_customer_identity($checkout_data)
     {
         $customer_id = get_current_user_id();
-        $email       = '';
-        $first_name  = '';
-        $last_name   = '';
-
-        if (! empty($checkout_data['billing_email'])) {
-            $email = sanitize_email($checkout_data['billing_email']);
-        } elseif (! empty($checkout_data['email'])) {
-            $email = sanitize_email($checkout_data['email']);
-        }
-
-        if (! empty($checkout_data['billing_first_name'])) {
-            $first_name = sanitize_text_field($checkout_data['billing_first_name']);
-        } elseif (! empty($checkout_data['first-name'])) {
-            $first_name = sanitize_text_field($checkout_data['first-name']);
-        }
-
-        if (! empty($checkout_data['billing_last_name'])) {
-            $last_name = sanitize_text_field($checkout_data['billing_last_name']);
-        } elseif (! empty($checkout_data['last-name'])) {
-            $last_name = sanitize_text_field($checkout_data['last-name']);
-        }
+        $billing     = self::build_customer_address_profile($checkout_data, 'billing', $customer_id);
+        $shipping    = self::build_customer_address_profile($checkout_data, 'shipping', $customer_id);
+        $email       = isset($billing['email']) ? sanitize_email($billing['email']) : '';
+        $first_name  = isset($billing['first_name']) ? sanitize_text_field($billing['first_name']) : '';
+        $last_name   = isset($billing['last_name']) ? sanitize_text_field($billing['last_name']) : '';
+        $phone       = isset($billing['phone']) ? self::sanitize_phone_number($billing['phone']) : '';
+        $company     = isset($billing['company']) ? sanitize_text_field($billing['company']) : '';
+        $order_notes = self::get_checkout_value($checkout_data, array('order_comments', 'order-notes', 'customer_note'));
 
         if (function_exists('WC') && WC()->customer) {
             if (! $email && method_exists(WC()->customer, 'get_billing_email')) {
@@ -1309,6 +1333,12 @@ class Onepaqucpro_Cart_Recovery_Tracker
             }
             if (! $last_name && method_exists(WC()->customer, 'get_billing_last_name')) {
                 $last_name = sanitize_text_field(WC()->customer->get_billing_last_name());
+            }
+            if (! $phone && method_exists(WC()->customer, 'get_billing_phone')) {
+                $phone = self::sanitize_phone_number(WC()->customer->get_billing_phone());
+            }
+            if (! $company && method_exists(WC()->customer, 'get_billing_company')) {
+                $company = sanitize_text_field(WC()->customer->get_billing_company());
             }
         }
 
@@ -1323,6 +1353,12 @@ class Onepaqucpro_Cart_Recovery_Tracker
                 }
                 if (! $last_name) {
                     $last_name = sanitize_text_field(get_user_meta($customer_id, 'last_name', true));
+                }
+                if (! $phone) {
+                    $phone = self::sanitize_phone_number(get_user_meta($customer_id, 'billing_phone', true));
+                }
+                if (! $company) {
+                    $company = sanitize_text_field(get_user_meta($customer_id, 'billing_company', true));
                 }
                 if (! $first_name && ! $last_name) {
                     $first_name = sanitize_text_field($user->display_name);
@@ -1340,7 +1376,237 @@ class Onepaqucpro_Cart_Recovery_Tracker
             'email'         => $email,
             'customer_name' => $customer_name,
             'first_name'    => $first_name ? $first_name : $customer_name,
+            'last_name'     => $last_name,
+            'phone'         => $phone,
+            'company'       => $company,
+            'billing'       => $billing,
+            'shipping'      => $shipping,
+            'order_notes'   => $order_notes,
         );
+    }
+
+    private static function build_customer_identity_from_order($order)
+    {
+        $billing  = self::build_order_address_profile($order, 'billing');
+        $shipping = self::build_order_address_profile($order, 'shipping');
+        $email    = $order->get_billing_email();
+        $phone    = method_exists($order, 'get_billing_phone') ? $order->get_billing_phone() : '';
+        $company  = method_exists($order, 'get_billing_company') ? $order->get_billing_company() : '';
+
+        $first_name = $order->get_billing_first_name();
+        $last_name  = $order->get_billing_last_name();
+        $name       = trim($first_name . ' ' . $last_name);
+
+        if (! $name) {
+            $name = $email ? $email : __('Guest Customer', 'one-page-quick-checkout-for-woocommerce-pro');
+        }
+
+        return array(
+            'customer_id'   => (int) $order->get_customer_id(),
+            'email'         => sanitize_email($email),
+            'customer_name' => sanitize_text_field($name),
+            'first_name'    => sanitize_text_field($first_name ? $first_name : $name),
+            'last_name'     => sanitize_text_field($last_name),
+            'phone'         => self::sanitize_phone_number($phone),
+            'company'       => sanitize_text_field($company),
+            'billing'       => $billing,
+            'shipping'      => $shipping,
+            'order_notes'   => method_exists($order, 'get_customer_note') ? sanitize_textarea_field($order->get_customer_note()) : '',
+        );
+    }
+
+    private static function build_order_address_profile($order, $type)
+    {
+        $type   = 'shipping' === $type ? 'shipping' : 'billing';
+        $fields = array('first_name', 'last_name', 'company', 'address_1', 'address_2', 'city', 'state', 'postcode', 'country', 'phone', 'email');
+        $profile = array();
+
+        foreach ($fields as $field) {
+            if ('shipping' === $type && 'email' === $field) {
+                continue;
+            }
+
+            $method = 'get_' . $type . '_' . $field;
+            if (! method_exists($order, $method)) {
+                continue;
+            }
+
+            $value = $order->{$method}();
+            if ('email' === $field) {
+                $value = sanitize_email($value);
+            } elseif ('phone' === $field) {
+                $value = self::sanitize_phone_number($value);
+            } else {
+                $value = sanitize_text_field($value);
+            }
+
+            if ('' !== $value) {
+                $profile[$field] = $value;
+            }
+        }
+
+        return $profile;
+    }
+
+    private static function build_customer_address_profile($checkout_data, $type, $customer_id = 0)
+    {
+        $type = 'shipping' === $type ? 'shipping' : 'billing';
+
+        if ('billing' === $type) {
+            $field_aliases = array(
+                'first_name' => array('billing_first_name', 'first-name', 'first_name', 'billing-first-name'),
+                'last_name'  => array('billing_last_name', 'last-name', 'last_name', 'billing-last-name'),
+                'company'    => array('billing_company', 'company', 'billing-company'),
+                'email'      => array('billing_email', 'email', 'billing-email'),
+                'phone'      => array('billing_phone', 'phone', 'billing-phone'),
+                'address_1'  => array('billing_address_1', 'address', 'address_1', 'billing-address'),
+                'address_2'  => array('billing_address_2', 'address2', 'address_2', 'billing-address2'),
+                'city'       => array('billing_city', 'city', 'billing-city'),
+                'state'      => array('billing_state', 'state', 'billing-state'),
+                'postcode'   => array('billing_postcode', 'postcode', 'billing-postcode'),
+                'country'    => array('billing_country', 'country', 'billing-country'),
+            );
+        } else {
+            $field_aliases = array(
+                'first_name' => array('shipping_first_name', 'shipping-first-name'),
+                'last_name'  => array('shipping_last_name', 'shipping-last-name'),
+                'company'    => array('shipping_company', 'shipping-company'),
+                'phone'      => array('shipping_phone', 'shipping-phone'),
+                'address_1'  => array('shipping_address_1', 'shipping-address'),
+                'address_2'  => array('shipping_address_2', 'shipping-address2'),
+                'city'       => array('shipping_city', 'shipping-city'),
+                'state'      => array('shipping_state', 'shipping-state'),
+                'postcode'   => array('shipping_postcode', 'shipping-postcode'),
+                'country'    => array('shipping_country', 'shipping-country'),
+            );
+        }
+
+        $profile = array();
+        foreach ($field_aliases as $field => $aliases) {
+            $value = self::get_checkout_value($checkout_data, $aliases);
+
+            if (! $value && function_exists('WC') && WC()->customer) {
+                $method = 'get_' . $type . '_' . $field;
+                if (method_exists(WC()->customer, $method)) {
+                    $value = WC()->customer->{$method}();
+                }
+            }
+
+            if (! $value && $customer_id) {
+                $value = get_user_meta($customer_id, $type . '_' . $field, true);
+            }
+
+            if ('email' === $field) {
+                $value = sanitize_email($value);
+            } elseif ('phone' === $field) {
+                $value = self::sanitize_phone_number($value);
+            } else {
+                $value = sanitize_text_field($value);
+            }
+
+            if ('' !== $value) {
+                $profile[$field] = $value;
+            }
+        }
+
+        return $profile;
+    }
+
+    private static function get_checkout_value($checkout_data, $keys)
+    {
+        if (! is_array($checkout_data)) {
+            return '';
+        }
+
+        foreach ((array) $keys as $key) {
+            if (! isset($checkout_data[$key]) || ! is_scalar($checkout_data[$key])) {
+                continue;
+            }
+
+            $value = trim((string) wp_unslash($checkout_data[$key]));
+            if ('' !== $value) {
+                return sanitize_text_field($value);
+            }
+        }
+
+        return '';
+    }
+
+    private static function sanitize_phone_number($phone)
+    {
+        $phone = is_scalar($phone) ? trim((string) $phone) : '';
+        if ('' === $phone) {
+            return '';
+        }
+
+        if (function_exists('wc_sanitize_phone_number')) {
+            return wc_sanitize_phone_number($phone);
+        }
+
+        return trim(preg_replace('/[^0-9+()\-\s.]/', '', sanitize_text_field($phone)));
+    }
+
+    private static function build_customer_profile($identity, $existing_metadata = array())
+    {
+        $existing_profile = isset($existing_metadata['customer_profile']) && is_array($existing_metadata['customer_profile'])
+            ? $existing_metadata['customer_profile']
+            : array();
+
+        $billing  = isset($identity['billing']) && is_array($identity['billing']) ? $identity['billing'] : array();
+        $shipping = isset($identity['shipping']) && is_array($identity['shipping']) ? $identity['shipping'] : array();
+        $company  = isset($identity['company']) ? sanitize_text_field($identity['company']) : '';
+
+        if (! $company && ! empty($billing['company'])) {
+            $company = sanitize_text_field($billing['company']);
+        }
+
+        $profile = array(
+            'customer_id'      => isset($identity['customer_id']) ? absint($identity['customer_id']) : 0,
+            'customer_name'    => isset($identity['customer_name']) ? sanitize_text_field($identity['customer_name']) : '',
+            'first_name'       => isset($identity['first_name']) ? sanitize_text_field($identity['first_name']) : '',
+            'last_name'        => isset($identity['last_name']) ? sanitize_text_field($identity['last_name']) : '',
+            'email'            => isset($identity['email']) ? sanitize_email($identity['email']) : '',
+            'phone'            => isset($identity['phone']) ? self::sanitize_phone_number($identity['phone']) : '',
+            'company'          => $company,
+            'billing_address'  => $billing,
+            'shipping_address' => $shipping,
+            'order_notes'      => isset($identity['order_notes']) ? sanitize_textarea_field($identity['order_notes']) : '',
+        );
+
+        if (empty($profile['phone']) && ! empty($billing['phone'])) {
+            $profile['phone'] = self::sanitize_phone_number($billing['phone']);
+        }
+
+        return self::merge_profile_data($existing_profile, self::sanitize_recursive($profile));
+    }
+
+    private static function merge_profile_data($existing, $incoming)
+    {
+        $existing = is_array($existing) ? $existing : array();
+        $incoming = is_array($incoming) ? $incoming : array();
+        $merged   = $existing;
+
+        foreach ($incoming as $key => $value) {
+            if (is_array($value)) {
+                $merged[$key] = self::merge_profile_data(
+                    isset($merged[$key]) && is_array($merged[$key]) ? $merged[$key] : array(),
+                    $value
+                );
+                continue;
+            }
+
+            if ('customer_id' === $key && empty($value)) {
+                continue;
+            }
+
+            if ('' === (string) $value) {
+                continue;
+            }
+
+            $merged[$key] = $value;
+        }
+
+        return $merged;
     }
 
     private static function build_metadata($snapshot, $checkout_data, $identity, $existing_metadata = array())
@@ -1355,12 +1621,18 @@ class Onepaqucpro_Cart_Recovery_Tracker
             }
 
             $product_ids[] = $product_id;
-            $category_ids  = array_merge($category_ids, wp_get_post_terms($product_id, 'product_cat', array('fields' => 'ids')));
+            $item_category_ids = wp_get_post_terms($product_id, 'product_cat', array('fields' => 'ids'));
+            if (! is_wp_error($item_category_ids)) {
+                $category_ids = array_merge($category_ids, $item_category_ids);
+            }
         }
+
+        $customer_profile = self::build_customer_profile($identity, $existing_metadata);
 
         return array(
             'coupon_codes'    => function_exists('WC') && WC()->cart ? array_values(WC()->cart->get_applied_coupons()) : array(),
             'checkout_data'   => self::sanitize_recursive($checkout_data),
+            'customer_profile' => $customer_profile,
             'item_count'      => count($snapshot['items']),
             'product_ids'     => array_values(array_unique(array_filter(array_map('absint', $product_ids)))),
             'category_ids'    => array_values(array_unique(array_filter(array_map('absint', $category_ids)))),
@@ -1386,6 +1658,7 @@ class Onepaqucpro_Cart_Recovery_Tracker
             __('Cart Total', 'one-page-quick-checkout-for-woocommerce-pro')    => wc_price($snapshot['cart_total'], array('currency' => $snapshot['currency'])),
             __('Item Count', 'one-page-quick-checkout-for-woocommerce-pro')    => (string) count($snapshot['items']),
             __('Email', 'one-page-quick-checkout-for-woocommerce-pro')         => $identity['email'],
+            __('Phone', 'one-page-quick-checkout-for-woocommerce-pro')         => isset($identity['phone']) ? $identity['phone'] : '',
             __('Customer Name', 'one-page-quick-checkout-for-woocommerce-pro') => $identity['customer_name'],
             __('IP Address', 'one-page-quick-checkout-for-woocommerce-pro')    => $ip_address,
             __('User Agent', 'one-page-quick-checkout-for-woocommerce-pro')    => $user_agent,
@@ -1407,6 +1680,10 @@ class Onepaqucpro_Cart_Recovery_Tracker
 
         if (! empty($identity['customer_name'])) {
             $meta[__('Customer Name', 'one-page-quick-checkout-for-woocommerce-pro')] = $identity['customer_name'];
+        }
+
+        if (! empty($identity['phone'])) {
+            $meta[__('Phone', 'one-page-quick-checkout-for-woocommerce-pro')] = $identity['phone'];
         }
 
         return $meta;
@@ -1666,15 +1943,106 @@ class Onepaqucpro_Cart_Recovery_Tracker
                 continue;
             }
 
+            $product_id   = isset($item['product_id']) ? absint($item['product_id']) : 0;
+            $variation_id = isset($item['variation_id']) ? absint($item['variation_id']) : 0;
+            $product      = function_exists('wc_get_product') ? wc_get_product($variation_id ? $variation_id : $product_id) : null;
+            $parent_product = $product_id && function_exists('wc_get_product') ? wc_get_product($product_id) : null;
+            $image_url    = isset($item['image_url']) ? esc_url_raw($item['image_url']) : '';
+            $product_url  = isset($item['product_url']) ? esc_url_raw($item['product_url']) : '';
+            $sku          = isset($item['sku']) ? sanitize_text_field($item['sku']) : '';
+            $categories   = isset($item['categories']) && is_array($item['categories']) ? array_values(array_filter(array_map('sanitize_text_field', $item['categories']))) : array();
+            $display_name = isset($item['name']) ? sanitize_text_field($item['name']) : '';
+
+            if ($product) {
+                if (! $image_url) {
+                    $image_id = method_exists($product, 'get_image_id') ? absint($product->get_image_id()) : 0;
+                    if (! $image_id && $product_id) {
+                        $image_id       = $parent_product && method_exists($parent_product, 'get_image_id') ? absint($parent_product->get_image_id()) : 0;
+                    }
+                    $image_url = $image_id ? wp_get_attachment_image_url($image_id, 'thumbnail') : '';
+                }
+
+                if (! $product_url && method_exists($product, 'get_permalink')) {
+                    $product_url = $product->get_permalink();
+                }
+
+                if (! $sku && method_exists($product, 'get_sku')) {
+                    $sku = $product->get_sku();
+                }
+            }
+
+            if ($variation_id && $product && method_exists($product, 'get_name')) {
+                $display_name = sanitize_text_field($product->get_name());
+            }
+
+            if (! empty($item['variation']) && is_array($item['variation'])) {
+                $display_name = self::strip_variation_suffix_from_item_name($display_name, $item['variation']);
+            }
+
+            if (! $image_url && function_exists('wc_placeholder_img_src')) {
+                $image_url = wc_placeholder_img_src('thumbnail');
+            }
+
+            if (empty($categories) && $product_id) {
+                $category_names = wp_get_post_terms($product_id, 'product_cat', array('fields' => 'names'));
+                if (! is_wp_error($category_names)) {
+                    $categories = array_values(array_filter(array_map('sanitize_text_field', $category_names)));
+                }
+            }
+
+            $price    = isset($item['price']) ? (float) $item['price'] : 0;
+            $discount = isset($item['discount']) ? (float) $item['discount'] : 0;
+            $subtotal = isset($item['subtotal']) ? (float) $item['subtotal'] : $price + $discount;
+            $quantity = isset($item['quantity']) ? max(1, (int) $item['quantity']) : 1;
+
             $formatted[] = array(
-                'name'     => isset($item['name']) ? $item['name'] : '',
-                'quantity' => isset($item['quantity']) ? (int) $item['quantity'] : 1,
-                'price'    => isset($item['price']) ? (float) $item['price'] : 0,
-                'discount' => isset($item['discount']) ? (float) $item['discount'] : 0,
+                'product_id'     => $product_id,
+                'variation_id'   => $variation_id,
+                'name'           => $display_name,
+                'quantity'       => $quantity,
+                'unit_price'     => isset($item['unit_price']) ? (float) $item['unit_price'] : ($quantity > 0 ? $price / $quantity : $price),
+                'subtotal'       => $subtotal,
+                'price'          => $price,
+                'discount'       => $discount,
+                'sku'            => sanitize_text_field($sku),
+                'product_url'    => $product_url ? esc_url_raw($product_url) : '',
+                'image_url'      => $image_url ? esc_url_raw($image_url) : '',
+                'product_type'   => isset($item['product_type']) ? sanitize_text_field($item['product_type']) : ($product && method_exists($product, 'get_type') ? $product->get_type() : ''),
+                'stock_status'   => isset($item['stock_status']) ? sanitize_text_field($item['stock_status']) : ($product && method_exists($product, 'get_stock_status') ? $product->get_stock_status() : ''),
+                'categories'     => $categories,
+                'variation'      => isset($item['variation']) && is_array($item['variation']) ? self::sanitize_recursive($item['variation']) : array(),
+                'cart_item_data' => isset($item['cart_item_data']) && is_array($item['cart_item_data']) ? self::sanitize_recursive($item['cart_item_data']) : array(),
             );
         }
 
         return $formatted;
+    }
+
+    private static function strip_variation_suffix_from_item_name($name, $variation)
+    {
+        $name = sanitize_text_field($name);
+        if (! $name || empty($variation) || ! is_array($variation)) {
+            return $name;
+        }
+
+        $pairs  = array();
+
+        foreach ($variation as $key => $value) {
+            if (! is_scalar($value) || '' === (string) $value) {
+                continue;
+            }
+
+            $clean_value = sanitize_text_field($value);
+
+            $label = function_exists('wc_attribute_label') ? wc_attribute_label(str_replace('attribute_', '', $key)) : str_replace(array('attribute_', 'pa_', '_', '-'), array('', '', ' ', ' '), $key);
+            $pairs[] = preg_quote($label, '/') . '\s*:\s*' . preg_quote($clean_value, '/');
+        }
+
+        if (! empty($pairs)) {
+            $name = preg_replace('/\s*\(\s*' . implode('\s*,\s*', $pairs) . '\s*\)\s*$/i', '', $name);
+        }
+
+        return trim($name);
     }
 
     private static function cleanup_expired_rows($settings)
@@ -1912,22 +2280,10 @@ class Onepaqucpro_Cart_Recovery_Tracker
         return ! empty($parts[0]) ? $parts[0] : __('Customer', 'one-page-quick-checkout-for-woocommerce-pro');
     }
 
-    private static function get_item_name($product, $variation)
+    private static function get_item_name($product, $variation, $product_id = 0)
     {
         $name = $product->get_name();
-        if (! empty($variation)) {
-            $pairs = array();
-            foreach ($variation as $key => $value) {
-                $label   = wc_attribute_label(str_replace('attribute_', '', $key));
-                $pairs[] = $label . ': ' . $value;
-            }
-
-            if (! empty($pairs)) {
-                $name .= ' (' . implode(', ', $pairs) . ')';
-            }
-        }
-
-        return $name;
+        return ! empty($variation) ? self::strip_variation_suffix_from_item_name($name, $variation) : $name;
     }
 
     private static function get_client_ip()
@@ -2327,7 +2683,7 @@ class Onepaqucpro_Cart_Recovery_Tracker
             return $value ? 1 : 0;
         }
 
-        if (is_numeric($value)) {
+        if (is_int($value) || is_float($value)) {
             return $value + 0;
         }
 

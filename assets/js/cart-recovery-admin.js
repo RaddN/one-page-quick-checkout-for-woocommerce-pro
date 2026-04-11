@@ -416,6 +416,24 @@ document.addEventListener("DOMContentLoaded", function () {
     wrapper.setAttribute("data-template-index", String(nextIndex + 1));
   }
 
+  function showNoteForm(button) {
+    const formId = button ? button.getAttribute("data-cr-note-edit") : "";
+    if (!formId) {
+      return;
+    }
+
+    const form = document.getElementById(formId);
+    if (!form) {
+      return;
+    }
+
+    form.classList.remove("is-hidden");
+    const noteField = form.querySelector('textarea[name="cart_notes"]');
+    if (noteField) {
+      noteField.focus();
+    }
+  }
+
   document.addEventListener("click", function (event) {
     const openButton = event.target.closest(".onepaqucpro-cr-open-modal");
     if (openButton) {
@@ -443,6 +461,13 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
+    const noteEditButton = event.target.closest("[data-cr-note-edit]");
+    if (noteEditButton) {
+      event.preventDefault();
+      showNoteForm(noteEditButton);
+      return;
+    }
+
     const removeButton = event.target.closest("[data-cr-template-remove]");
     if (removeButton) {
       event.preventDefault();
@@ -456,6 +481,16 @@ document.addEventListener("DOMContentLoaded", function () {
   document.addEventListener("change", function (event) {
     if (event.target.matches("[data-cr-check-all]")) {
       toggleCheckAll(event.target);
+    }
+  });
+
+  document.addEventListener("submit", function (event) {
+    if (!event.target.matches("[data-cr-note-delete]")) {
+      return;
+    }
+
+    if (!window.confirm("Delete this saved note? Tags will be kept.")) {
+      event.preventDefault();
     }
   });
 

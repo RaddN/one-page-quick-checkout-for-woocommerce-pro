@@ -407,13 +407,18 @@ class Onepaqucpro_Cart_Recovery_Admin
         header('Content-Disposition: attachment; filename=cart-recovery-carts-' . gmdate('Y-m-d-H-i-s') . '.csv');
 
         $output = fopen('php://output', 'w');
-        fputcsv($output, array('Cart ID', 'Customer', 'Email', 'Status', 'Admin State', 'Cart Total', 'Item Count', 'Customer Type', 'Device', 'Browser', 'Coupons', 'Recovery Source', 'Recovered Order', 'Abandoned At', 'Recovered At', 'Last Activity'));
+        fputcsv($output, array('Cart ID', 'Customer', 'Email', 'Phone', 'Company', 'Billing Address', 'Shipping Address', 'Order Notes', 'Status', 'Admin State', 'Cart Total', 'Item Count', 'Customer Type', 'Device', 'Browser', 'Coupons', 'Recovery Source', 'Recovered Order', 'Abandoned At', 'Recovered At', 'Last Activity'));
 
         foreach ($rows as $row) {
             fputcsv($output, array(
                 $row['id'],
                 $row['customer_name'],
                 $row['email'],
+                $row['customer_phone'],
+                $row['customer_company'],
+                self::format_profile_address($row['billing_address']),
+                self::format_profile_address($row['shipping_address']),
+                $row['order_notes'],
                 ucfirst($row['status']),
                 ucfirst($row['admin_state'] ? $row['admin_state'] : 'none'),
                 wp_strip_all_tags(self::format_currency($row['cart_total'], $row['currency'])),
@@ -817,18 +822,28 @@ class Onepaqucpro_Cart_Recovery_Admin
                                                 <span class="onepaqucpro-cr-cart-primary__id"><?php echo esc_html('#' . $cart['id']); ?></span>
                                             </strong>
                                             <div class="onepaqucpro-cr-cart-primary__meta">
-                                                <span><?php echo esc_html($cart['email']); ?></span>
+                                                <span><?php echo esc_html($cart['email'] ? $cart['email'] : __('No email', 'one-page-quick-checkout-for-woocommerce-pro')); ?></span>
+                                                <?php if (! empty($cart['customer_phone'])) : ?>
+                                                    <span class="onepaqucpro-cr-separator">&bull;</span>
+                                                    <span><?php echo esc_html($cart['customer_phone']); ?></span>
+                                                <?php endif; ?>
                                                 <span class="onepaqucpro-cr-separator">•</span>
                                                 <span><?php echo esc_html(number_format_i18n($cart['item_count'])); ?> <?php echo esc_html(_n('item', 'items', $cart['item_count'], 'one-page-quick-checkout-for-woocommerce-pro')); ?></span>
                                             </div>
+                                            <?php if (! empty($cart['customer_company'])) : ?>
+                                                <div class="onepaqucpro-cr-cart-primary__sub"><?php echo esc_html($cart['customer_company']); ?></div>
+                                            <?php endif; ?>
                                             <?php if (! empty($cart['product_context'])) : ?>
                                                 <div class="onepaqucpro-cr-cart-primary__sub"><?php echo esc_html($cart['product_context']); ?></div>
                                             <?php endif; ?>
                                             <?php if (! empty($cart['coupon_codes'])) : ?>
                                                 <div class="onepaqucpro-cr-cart-primary__sub"><?php echo esc_html__('Coupons:', 'one-page-quick-checkout-for-woocommerce-pro') . ' ' . esc_html(implode(', ', $cart['coupon_codes'])); ?></div>
                                             <?php endif; ?>
-                                            <?php if (! empty($cart['tags'])) : ?>
-                                                <div class="onepaqucpro-cr-tag-list"><?php echo esc_html(implode(', ', $cart['tags'])); ?></div>
+                                            <?php if (! empty($cart['notes']) && ! empty($cart['tags'])) : ?>
+                                                <div class="onepaqucpro-cr-cart-note" tabindex="0" title="<?php echo esc_attr($cart['notes']); ?>" data-cr-note-tooltip="<?php echo esc_attr($cart['notes']); ?>">
+                                                    <span class="dashicons dashicons-edit-page" aria-hidden="true"></span>
+                                                    <span><?php echo esc_html(implode(', ', $cart['tags'])); ?></span>
+                                                </div>
                                             <?php endif; ?>
 
                                             <div class="row-actions">
@@ -2151,6 +2166,7 @@ class Onepaqucpro_Cart_Recovery_Admin
             $email_count = isset($cart['email_history']) && is_array($cart['email_history']) ? count($cart['email_history']) : 0;
             $device_type = isset($cart['device_type']) ? sanitize_key($cart['device_type']) : '';
             $device_icon = 'mobile' === $device_type ? 'dashicons-smartphone' : ('tablet' === $device_type ? 'dashicons-tablet' : 'dashicons-desktop');
+            $note_form_id = 'onepaqucpro-cr-note-form-' . $tab_suffix;
             $activity_url = self::get_page_url(array(
                 'tab'              => 'activity',
                 'cr_activity_cart' => $cart['id'],
@@ -2166,10 +2182,18 @@ class Onepaqucpro_Cart_Recovery_Admin
                             <div>
                                 <p class="onepaqucpro-cr-detail__eyebrow"><?php esc_html_e('Cart Details', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
                                 <h2 id="onepaqucpro-cr-modal-title"><?php echo esc_html($cart['customer_name']); ?></h2>
-                                <p class="onepaqucpro-cr-detail__subtitle"><?php echo esc_html($cart['email']); ?></p>
+                                <p class="onepaqucpro-cr-detail__subtitle">
+                                    <?php echo esc_html($cart['email'] ? $cart['email'] : __('No email captured', 'one-page-quick-checkout-for-woocommerce-pro')); ?>
+                                    <?php if (! empty($cart['customer_phone'])) : ?>
+                                        <span><?php echo esc_html($cart['customer_phone']); ?></span>
+                                    <?php endif; ?>
+                                </p>
                                 <div class="onepaqucpro-cr-detail__meta-inline">
                                     <span><span class="dashicons dashicons-tag" aria-hidden="true"></span><code>#<?php echo esc_html($cart['id']); ?></code></span>
                                     <span><span class="dashicons dashicons-admin-users" aria-hidden="true"></span><?php echo esc_html(ucfirst($cart['customer_type'])); ?></span>
+                                    <?php if (! empty($cart['customer_phone'])) : ?>
+                                        <span><span class="dashicons dashicons-phone" aria-hidden="true"></span><?php echo esc_html($cart['customer_phone']); ?></span>
+                                    <?php endif; ?>
                                     <span><span class="dashicons <?php echo esc_attr($device_icon); ?>" aria-hidden="true"></span><?php echo esc_html(ucfirst($cart['device_type']) . ' / ' . $cart['browser']); ?></span>
                                 </div>
                             <p><?php echo esc_html($cart['customer_name']); ?> · <?php echo esc_html($cart['email']); ?></p>
@@ -2245,11 +2269,16 @@ class Onepaqucpro_Cart_Recovery_Admin
                         <h3><?php esc_html_e('Customer', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
                         <dl class="onepaqucpro-cr-meta-grid">
                             <div><dt><?php esc_html_e('Name', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html($cart['customer_name']); ?></dd></div>
-                            <div><dt><?php esc_html_e('Email', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html($cart['email']); ?></dd></div>
+                            <div><dt><?php esc_html_e('Email', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html($cart['email'] ? $cart['email'] : '-'); ?></dd></div>
+                            <div><dt><?php esc_html_e('Phone', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html($cart['customer_phone'] ? $cart['customer_phone'] : '-'); ?></dd></div>
+                            <div><dt><?php esc_html_e('Company', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html($cart['customer_company'] ? $cart['customer_company'] : '-'); ?></dd></div>
                             <div><dt><?php esc_html_e('Customer ID', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html($cart['customer_id'] ? $cart['customer_id'] : '-'); ?></dd></div>
                             <div><dt><?php esc_html_e('IP Address', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html($cart['ip_address']); ?></dd></div>
                             <div><dt><?php esc_html_e('Customer Type', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html(ucfirst($cart['customer_type'])); ?></dd></div>
                             <div><dt><?php esc_html_e('Device / Browser', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html(ucfirst($cart['device_type']) . ' / ' . $cart['browser']); ?></dd></div>
+                            <div><dt><?php esc_html_e('Billing Address', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html(self::format_profile_address($cart['billing_address'])); ?></dd></div>
+                            <div><dt><?php esc_html_e('Shipping Address', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html(self::format_profile_address($cart['shipping_address'])); ?></dd></div>
+                            <div><dt><?php esc_html_e('Order Notes', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html($cart['order_notes'] ? $cart['order_notes'] : '-'); ?></dd></div>
                         </dl>
                                     </div>
                                 </div>
@@ -2261,14 +2290,67 @@ class Onepaqucpro_Cart_Recovery_Admin
                         <h3><?php esc_html_e('Cart Items', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
                         <div class="onepaqucpro-cr-item-list">
                             <?php foreach ($cart['items'] as $item) : ?>
-                                <div class="onepaqucpro-cr-item-card">
-                                    <div>
-                                        <strong><?php echo esc_html($item['name']); ?></strong>
-                                        <span><?php echo esc_html(sprintf(__('Qty: %d', 'one-page-quick-checkout-for-woocommerce-pro'), $item['quantity'])); ?></span>
-                                        <span><?php echo wp_kses_post(sprintf(__('Discount: %s', 'one-page-quick-checkout-for-woocommerce-pro'), self::format_currency($item['discount'], $cart['currency']))); ?></span>
+                                <details class="onepaqucpro-cr-item-card">
+                                    <summary class="onepaqucpro-cr-item-card__summary">
+                                        <span class="onepaqucpro-cr-item-card__image">
+                                            <?php if (! empty($item['image_url'])) : ?>
+                                                <img src="<?php echo esc_url($item['image_url']); ?>" alt="<?php echo esc_attr($item['name']); ?>">
+                                            <?php else : ?>
+                                                <span class="dashicons dashicons-format-image" aria-hidden="true"></span>
+                                            <?php endif; ?>
+                                        </span>
+                                        <span class="onepaqucpro-cr-item-card__body">
+                                            <strong><?php echo esc_html($item['name']); ?></strong>
+                                            <span><?php echo esc_html(sprintf(__('Qty: %d', 'one-page-quick-checkout-for-woocommerce-pro'), $item['quantity'])); ?></span>
+                                            <?php if (! empty($item['sku'])) : ?>
+                                                <span><?php echo esc_html(sprintf(__('SKU: %s', 'one-page-quick-checkout-for-woocommerce-pro'), $item['sku'])); ?></span>
+                                            <?php endif; ?>
+                                        </span>
+                                        <span class="onepaqucpro-cr-item-card__price">
+                                            <span><?php esc_html_e('Line Total', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                                            <strong><?php echo wp_kses_post(self::format_currency($item['price'], $cart['currency'])); ?></strong>
+                                        </span>
+                                        <span class="onepaqucpro-cr-item-card__toggle" aria-hidden="true">
+                                            <span class="dashicons dashicons-arrow-down-alt2"></span>
+                                        </span>
+                                    </summary>
+                                    <div class="onepaqucpro-cr-item-card__details">
+                                        <dl class="onepaqucpro-cr-meta-grid is-compact">
+                                            <div><dt><?php esc_html_e('Product ID', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html($item['product_id'] ? '#' . $item['product_id'] : '-'); ?></dd></div>
+                                            <div><dt><?php esc_html_e('Variation ID', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html($item['variation_id'] ? '#' . $item['variation_id'] : '-'); ?></dd></div>
+                                            <div><dt><?php esc_html_e('Unit Price', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo wp_kses_post(self::format_currency($item['unit_price'], $cart['currency'])); ?></dd></div>
+                                            <div><dt><?php esc_html_e('Subtotal', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo wp_kses_post(self::format_currency($item['subtotal'], $cart['currency'])); ?></dd></div>
+                                            <div><dt><?php esc_html_e('Discount', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo wp_kses_post(self::format_currency($item['discount'], $cart['currency'])); ?></dd></div>
+                                            <div><dt><?php esc_html_e('Stock', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html($item['stock_status'] ? ucfirst(str_replace('_', ' ', $item['stock_status'])) : '-'); ?></dd></div>
+                                            <div><dt><?php esc_html_e('Type', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html($item['product_type'] ? ucfirst(str_replace('_', ' ', $item['product_type'])) : '-'); ?></dd></div>
+                                            <div><dt><?php esc_html_e('Categories', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><?php echo esc_html(! empty($item['categories']) ? implode(', ', $item['categories']) : '-'); ?></dd></div>
+                                            <?php if (! empty($item['product_url'])) : ?>
+                                                <div><dt><?php esc_html_e('Product Link', 'one-page-quick-checkout-for-woocommerce-pro'); ?></dt><dd><a href="<?php echo esc_url($item['product_url']); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e('Open product', 'one-page-quick-checkout-for-woocommerce-pro'); ?></a></dd></div>
+                                            <?php endif; ?>
+                                        </dl>
+
+                                        <?php if (! empty($item['variation'])) : ?>
+                                            <div class="onepaqucpro-cr-item-card__meta-block">
+                                                <h4><?php esc_html_e('Selected Options', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h4>
+                                                <dl class="onepaqucpro-cr-meta-grid is-compact">
+                                                    <?php foreach ($item['variation'] as $label => $value) : ?>
+                                                        <div>
+                                                            <dt><?php echo esc_html(self::format_item_meta_label($label)); ?></dt>
+                                                            <dd><?php echo esc_html(is_scalar($value) ? (string) $value : wp_json_encode($value)); ?></dd>
+                                                        </div>
+                                                    <?php endforeach; ?>
+                                                </dl>
+                                            </div>
+                                        <?php endif; ?>
+
+                                        <?php if (! empty($item['cart_item_data'])) : ?>
+                                            <div class="onepaqucpro-cr-item-card__meta-block">
+                                                <h4><?php esc_html_e('Additional Item Data', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h4>
+                                                <code><?php echo esc_html(wp_json_encode($item['cart_item_data'])); ?></code>
+                                            </div>
+                                        <?php endif; ?>
                                     </div>
-                                    <strong><?php echo wp_kses_post(self::format_currency($item['price'], $cart['currency'])); ?></strong>
-                                </div>
+                                </details>
                             <?php endforeach; ?>
                         </div>
                                     </div>
@@ -2357,22 +2439,70 @@ class Onepaqucpro_Cart_Recovery_Admin
                         </dl>
                     </div>
 
-                    <div class="onepaqucpro-cr-detail__section">
-                        <h3><?php esc_html_e('Internal Notes & Tags', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
-                        <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" class="onepaqucpro-cr-settings-form">
+                    <div class="onepaqucpro-cr-detail__section onepaqucpro-cr-notes-panel">
+                        <div class="onepaqucpro-cr-section-heading">
+                            <div>
+                                <h3><?php esc_html_e('Marketing Notes', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
+                                <p><?php esc_html_e('Private context for follow-up, segmentation, and recovery decisions.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
+                            </div>
+                        </div>
+
+                        <div class="onepaqucpro-cr-notes-summary">
+                            <div class="onepaqucpro-cr-saved-note">
+                                <div class="onepaqucpro-cr-note-header">
+                                    <span><?php esc_html_e('Saved note', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                                    <div class="onepaqucpro-cr-note-actions">
+                                        <button type="button" class="button button-secondary button-small" data-cr-note-edit="<?php echo esc_attr($note_form_id); ?>">
+                                            <?php echo esc_html(! empty($cart['notes']) ? __('Edit', 'one-page-quick-checkout-for-woocommerce-pro') : __('Add Note', 'one-page-quick-checkout-for-woocommerce-pro')); ?>
+                                        </button>
+                                        <?php if (! empty($cart['notes'])) : ?>
+                                            <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" class="onepaqucpro-cr-note-delete-form" data-cr-note-delete>
+                                                <input type="hidden" name="action" value="onepaqucpro_cart_recovery_save_cart_meta">
+                                                <input type="hidden" name="cart_id" value="<?php echo esc_attr($cart['id']); ?>">
+                                                <input type="hidden" name="cart_tags" value="<?php echo esc_attr(implode(', ', $cart['tags'])); ?>">
+                                                <input type="hidden" name="cart_notes" value="">
+                                                <?php wp_nonce_field('onepaqucpro_cart_recovery_save_cart_meta_' . $cart['id']); ?>
+                                                <button type="submit" class="button button-link-delete button-small"><?php esc_html_e('Delete', 'one-page-quick-checkout-for-woocommerce-pro'); ?></button>
+                                            </form>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                                <?php if (! empty($cart['notes'])) : ?>
+                                    <p><?php echo nl2br(esc_html($cart['notes'])); ?></p>
+                                <?php else : ?>
+                                    <p class="is-empty"><?php esc_html_e('No internal note has been added yet.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
+                                <?php endif; ?>
+                            </div>
+                            <div>
+                                <span><?php esc_html_e('Tags', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                                <?php if (! empty($cart['tags'])) : ?>
+                                    <div class="onepaqucpro-cr-note-tags">
+                                        <?php foreach ($cart['tags'] as $tag) : ?>
+                                            <span><?php echo esc_html($tag); ?></span>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php else : ?>
+                                    <p class="is-empty"><?php esc_html_e('No tags assigned.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+
+                        <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" id="<?php echo esc_attr($note_form_id); ?>" class="onepaqucpro-cr-settings-form onepaqucpro-cr-notes-form <?php echo ! empty($cart['notes']) ? 'is-hidden' : ''; ?>" data-cr-note-form>
                             <input type="hidden" name="action" value="onepaqucpro_cart_recovery_save_cart_meta">
                             <input type="hidden" name="cart_id" value="<?php echo esc_attr($cart['id']); ?>">
                             <?php wp_nonce_field('onepaqucpro_cart_recovery_save_cart_meta_' . $cart['id']); ?>
                             <label>
-                                <span><?php esc_html_e('Tags', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                                <span><?php esc_html_e('Edit Tags', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
                                 <input type="text" name="cart_tags" value="<?php echo esc_attr(implode(', ', $cart['tags'])); ?>" placeholder="<?php esc_attr_e('vip, warm-lead', 'one-page-quick-checkout-for-woocommerce-pro'); ?>">
+                                <small><?php esc_html_e('Separate multiple tags with commas.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></small>
                             </label>
                             <label>
-                                <span><?php esc_html_e('Notes', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
-                                <textarea name="cart_notes" rows="4"><?php echo esc_textarea($cart['notes']); ?></textarea>
+                                <span><?php esc_html_e('Edit Internal Note', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                                <textarea name="cart_notes" rows="5" placeholder="<?php esc_attr_e('Example: Asked for a discount, prefers WhatsApp follow-up, interested in headset bundles.', 'one-page-quick-checkout-for-woocommerce-pro'); ?>"><?php echo esc_textarea($cart['notes']); ?></textarea>
+                                <small><?php esc_html_e('Visible only to admins. Use this for marketing context, not customer-facing order notes.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></small>
                             </label>
                             <div class="onepaqucpro-cr-form-actions">
-                                <button type="submit" class="button button-primary"><?php esc_html_e('Save Notes', 'one-page-quick-checkout-for-woocommerce-pro'); ?></button>
+                                <button type="submit" class="button button-primary"><?php esc_html_e('Save Marketing Notes', 'one-page-quick-checkout-for-woocommerce-pro'); ?></button>
                             </div>
                         </form>
                     </div>
@@ -2786,7 +2916,14 @@ class Onepaqucpro_Cart_Recovery_Admin
             $cart['journey']       = isset($cart['journey']) && is_array($cart['journey']) ? $cart['journey'] : array();
             $cart['email_history'] = isset($cart['email_history']) && is_array($cart['email_history']) ? $cart['email_history'] : array();
             $cart['items']         = isset($cart['items']) && is_array($cart['items']) ? $cart['items'] : array();
+            $cart['checkout_data'] = isset($cart['checkout_data']) && is_array($cart['checkout_data']) ? $cart['checkout_data'] : array();
             $cart['metadata']      = isset($cart['metadata']) && is_array($cart['metadata']) ? $cart['metadata'] : array();
+            $cart['customer_profile'] = self::normalize_customer_profile(isset($cart['metadata']['customer_profile']) ? $cart['metadata']['customer_profile'] : array(), $cart);
+            $cart['billing_address']  = isset($cart['customer_profile']['billing_address']) && is_array($cart['customer_profile']['billing_address']) ? $cart['customer_profile']['billing_address'] : array();
+            $cart['shipping_address'] = isset($cart['customer_profile']['shipping_address']) && is_array($cart['customer_profile']['shipping_address']) ? $cart['customer_profile']['shipping_address'] : array();
+            $cart['customer_phone']   = isset($cart['customer_profile']['phone']) ? sanitize_text_field($cart['customer_profile']['phone']) : '';
+            $cart['customer_company'] = isset($cart['customer_profile']['company']) ? sanitize_text_field($cart['customer_profile']['company']) : '';
+            $cart['order_notes']      = isset($cart['customer_profile']['order_notes']) ? sanitize_textarea_field($cart['customer_profile']['order_notes']) : '';
 
             $cart['coupon_codes']   = isset($cart['metadata']['coupon_codes']) && is_array($cart['metadata']['coupon_codes']) ? array_values(array_filter(array_map('sanitize_text_field', $cart['metadata']['coupon_codes']))) : array();
             $cart['customer_type']  = isset($cart['metadata']['customer_type']) ? sanitize_key($cart['metadata']['customer_type']) : ($cart['customer_id'] ? 'registered' : 'guest');
@@ -2829,6 +2966,117 @@ class Onepaqucpro_Cart_Recovery_Admin
         unset($cart);
 
         return $carts;
+    }
+
+    private static function normalize_customer_profile($profile, $cart)
+    {
+        $profile = is_array($profile) ? $profile : array();
+        $billing = isset($profile['billing_address']) && is_array($profile['billing_address']) ? $profile['billing_address'] : array();
+        $shipping = isset($profile['shipping_address']) && is_array($profile['shipping_address']) ? $profile['shipping_address'] : array();
+        $checkout_data = ! empty($cart['checkout_data']) && is_array($cart['checkout_data'])
+            ? $cart['checkout_data']
+            : (isset($cart['metadata']['checkout_data']) && is_array($cart['metadata']['checkout_data']) ? $cart['metadata']['checkout_data'] : array());
+
+        $billing = array_merge(self::build_profile_address_from_checkout($checkout_data, 'billing'), $billing);
+        $shipping = array_merge(self::build_profile_address_from_checkout($checkout_data, 'shipping'), $shipping);
+
+        $profile['customer_name'] = ! empty($profile['customer_name']) ? sanitize_text_field($profile['customer_name']) : sanitize_text_field($cart['customer_name']);
+        $profile['email'] = ! empty($profile['email']) ? sanitize_email($profile['email']) : sanitize_email($cart['email']);
+        $profile['phone'] = ! empty($profile['phone']) ? sanitize_text_field($profile['phone']) : (isset($billing['phone']) ? sanitize_text_field($billing['phone']) : '');
+        $profile['company'] = ! empty($profile['company']) ? sanitize_text_field($profile['company']) : (isset($billing['company']) ? sanitize_text_field($billing['company']) : '');
+        $profile['first_name'] = ! empty($profile['first_name']) ? sanitize_text_field($profile['first_name']) : (isset($billing['first_name']) ? sanitize_text_field($billing['first_name']) : '');
+        $profile['last_name'] = ! empty($profile['last_name']) ? sanitize_text_field($profile['last_name']) : (isset($billing['last_name']) ? sanitize_text_field($billing['last_name']) : '');
+        $profile['order_notes'] = ! empty($profile['order_notes']) ? sanitize_textarea_field($profile['order_notes']) : self::get_checkout_profile_value($checkout_data, array('order_comments', 'order-notes', 'customer_note'), true);
+        $profile['billing_address'] = self::sanitize_profile_address($billing);
+        $profile['shipping_address'] = self::sanitize_profile_address($shipping);
+
+        return $profile;
+    }
+
+    private static function build_profile_address_from_checkout($checkout_data, $type)
+    {
+        if (! is_array($checkout_data)) {
+            return array();
+        }
+
+        $type = 'shipping' === $type ? 'shipping' : 'billing';
+        $aliases = 'billing' === $type
+            ? array(
+                'first_name' => array('billing_first_name', 'first-name', 'first_name'),
+                'last_name'  => array('billing_last_name', 'last-name', 'last_name'),
+                'company'    => array('billing_company', 'company'),
+                'email'      => array('billing_email', 'email'),
+                'phone'      => array('billing_phone', 'phone'),
+                'address_1'  => array('billing_address_1', 'address', 'address_1'),
+                'address_2'  => array('billing_address_2', 'address2', 'address_2'),
+                'city'       => array('billing_city', 'city'),
+                'state'      => array('billing_state', 'state'),
+                'postcode'   => array('billing_postcode', 'postcode'),
+                'country'    => array('billing_country', 'country'),
+            )
+            : array(
+                'first_name' => array('shipping_first_name', 'shipping-first-name'),
+                'last_name'  => array('shipping_last_name', 'shipping-last-name'),
+                'company'    => array('shipping_company', 'shipping-company'),
+                'phone'      => array('shipping_phone', 'shipping-phone'),
+                'address_1'  => array('shipping_address_1', 'shipping-address'),
+                'address_2'  => array('shipping_address_2', 'shipping-address2'),
+                'city'       => array('shipping_city', 'shipping-city'),
+                'state'      => array('shipping_state', 'shipping-state'),
+                'postcode'   => array('shipping_postcode', 'shipping-postcode'),
+                'country'    => array('shipping_country', 'shipping-country'),
+            );
+
+        $address = array();
+        foreach ($aliases as $field => $keys) {
+            foreach ($keys as $key) {
+                if (empty($checkout_data[$key]) || ! is_scalar($checkout_data[$key])) {
+                    continue;
+                }
+
+                $value = 'email' === $field ? sanitize_email($checkout_data[$key]) : sanitize_text_field($checkout_data[$key]);
+                if ('' !== $value) {
+                    $address[$field] = $value;
+                    break;
+                }
+            }
+        }
+
+        return $address;
+    }
+
+    private static function get_checkout_profile_value($checkout_data, $keys, $textarea = false)
+    {
+        if (! is_array($checkout_data)) {
+            return '';
+        }
+
+        foreach ((array) $keys as $key) {
+            if (empty($checkout_data[$key]) || ! is_scalar($checkout_data[$key])) {
+                continue;
+            }
+
+            return $textarea ? sanitize_textarea_field($checkout_data[$key]) : sanitize_text_field($checkout_data[$key]);
+        }
+
+        return '';
+    }
+
+    private static function sanitize_profile_address($address)
+    {
+        $address = is_array($address) ? $address : array();
+        $fields  = array('first_name', 'last_name', 'company', 'email', 'phone', 'address_1', 'address_2', 'city', 'state', 'postcode', 'country');
+        $clean   = array();
+
+        foreach ($fields as $field) {
+            if (empty($address[$field])) {
+                continue;
+            }
+
+            $clean[$field] = 'email' === $field ? sanitize_email($address[$field]) : sanitize_text_field($address[$field]);
+        }
+
+        return $clean;
     }
 
     private static function get_cart_table_context($carts)
@@ -2902,6 +3150,10 @@ class Onepaqucpro_Cart_Recovery_Admin
                     $cart['id'],
                     $cart['customer_name'],
                     $cart['email'],
+                    $cart['customer_phone'],
+                    $cart['customer_company'],
+                    self::format_profile_address($cart['billing_address']),
+                    self::format_profile_address($cart['shipping_address']),
                     $cart['product_context'],
                     implode(' ', $cart['coupon_codes']),
                     implode(' ', $cart['tags']),
@@ -4247,6 +4499,49 @@ class Onepaqucpro_Cart_Recovery_Admin
         }
 
         return wc_price($amount, array('currency' => $currency));
+    }
+
+    private static function format_profile_address($address)
+    {
+        if (! is_array($address) || empty($address)) {
+            return '-';
+        }
+
+        $country = isset($address['country']) ? sanitize_text_field($address['country']) : '';
+        $state   = isset($address['state']) ? sanitize_text_field($address['state']) : '';
+
+        if ($country && function_exists('WC') && WC()->countries) {
+            $countries = WC()->countries->get_countries();
+            if (isset($countries[$country])) {
+                $country = $countries[$country];
+            }
+
+            $states = WC()->countries->get_states(isset($address['country']) ? $address['country'] : '');
+            if ($state && is_array($states) && isset($states[$state])) {
+                $state = $states[$state];
+            }
+        }
+
+        $parts = array(
+            isset($address['address_1']) ? sanitize_text_field($address['address_1']) : '',
+            isset($address['address_2']) ? sanitize_text_field($address['address_2']) : '',
+            isset($address['city']) ? sanitize_text_field($address['city']) : '',
+            $state,
+            isset($address['postcode']) ? sanitize_text_field($address['postcode']) : '',
+            $country,
+        );
+
+        $formatted = implode(', ', array_filter($parts));
+
+        return $formatted ? $formatted : '-';
+    }
+
+    private static function format_item_meta_label($label)
+    {
+        $label = preg_replace('/^attribute_/', '', (string) $label);
+        $label = str_replace(array('pa_', '_', '-'), array('', ' ', ' '), $label);
+
+        return ucwords(trim($label));
     }
 
     private static function format_metric_value($value, $type)
