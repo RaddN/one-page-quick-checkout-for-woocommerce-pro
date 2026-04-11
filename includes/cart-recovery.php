@@ -5163,35 +5163,79 @@ class Onepaqucpro_Cart_Recovery_Admin
             $page_key = 'carts' === $tab ? 'cr_cart_page' : 'cr_activity_page';
             $base_tab = $tab;
         }
+
+        $current_page = max(1, absint($pagination['page']));
+        $total_pages  = max(1, absint($pagination['total_pages']));
+        $base_args    = array('tab' => $base_tab);
+
+        if ('email_templates' === $tab) {
+            $base_args['cr_email_view'] = 'templates';
+        }
+
+        foreach ($preserved_keys as $key) {
+            if (! isset($_GET[$key])) {
+                continue;
+            }
+
+            $value = wp_unslash($_GET[$key]);
+            if (is_array($value)) {
+                continue;
+            }
+            $base_args[$key] = sanitize_text_field($value);
+        }
+
+        $get_page_url = function ($page) use ($base_args, $page_key) {
+            $args = $base_args;
+            $args[$page_key] = max(1, absint($page));
+
+            return self::get_page_url($args);
+        };
+
+        $page_numbers = array_filter(array_unique(array(
+            1,
+            2,
+            $current_page - 1,
+            $current_page,
+            $current_page + 1,
+            $total_pages - 1,
+            $total_pages,
+        )), function ($page) use ($total_pages) {
+            return $page >= 1 && $page <= $total_pages;
+        });
+
+        sort($page_numbers, SORT_NUMERIC);
         ?>
         <div class="onepaqucpro-cr-pagination">
-            <span><?php echo esc_html(sprintf(__('Page %1$d of %2$d', 'one-page-quick-checkout-for-woocommerce-pro'), $pagination['page'], $pagination['total_pages'])); ?></span>
+            <span><?php echo esc_html(sprintf(__('%1$d of %2$d', 'one-page-quick-checkout-for-woocommerce-pro'), $current_page, $total_pages)); ?></span>
             <div class="onepaqucpro-cr-pagination__links">
-                <?php for ($page = 1; $page <= $pagination['total_pages']; $page++) : ?>
-                    <?php
-                    $args = array(
-                        'tab' => $base_tab,
-                        $page_key => $page,
-                    );
+                <?php if ($current_page > 1) : ?>
+                    <a class="button button-small button-secondary onepaqucpro-cr-pagination__control" href="<?php echo esc_url($get_page_url(1)); ?>" aria-label="<?php esc_attr_e('First page', 'one-page-quick-checkout-for-woocommerce-pro'); ?>">&laquo;</a>
+                    <a class="button button-small button-secondary onepaqucpro-cr-pagination__control" href="<?php echo esc_url($get_page_url($current_page - 1)); ?>" aria-label="<?php esc_attr_e('Previous page', 'one-page-quick-checkout-for-woocommerce-pro'); ?>">&lsaquo;</a>
+                <?php else : ?>
+                    <span class="button button-small button-secondary onepaqucpro-cr-pagination__control is-disabled" aria-disabled="true">&laquo;</span>
+                    <span class="button button-small button-secondary onepaqucpro-cr-pagination__control is-disabled" aria-disabled="true">&lsaquo;</span>
+                <?php endif; ?>
 
-                    if ('email_templates' === $tab) {
-                        $args['cr_email_view'] = 'templates';
-                    }
+                <?php $previous_page = 0; ?>
+                <?php foreach ($page_numbers as $page) : ?>
+                    <?php if ($previous_page && $page > $previous_page + 1) : ?>
+                        <span class="onepaqucpro-cr-pagination__ellipsis" aria-hidden="true">&hellip;</span>
+                    <?php endif; ?>
+                    <?php if ($page === $current_page) : ?>
+                        <span class="button button-small button-primary onepaqucpro-cr-pagination__page is-current" aria-current="page"><?php echo esc_html($page); ?></span>
+                    <?php else : ?>
+                        <a class="button button-small button-secondary onepaqucpro-cr-pagination__page" href="<?php echo esc_url($get_page_url($page)); ?>"><?php echo esc_html($page); ?></a>
+                    <?php endif; ?>
+                    <?php $previous_page = $page; ?>
+                <?php endforeach; ?>
 
-                    foreach ($preserved_keys as $key) {
-                        if (! isset($_GET[$key])) {
-                            continue;
-                        }
-
-                        $value = wp_unslash($_GET[$key]);
-                        if (is_array($value)) {
-                            continue;
-                        }
-                        $args[$key] = sanitize_text_field($value);
-                    }
-                    ?>
-                    <a class="button button-small <?php echo $page === (int) $pagination['page'] ? 'button-primary' : 'button-secondary'; ?>" href="<?php echo esc_url(self::get_page_url($args)); ?>"><?php echo esc_html($page); ?></a>
-                <?php endfor; ?>
+                <?php if ($current_page < $total_pages) : ?>
+                    <a class="button button-small button-secondary onepaqucpro-cr-pagination__control" href="<?php echo esc_url($get_page_url($current_page + 1)); ?>" aria-label="<?php esc_attr_e('Next page', 'one-page-quick-checkout-for-woocommerce-pro'); ?>">&rsaquo;</a>
+                    <a class="button button-small button-secondary onepaqucpro-cr-pagination__control" href="<?php echo esc_url($get_page_url($total_pages)); ?>" aria-label="<?php esc_attr_e('Last page', 'one-page-quick-checkout-for-woocommerce-pro'); ?>">&raquo;</a>
+                <?php else : ?>
+                    <span class="button button-small button-secondary onepaqucpro-cr-pagination__control is-disabled" aria-disabled="true">&rsaquo;</span>
+                    <span class="button button-small button-secondary onepaqucpro-cr-pagination__control is-disabled" aria-disabled="true">&raquo;</span>
+                <?php endif; ?>
             </div>
         </div>
 <?php
