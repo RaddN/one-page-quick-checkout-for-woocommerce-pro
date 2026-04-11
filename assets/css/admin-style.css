@@ -51,10 +51,6 @@ input:checked + .slider:before {
   transform: translateX(26px);
 }
 
-p.submit {
-  margin-left: 20px;
-}
-
 /* Rounded sliders */
 .slider.round {
   border-radius: 34px;
@@ -569,7 +565,6 @@ span.plugincy_sec_icon {
   background: #fff;
   box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
   border-radius: 8px;
-  max-width: 95%;
 }
 .plugincy_nav_card {
   padding: 2rem 0 0;
