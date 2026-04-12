@@ -524,6 +524,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     if (
+      table.classList.contains("onepaqucpro-cr-table--email-activity") ||
       form &&
       form.querySelector(
         'input[name="action"][value="onepaqucpro_cart_recovery_export_activity"]'

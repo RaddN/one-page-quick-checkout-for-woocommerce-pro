@@ -160,6 +160,10 @@
   gap: 14px;
 }
 
+.onepaqucpro-cr-email-activity-summary {
+  margin: 16px 0;
+}
+
 .onepaqucpro-cr-stat-card .dashicons {
   width: 42px;
   height: 42px;
@@ -566,6 +570,63 @@
   display: block;
   margin-bottom: 2px;
   font-size: 13px;
+}
+
+.onepaqucpro-cr-actions-cell {
+  min-width: 150px;
+}
+
+.onepaqucpro-cr-action-list {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.onepaqucpro-cr-icon-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid #d8e4f2;
+  border-radius: 6px;
+  background: #fff;
+  color: #1f4eea;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: none;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+button.onepaqucpro-cr-icon-action {
+  font: inherit;
+}
+
+.onepaqucpro-cr-icon-action:hover,
+.onepaqucpro-cr-icon-action:focus {
+  background: #eef4ff;
+  border-color: #91b4ff;
+  color: #163bd6;
+  transform: translateY(-1px);
+}
+
+.onepaqucpro-cr-icon-action.is-warning {
+  color: #b45309;
+}
+
+.onepaqucpro-cr-icon-action.is-warning:hover,
+.onepaqucpro-cr-icon-action.is-warning:focus {
+  background: #fff7ed;
+  border-color: #fdba74;
+  color: #92400e;
+}
+
+.onepaqucpro-cr-icon-action .dashicons {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
 }
 
 .onepaqucpro-cr-customer span {

@@ -673,12 +673,6 @@ p.support-links {
   display: flex;
   padding-top: 32px;
 }
-.plugincy_card select,
-.plugincy_card input[type="text"] {
-  max-width: 100%;
-  min-width: 100%;
-  box-sizing: border-box;
-}
 
 .plugincy_table td {
   min-width: 40%;

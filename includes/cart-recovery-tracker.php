@@ -481,6 +481,33 @@ class Onepaqucpro_Cart_Recovery_Tracker
         return false;
     }
 
+    public static function perform_email_activity_action($email_id, $action)
+    {
+        $email_id = absint($email_id);
+        $action   = sanitize_key($action);
+        $email = self::get_email_row_by_id($email_id);
+        if (! $email || ! in_array($action, array('resend', 'retry_failed'), true)) {
+            return false;
+        }
+
+        if ('retry_failed' === $action && 'failed' !== $email['status']) {
+            return false;
+        }
+
+        $cart = self::get_cart_row_by_id((int) $email['cart_id']);
+        if (! $cart) {
+            return false;
+        }
+
+        foreach (self::get_templates() as $template) {
+            if ($template['id'] === $email['template_id']) {
+                return (bool) self::send_recovery_email($cart, $template);
+            }
+        }
+
+        return false;
+    }
+
     public static function save_cart_meta($cart_key, $notes, $tags)
     {
         $cart = self::get_cart_row_by_key($cart_key);
@@ -1916,6 +1943,7 @@ class Onepaqucpro_Cart_Recovery_Tracker
 
             $grouped[(int) $row['cart_id']][] = array(
                 'id'            => 'email_' . (int) $row['id'],
+                'log_id'        => (int) $row['id'],
                 'template_id'   => $row['template_id'],
                 'name'          => $row['template_name'],
                 'subject'       => $row['subject'],
@@ -2496,6 +2524,19 @@ class Onepaqucpro_Cart_Recovery_Tracker
             $wpdb->prepare(
                 "SELECT * FROM " . self::get_carts_table() . " WHERE id = %d LIMIT 1",
                 (int) $cart_id
+            ),
+            ARRAY_A
+        );
+    }
+
+    private static function get_email_row_by_id($email_id)
+    {
+        global $wpdb;
+
+        return $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT * FROM " . self::get_emails_table() . " WHERE id = %d LIMIT 1",
+                (int) $email_id
             ),
             ARRAY_A
         );
