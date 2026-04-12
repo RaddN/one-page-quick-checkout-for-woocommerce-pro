@@ -2051,27 +2051,85 @@ class Onepaqucpro_Cart_Recovery_Admin
             <?php foreach ($items as $row) : ?>
                 <?php if (empty($row['payload'])) {
                     continue;
-                } ?>
+                }
+                $payload       = is_array($row['payload']) ? $row['payload'] : array();
+                $heading       = isset($payload['heading']) ? wp_strip_all_tags((string) $payload['heading']) : '';
+                $body          = isset($payload['body']) ? (string) $payload['body'] : '';
+                $cart_link     = isset($payload['cart_link']) ? esc_url_raw($payload['cart_link']) : '';
+                $template_id   = isset($payload['template_id']) ? sanitize_key($payload['template_id']) : $row['template_id'];
+                $sender_email  = isset($payload['sender_email']) ? sanitize_email($payload['sender_email']) : '';
+                $reply_to      = isset($payload['reply_to']) ? sanitize_email($payload['reply_to']) : '';
+                ?>
                 <template id="onepaqucpro-cr-email-activity-<?php echo esc_attr($row['id']); ?>">
-                    <div class="onepaqucpro-cr-detail">
-                        <div class="onepaqucpro-cr-detail__header">
+                    <div class="onepaqucpro-cr-detail onepaqucpro-cr-email-preview">
+                        <div class="onepaqucpro-cr-email-preview__header">
                             <div>
+                                <span class="onepaqucpro-cr-email-preview__eyebrow"><?php esc_html_e('Email Preview', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
                                 <h2 id="onepaqucpro-cr-modal-title"><?php echo esc_html($row['email_name']); ?></h2>
-                                <p><?php echo esc_html($row['recipient']); ?></p>
+                                <p><?php echo esc_html(sprintf(__('To %s', 'one-page-quick-checkout-for-woocommerce-pro'), $row['recipient'])); ?></p>
                             </div>
                             <?php echo wp_kses_post(self::render_email_status_badge($row['status'])); ?>
                         </div>
-                        <div class="onepaqucpro-cr-detail__section">
-                            <h3><?php esc_html_e('Payload', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
-                            <dl class="onepaqucpro-cr-meta-grid">
-                                <?php foreach ($row['payload'] as $label => $value) : ?>
-                                    <div>
-                                        <dt><?php echo esc_html(ucfirst(str_replace('_', ' ', (string) $label))); ?></dt>
-                                        <dd><?php echo is_string($value) && false !== strpos($value, '<') ? wp_kses_post($value) : esc_html(is_scalar($value) ? (string) $value : wp_json_encode($value)); ?></dd>
-                                    </div>
-                                <?php endforeach; ?>
-                            </dl>
+
+                        <div class="onepaqucpro-cr-email-preview__subject">
+                            <span><?php esc_html_e('Subject', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                            <strong><?php echo esc_html($row['subject'] ? $row['subject'] : __('No subject recorded', 'one-page-quick-checkout-for-woocommerce-pro')); ?></strong>
+                            <?php if ($heading) : ?>
+                                <small><?php echo esc_html(sprintf(__('Heading: %s', 'one-page-quick-checkout-for-woocommerce-pro'), $heading)); ?></small>
+                            <?php endif; ?>
                         </div>
+
+                        <div class="onepaqucpro-cr-email-preview__meta">
+                            <article>
+                                <span><?php esc_html_e('Template ID', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                                <strong><?php echo esc_html($template_id ? $template_id : '-'); ?></strong>
+                            </article>
+                            <article>
+                                <span><?php esc_html_e('Sender', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                                <strong><?php echo esc_html($sender_email ? $sender_email : '-'); ?></strong>
+                            </article>
+                            <article>
+                                <span><?php esc_html_e('Reply-To', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                                <strong><?php echo esc_html($reply_to ? $reply_to : '-'); ?></strong>
+                            </article>
+                            <article>
+                                <span><?php esc_html_e('Sent', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                                <strong><?php echo esc_html(self::format_datetime($row['sent_at'])); ?></strong>
+                            </article>
+                        </div>
+
+                        <?php if ($cart_link) : ?>
+                            <div class="onepaqucpro-cr-email-preview__link">
+                                <div>
+                                    <span><?php esc_html_e('Recovery Link', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                                    <code><?php echo esc_html($cart_link); ?></code>
+                                </div>
+                                <a class="button button-secondary" href="<?php echo esc_url($cart_link); ?>" target="_blank" rel="noopener noreferrer">
+                                    <span class="dashicons dashicons-external" aria-hidden="true"></span>
+                                    <?php esc_html_e('Open Link', 'one-page-quick-checkout-for-woocommerce-pro'); ?>
+                                </a>
+                            </div>
+                        <?php endif; ?>
+
+                        <section class="onepaqucpro-cr-email-preview__body">
+                            <div class="onepaqucpro-cr-email-preview__body-head">
+                                <div>
+                                    <h3><?php esc_html_e('Email Body', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
+                                    <p><?php esc_html_e('Rendered from the exact payload stored for this email activity.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
+                                </div>
+                            </div>
+                            <div class="onepaqucpro-cr-email-preview__canvas">
+                                <div class="onepaqucpro-cr-email-preview__frame">
+                                    <?php
+                                    if ($body) {
+                                        echo wp_kses_post($body);
+                                    } else {
+                                        esc_html_e('No email body was stored for this activity.', 'one-page-quick-checkout-for-woocommerce-pro');
+                                    }
+                                    ?>
+                                </div>
+                            </div>
+                        </section>
                     </div>
                 </template>
             <?php endforeach; ?>
