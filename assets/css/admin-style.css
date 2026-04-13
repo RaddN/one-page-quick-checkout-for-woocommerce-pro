@@ -625,9 +625,10 @@ span.plugincy_sec_icon {
 .plugincy_card textarea {
   padding: 5px 12px;
   border: 1px solid #dedbdb;
-  border-radius: 5px;
+  border-radius: 5px !important;
   font-size: 14px;
   box-sizing: border-box;
+  font-weight: 400;
 }
 .plugincy_table input[name="onpage_checkout_position"] {
   border: 1px solid #dedbdb;
