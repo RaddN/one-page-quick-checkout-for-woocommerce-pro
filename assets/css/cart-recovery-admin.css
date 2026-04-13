@@ -176,6 +176,51 @@
   color: #3268ff;
 }
 
+.onepaqucpro-cr-stat-card.is-showing .dashicons {
+  background: #edf3ff;
+  color: #3268ff;
+}
+
+.onepaqucpro-cr-stat-card.is-total-value .dashicons {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.onepaqucpro-cr-stat-card.is-average .dashicons {
+  background: #f3e8ff;
+  color: #7e22ce;
+}
+
+.onepaqucpro-cr-stat-card.is-recoverable .dashicons {
+  background: #ecfeff;
+  color: #0891b2;
+}
+
+.onepaqucpro-cr-stat-card.is-sent .dashicons {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.onepaqucpro-cr-stat-card.is-failed .dashicons {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.onepaqucpro-cr-stat-card.is-opened .dashicons {
+  background: #ccfbf1;
+  color: #0f766e;
+}
+
+.onepaqucpro-cr-stat-card.is-clicked .dashicons {
+  background: #fae8ff;
+  color: #a21caf;
+}
+
+.onepaqucpro-cr-stat-card.is-recovered .dashicons {
+  background: #d1fae5;
+  color: #047857;
+}
+
 .button-view-activity {
   margin-top: 12px !important;
   background: #edf3ff !important;

@@ -910,7 +910,7 @@ class Onepaqucpro_Cart_Recovery_Admin
     ?>
         <section class="onepaqucpro-cr-section">
             <div class="onepaqucpro-cr-stat-grid">
-                <div class="onepaqucpro-cr-stat-card">
+                <div class="onepaqucpro-cr-stat-card is-showing">
                     <span class="dashicons dashicons-cart"></span>
                     <div>
                         <small><?php esc_html_e('Showing', 'one-page-quick-checkout-for-woocommerce-pro'); ?></small>
@@ -918,7 +918,7 @@ class Onepaqucpro_Cart_Recovery_Admin
                         <?php echo wp_kses_post(self::render_metric_delta(isset($summary['deltas']['count']) ? $summary['deltas']['count'] : array(), 'onepaqucpro-cr-kpi-card__delta onepaqucpro-cr-stat-card__delta')); ?>
                     </div>
                 </div>
-                <div class="onepaqucpro-cr-stat-card">
+                <div class="onepaqucpro-cr-stat-card is-total-value">
                     <span class="dashicons dashicons-money-alt"></span>
                     <div>
                         <small><?php esc_html_e('Total Value', 'one-page-quick-checkout-for-woocommerce-pro'); ?></small>
@@ -926,7 +926,7 @@ class Onepaqucpro_Cart_Recovery_Admin
                         <?php echo wp_kses_post(self::render_metric_delta(isset($summary['deltas']['total_value']) ? $summary['deltas']['total_value'] : array(), 'onepaqucpro-cr-kpi-card__delta onepaqucpro-cr-stat-card__delta')); ?>
                     </div>
                 </div>
-                <div class="onepaqucpro-cr-stat-card">
+                <div class="onepaqucpro-cr-stat-card is-average">
                     <span class="dashicons dashicons-chart-bar"></span>
                     <div>
                         <small><?php esc_html_e('Average', 'one-page-quick-checkout-for-woocommerce-pro'); ?></small>
@@ -934,7 +934,7 @@ class Onepaqucpro_Cart_Recovery_Admin
                         <?php echo wp_kses_post(self::render_metric_delta(isset($summary['deltas']['average_value']) ? $summary['deltas']['average_value'] : array(), 'onepaqucpro-cr-kpi-card__delta onepaqucpro-cr-stat-card__delta')); ?>
                     </div>
                 </div>
-                <div class="onepaqucpro-cr-stat-card">
+                <div class="onepaqucpro-cr-stat-card is-recoverable">
                     <span class="dashicons dashicons-chart-line"></span>
                     <div>
                         <small><?php esc_html_e('Recoverable Value', 'one-page-quick-checkout-for-woocommerce-pro'); ?></small>
@@ -1906,7 +1906,7 @@ class Onepaqucpro_Cart_Recovery_Admin
             </div>
 
             <div class="onepaqucpro-cr-stat-grid onepaqucpro-cr-email-activity-summary">
-                <article class="onepaqucpro-cr-stat-card">
+                <article class="onepaqucpro-cr-stat-card is-sent">
                     <span class="dashicons dashicons-yes-alt" aria-hidden="true"></span>
                     <div>
                         <small><?php esc_html_e('Sent', 'one-page-quick-checkout-for-woocommerce-pro'); ?></small>
@@ -1915,7 +1915,7 @@ class Onepaqucpro_Cart_Recovery_Admin
                         <?php echo wp_kses_post(self::render_metric_delta(isset($summary['deltas']['sent']) ? $summary['deltas']['sent'] : array(), 'onepaqucpro-cr-kpi-card__delta onepaqucpro-cr-stat-card__delta')); ?>
                     </div>
                 </article>
-                <article class="onepaqucpro-cr-stat-card">
+                <article class="onepaqucpro-cr-stat-card is-failed">
                     <span class="dashicons dashicons-warning" aria-hidden="true"></span>
                     <div>
                         <small><?php esc_html_e('Failed', 'one-page-quick-checkout-for-woocommerce-pro'); ?></small>
@@ -1924,7 +1924,7 @@ class Onepaqucpro_Cart_Recovery_Admin
                         <?php echo wp_kses_post(self::render_metric_delta(isset($summary['deltas']['failed']) ? $summary['deltas']['failed'] : array(), 'onepaqucpro-cr-kpi-card__delta onepaqucpro-cr-stat-card__delta')); ?>
                     </div>
                 </article>
-                <article class="onepaqucpro-cr-stat-card">
+                <article class="onepaqucpro-cr-stat-card is-opened">
                     <span class="dashicons dashicons-visibility" aria-hidden="true"></span>
                     <div>
                         <small><?php esc_html_e('Opened', 'one-page-quick-checkout-for-woocommerce-pro'); ?></small>
@@ -1933,7 +1933,7 @@ class Onepaqucpro_Cart_Recovery_Admin
                         <?php echo wp_kses_post(self::render_metric_delta(isset($summary['deltas']['opened']) ? $summary['deltas']['opened'] : array(), 'onepaqucpro-cr-kpi-card__delta onepaqucpro-cr-stat-card__delta')); ?>
                     </div>
                 </article>
-                <article class="onepaqucpro-cr-stat-card">
+                <article class="onepaqucpro-cr-stat-card is-clicked">
                     <span class="dashicons dashicons-admin-links" aria-hidden="true"></span>
                     <div>
                         <small><?php esc_html_e('Clicked', 'one-page-quick-checkout-for-woocommerce-pro'); ?></small>
@@ -1942,7 +1942,7 @@ class Onepaqucpro_Cart_Recovery_Admin
                         <?php echo wp_kses_post(self::render_metric_delta(isset($summary['deltas']['clicked']) ? $summary['deltas']['clicked'] : array(), 'onepaqucpro-cr-kpi-card__delta onepaqucpro-cr-stat-card__delta')); ?>
                     </div>
                 </article>
-                <article class="onepaqucpro-cr-stat-card">
+                <article class="onepaqucpro-cr-stat-card is-recovered">
                     <span class="dashicons dashicons-cart" aria-hidden="true"></span>
                     <div>
                         <small><?php esc_html_e('Recovered', 'one-page-quick-checkout-for-woocommerce-pro'); ?></small>
