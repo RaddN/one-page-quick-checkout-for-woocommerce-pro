@@ -218,9 +218,9 @@ table.form-table tbody {
 }
 
 .button-secondary {
-  background-color: #ffffff;
-  color: #495057;
-  border: 2px solid #e9ecef;
+    background-color: #ffffff !important;
+    color: #495057 !important;
+    border: 2px solid #e9ecef !important;
 }
 
 .button-secondary:hover {

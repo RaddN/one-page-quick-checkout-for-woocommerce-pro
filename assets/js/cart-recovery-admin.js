@@ -888,6 +888,125 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  function replaceTemplateTags(content, tags) {
+    let rendered = String(content || "");
+    Object.keys(tags || {}).forEach(function (tag) {
+      rendered = rendered.split(tag).join(tags[tag]);
+    });
+    return rendered;
+  }
+
+  function getTemplateEditorContent(form) {
+    const textarea = form ? form.querySelector('textarea[name="template[message]"]') : null;
+    const editorId = textarea ? textarea.id : "onepaqucpro_cr_template_message";
+
+    const editor = window.tinymce ? window.tinymce.get(editorId) : null;
+    if (editor && (typeof editor.isHidden !== "function" || !editor.isHidden())) {
+      return editor.getContent();
+    }
+
+    return textarea ? textarea.value : "";
+  }
+
+  function getSelectedCartItemsLayout(form) {
+    const selected = form
+      ? form.querySelector('input[name="template[cart_items_layout]"]:checked')
+      : null;
+
+    return selected ? selected.value : "table";
+  }
+
+  function updateLayoutOptionState(input) {
+    const group = input ? input.closest(".onepaqucpro-cr-layout-options") : null;
+    if (!group) {
+      return;
+    }
+
+    group.querySelectorAll(".onepaqucpro-cr-layout-option").forEach(function (option) {
+      const optionInput = option.querySelector('input[type="radio"]');
+      option.classList.toggle("is-selected", !!optionInput && optionInput.checked);
+    });
+  }
+
+  function getPreviewTagMap(template, layout) {
+    const source = template && template.content
+      ? template.content.querySelector("[data-cr-template-preview-tags]")
+      : null;
+
+    if (!source) {
+      return {};
+    }
+
+    try {
+      const maps = JSON.parse(source.textContent || "{}");
+      return maps[layout] || maps.table || {};
+    } catch (error) {
+      return {};
+    }
+  }
+
+  function normalizePreviewBody(content) {
+    const rendered = String(content || "");
+
+    if (/<(p|ul|ol|li|div|table|h[1-6]|blockquote|a)\b/i.test(rendered)) {
+      return rendered;
+    }
+
+    return "<p>" + escapeHtml(rendered).replace(/\n{2,}/g, "</p><p>").replace(/\n/g, "<br>") + "</p>";
+  }
+
+  function updateBuilderPreview(button) {
+    const templateId = button ? button.getAttribute("data-template") : "";
+    const template = templateId ? document.getElementById(templateId) : null;
+    const form = button ? button.closest("form") : null;
+
+    if (!template || !template.content || !form) {
+      return;
+    }
+
+    const layout = getSelectedCartItemsLayout(form);
+    const tags = getPreviewTagMap(template, layout);
+    const nameField = form.querySelector('input[name="template[name]"]');
+    const subjectField = form.querySelector('input[name="template[subject]"]');
+    const headingField = form.querySelector('input[name="template[heading]"]');
+    const selectedLayout = form.querySelector('input[name="template[cart_items_layout]"]:checked');
+    const selectedLayoutLabel = selectedLayout
+      ? selectedLayout.closest(".onepaqucpro-cr-layout-option")
+      : null;
+    const name = nameField && nameField.value ? nameField.value : "Untitled Email";
+    const subject = subjectField && subjectField.value ? subjectField.value : "Recovery email";
+    const heading = headingField && headingField.value ? headingField.value : "We saved your cart";
+    const content = getTemplateEditorContent(form);
+    const renderedBody = normalizePreviewBody(replaceTemplateTags(content, tags));
+
+    const nameTarget = template.content.querySelector("[data-cr-template-preview-name]");
+    const subjectTarget = template.content.querySelector("[data-cr-template-preview-subject]");
+    const headingTarget = template.content.querySelector("[data-cr-template-preview-heading]");
+    const frameTarget = template.content.querySelector("[data-cr-template-preview-frame]");
+    const layoutTarget = template.content.querySelector("[data-cr-template-preview-layout]");
+
+    if (nameTarget) {
+      nameTarget.textContent = name;
+    }
+
+    if (subjectTarget) {
+      subjectTarget.textContent = replaceTemplateTags(subject, tags).replace(/<[^>]*>/g, "");
+    }
+
+    if (headingTarget) {
+      headingTarget.textContent = "Heading: " + replaceTemplateTags(heading, tags).replace(/<[^>]*>/g, "");
+    }
+
+    if (frameTarget) {
+      frameTarget.innerHTML = renderedBody || "No email body is available for this template.";
+    }
+
+    if (layoutTarget && selectedLayoutLabel) {
+      const label = selectedLayoutLabel.querySelector("strong");
+      layoutTarget.textContent = label ? label.textContent : layout;
+    }
+  }
+
   document.addEventListener("click", function (event) {
     const confirmTarget = event.target.closest("[data-cr-confirm]");
     if (confirmTarget && !window.confirm(confirmTarget.getAttribute("data-cr-confirm"))) {
@@ -923,6 +1042,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const openButton = event.target.closest(".onepaqucpro-cr-open-modal");
     if (openButton) {
       event.preventDefault();
+      if (openButton.hasAttribute("data-cr-template-builder-preview")) {
+        updateBuilderPreview(openButton);
+      }
       openModal(openButton.getAttribute("data-template"));
       return;
     }
@@ -971,6 +1093,11 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   document.addEventListener("change", function (event) {
+    if (event.target.matches('.onepaqucpro-cr-layout-option input[type="radio"]')) {
+      updateLayoutOptionState(event.target);
+      return;
+    }
+
     if (event.target.matches("[data-cr-check-all]")) {
       toggleCheckAll(event.target);
       return;
