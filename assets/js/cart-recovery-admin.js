@@ -861,10 +861,62 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  function copyText(value) {
+    if (!value) {
+      return Promise.reject();
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(value);
+    }
+
+    const textarea = document.createElement("textarea");
+    textarea.value = value;
+    textarea.setAttribute("readonly", "readonly");
+    textarea.style.position = "fixed";
+    textarea.style.left = "-9999px";
+    document.body.appendChild(textarea);
+    textarea.select();
+
+    try {
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+      return Promise.resolve();
+    } catch (error) {
+      document.body.removeChild(textarea);
+      return Promise.reject(error);
+    }
+  }
+
   document.addEventListener("click", function (event) {
     const confirmTarget = event.target.closest("[data-cr-confirm]");
     if (confirmTarget && !window.confirm(confirmTarget.getAttribute("data-cr-confirm"))) {
       event.preventDefault();
+      return;
+    }
+
+    const copyButton = event.target.closest("[data-cr-copy]");
+    if (copyButton) {
+      event.preventDefault();
+      const label = copyButton.querySelector("[data-cr-copy-label]");
+      const originalLabel = label ? label.textContent : "";
+      copyText(copyButton.getAttribute("data-cr-copy"))
+        .then(function () {
+          if (label) {
+            label.textContent = "Copied";
+            window.setTimeout(function () {
+              label.textContent = originalLabel;
+            }, 1600);
+          }
+        })
+        .catch(function () {
+          if (label) {
+            label.textContent = "Copy failed";
+            window.setTimeout(function () {
+              label.textContent = originalLabel;
+            }, 1600);
+          }
+        });
       return;
     }
 
