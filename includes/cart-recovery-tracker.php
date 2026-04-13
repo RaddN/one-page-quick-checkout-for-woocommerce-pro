@@ -31,6 +31,28 @@ class Onepaqucpro_Cart_Recovery_Tracker
         add_action('template_redirect', array(__CLASS__, 'handle_public_requests'), 1);
     }
 
+    private static function is_free_mode()
+    {
+        return defined('ONEPAQUC_CART_RECOVERY_FREE_MODE') && ONEPAQUC_CART_RECOVERY_FREE_MODE;
+    }
+
+    private static function can_use_premium_features()
+    {
+        if (self::is_free_mode()) {
+            return false;
+        }
+
+        if (function_exists('onepaqucpro_premium_feature')) {
+            return (bool) onepaqucpro_premium_feature();
+        }
+
+        if (function_exists('onepaqucpro_is_license_valid')) {
+            return (bool) onepaqucpro_is_license_valid();
+        }
+
+        return 'valid' === get_option('onepaquc_license_status', '');
+    }
+
     public static function install()
     {
         global $wpdb;
@@ -299,6 +321,10 @@ class Onepaqucpro_Cart_Recovery_Tracker
                 continue;
             }
 
+            if (! self::can_use_premium_features()) {
+                continue;
+            }
+
             if (empty($row['email']) || ! is_email($row['email'])) {
                 continue;
             }
@@ -458,6 +484,10 @@ class Onepaqucpro_Cart_Recovery_Tracker
             return false;
         }
 
+        if (! self::can_use_premium_features()) {
+            return false;
+        }
+
         switch ($action) {
             case 'mark_abandoned':
                 return self::update_cart_status($cart_key, 'abandoned');
@@ -483,6 +513,10 @@ class Onepaqucpro_Cart_Recovery_Tracker
 
     public static function perform_email_activity_action($email_id, $action)
     {
+        if (! self::can_use_premium_features()) {
+            return false;
+        }
+
         $email_id = absint($email_id);
         $action   = sanitize_key($action);
         $email = self::get_email_row_by_id($email_id);
@@ -510,6 +544,10 @@ class Onepaqucpro_Cart_Recovery_Tracker
 
     public static function save_cart_meta($cart_key, $notes, $tags)
     {
+        if (! self::can_use_premium_features()) {
+            return false;
+        }
+
         $cart = self::get_cart_row_by_key($cart_key);
         if (! $cart) {
             return false;
@@ -526,6 +564,10 @@ class Onepaqucpro_Cart_Recovery_Tracker
 
     public static function send_test_email($template_id, $recipient)
     {
+        if (! self::can_use_premium_features()) {
+            return false;
+        }
+
         if (! is_email($recipient)) {
             return false;
         }
@@ -850,6 +892,10 @@ class Onepaqucpro_Cart_Recovery_Tracker
 
     private static function send_recovery_email($cart, $template)
     {
+        if (! self::can_use_premium_features()) {
+            return false;
+        }
+
         $recipient = 'custom' === $template['send_to'] ? $template['custom_recipient'] : $cart['email'];
         if (! $recipient || ! is_email($recipient)) {
             return false;
@@ -2523,8 +2569,14 @@ class Onepaqucpro_Cart_Recovery_Tracker
 
     private static function should_skip_cart($row, $settings, $metadata)
     {
-        if ($row['cart_total'] <= 0 && empty($settings['track_free_carts'])) {
+        $premium_enabled = self::can_use_premium_features();
+
+        if ($row['cart_total'] <= 0 && (! $premium_enabled || empty($settings['track_free_carts']))) {
             return true;
+        }
+
+        if (! $premium_enabled) {
+            return false;
         }
 
         if (self::email_domain_is_excluded(isset($row['email']) ? $row['email'] : '', $settings)) {
