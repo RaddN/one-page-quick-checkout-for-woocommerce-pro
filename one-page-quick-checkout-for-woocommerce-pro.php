@@ -47,6 +47,42 @@ define("RMENUPRO_VERSION", "1.1.9.27");
 
 require_once plugin_dir_path(__FILE__) . 'admin/license-tab.php';
 
+function onepaqucpro_can_use_one_page_checkout_feature()
+{
+    if (function_exists('onepaqucpro_premium_feature')) {
+        return (bool) onepaqucpro_premium_feature();
+    }
+
+    return 'valid' === get_option('onepaquc_license_status', '');
+}
+
+function onepaqucpro_get_one_page_checkout_license_notice()
+{
+    $title = esc_html__('Pro version only.', 'one-page-quick-checkout-for-woocommerce-pro');
+    $message = esc_html__('Multi Product One Page Checkout requires an active Pro license. Please activate your license to use this feature.', 'one-page-quick-checkout-for-woocommerce-pro');
+    $license_link = '';
+
+    if (is_admin() || current_user_can('manage_options')) {
+        $license_link = sprintf(
+            '<a href="%1$s">%2$s</a>',
+            esc_url(admin_url('admin.php?page=onepaqucpro_cart#tab-100')),
+            esc_html__('Manage license', 'one-page-quick-checkout-for-woocommerce-pro')
+        );
+    }
+
+    $html = '<div class="onepaqucpro-license-required" role="status" style="margin:16px 0;padding:16px 18px;border:1px solid #f0c36d;border-left:4px solid #d97706;border-radius:4px;background:#fff8e5;color:#1f2937;">';
+    $html .= '<strong style="display:block;margin-bottom:6px;color:#92400e;">' . $title . '</strong>';
+    $html .= '<span>' . $message . '</span>';
+
+    if ($license_link) {
+        $html .= '<div style="margin-top:10px;">' . $license_link . '</div>';
+    }
+
+    $html .= '</div>';
+
+    return apply_filters('onepaqucpro_one_page_checkout_license_notice', $html);
+}
+
 // Include the admin notice file
 if (is_admin()) {
     require_once plugin_dir_path(__FILE__) . 'includes/admin-notice.php';
@@ -789,24 +825,56 @@ function onepaqucpro_checkout_already_rendered(): bool
 /**
  * Display the checkout form
  */
-function onepaqucpro_display_one_page_checkout_form(): bool
+function onepaqucpro_display_one_page_checkout_form($args = array()): bool
 {
     if (onepaqucpro_checkout_already_rendered() || !function_exists('WC') || !WC()->cart) {
         return false;
     }
+
+    $args = is_array($args) ? $args : array();
+    $checkout_template = !empty($args['checkout_template']) ? sanitize_key($args['checkout_template']) : '';
+    $checkout_template_args = !empty($args['checkout_template_args']) && is_array($args['checkout_template_args'])
+        ? $args['checkout_template_args']
+        : array();
+    $checkout_template_position = onepaqucpro_normalize_checkout_template_position(
+        !empty($args['checkout_template_position']) ? $args['checkout_template_position'] : 'after_description'
+    );
+    $checkout_template_callback = null;
 
     $context_key = 'onepaqucpro_inline_checkout_context_active';
     $had_context = array_key_exists($context_key, $GLOBALS);
     $previous_context = $had_context ? $GLOBALS[$context_key] : null;
     $GLOBALS[$context_key] = true;
 
+    if ($checkout_template && $checkout_template_position === 'before_order_notes' && onepaqucpro_checkout_embedded_template_path($checkout_template)) {
+        $checkout_template_callback = function () use ($checkout_template, $checkout_template_args) {
+            onepaqucpro_render_checkout_embedded_template($checkout_template, $checkout_template_args);
+        };
+
+        add_action('woocommerce_before_order_notes', $checkout_template_callback, 5);
+    }
+
 ?>
     <div class="one-page-checkout-container onepagecheckoutwidget" id="checkout-popup" data-isonepagewidget="true">
-        <h2>Checkout</h2>
+        <h2><?php echo get_option('txt_checkout') ? esc_attr(get_option('txt_checkout')) : 'Checkout'; ?></h2>
         <p class="one-page-checkout-description"><?php echo get_option('txt-complete_your_purchase') ? esc_attr(get_option('txt-complete_your_purchase')) : 'Complete your purchase using the form below.'; ?></p>
+        <?php
+        if ($checkout_template && in_array($checkout_template_position, array('after_description', 'before_checkout'), true)) {
+            onepaqucpro_render_checkout_embedded_template($checkout_template, $checkout_template_args);
+        }
+        ?>
         <?php echo do_shortcode('[woocommerce_checkout]'); ?>
+        <?php
+        if ($checkout_template && $checkout_template_position === 'after_checkout') {
+            onepaqucpro_render_checkout_embedded_template($checkout_template, $checkout_template_args);
+        }
+        ?>
     </div>
     <?php
+
+    if ($checkout_template_callback) {
+        remove_action('woocommerce_before_order_notes', $checkout_template_callback, 5);
+    }
 
     if ($had_context) {
         $GLOBALS[$context_key] = $previous_context;
@@ -818,6 +886,52 @@ function onepaqucpro_display_one_page_checkout_form(): bool
     if (!defined('ONEPAQUC_CHECKOUT_RENDERED')) {
         define('ONEPAQUC_CHECKOUT_RENDERED', 1);
     }
+    return true;
+}
+
+function onepaqucpro_checkout_embedded_template_path($template): string
+{
+    $templates = array(
+        'product-selection' => plugin_dir_path(__FILE__) . 'templates/product-selection-template.php',
+    );
+
+    return isset($templates[$template]) && file_exists($templates[$template]) ? $templates[$template] : '';
+}
+
+function onepaqucpro_normalize_checkout_template_position($position): string
+{
+    $position = sanitize_key((string) $position);
+    $aliases = array(
+        'before_checkout' => 'after_description',
+        'above_checkout' => 'after_description',
+        'order_notes' => 'before_order_notes',
+        'below_checkout' => 'after_checkout',
+    );
+
+    if (isset($aliases[$position])) {
+        return $aliases[$position];
+    }
+
+    $allowed_positions = array('after_description', 'before_order_notes', 'after_checkout');
+
+    return in_array($position, $allowed_positions, true) ? $position : 'after_description';
+}
+
+function onepaqucpro_render_checkout_embedded_template($template, array $args = array()): bool
+{
+    $template_path = onepaqucpro_checkout_embedded_template_path(sanitize_key($template));
+
+    if (!$template_path) {
+        return false;
+    }
+
+    $product_ids = isset($args['product_ids']) && is_array($args['product_ids'])
+        ? array_values(array_filter(array_map('absint', $args['product_ids'])))
+        : array();
+    $atts = isset($args['atts']) && is_array($args['atts']) ? $args['atts'] : array();
+
+    include $template_path;
+
     return true;
 }
 

@@ -30,6 +30,16 @@ function onepaqucpro_register_one_page_checkout_block()
         true
     );
 
+    wp_localize_script(
+        'plugincy-one-page-checkout-block',
+        'onepaqucproOnePageCheckoutBlock',
+        array(
+            'isLicenseActive' => function_exists('onepaqucpro_can_use_one_page_checkout_feature') ? onepaqucpro_can_use_one_page_checkout_feature() : false,
+            'proTitle' => esc_html__('Pro version only.', 'one-page-quick-checkout-for-woocommerce-pro'),
+            'proMessage' => esc_html__('Multi Product One Page Checkout requires an active Pro license. Please activate your license to use this feature.', 'one-page-quick-checkout-for-woocommerce-pro'),
+        )
+    );
+
     // Register optional block editor styles
     wp_register_style(
         'plugincy-one-page-checkout-editor',
@@ -67,6 +77,30 @@ function onepaqucpro_register_one_page_checkout_block()
             'template' => array(
                 'type' => 'string',
                 'default' => 'product-tabs',
+            ),
+            'position' => array(
+                'type' => 'string',
+                'default' => 'after_description',
+            ),
+            'product_label' => array(
+                'type' => 'string',
+                'default' => 'Product',
+            ),
+            'variation_label' => array(
+                'type' => 'string',
+                'default' => 'Choose an option',
+            ),
+            'updating_selection_text' => array(
+                'type' => 'string',
+                'default' => 'Updating selection...',
+            ),
+            'show_images' => array(
+                'type' => 'boolean',
+                'default' => false,
+            ),
+            'product_layout' => array(
+                'type' => 'string',
+                'default' => 'select_dropdown',
             ),
             // Style attributes
             'borderRadius' => array(
@@ -107,6 +141,12 @@ add_action('init', 'onepaqucpro_register_one_page_checkout_block',100);
  */
 function onepaqucpro_render_one_page_checkout_block($attributes)
 {
+    if (function_exists('onepaqucpro_can_use_one_page_checkout_feature') && !onepaqucpro_can_use_one_page_checkout_feature()) {
+        return function_exists('onepaqucpro_get_one_page_checkout_license_notice')
+            ? onepaqucpro_get_one_page_checkout_license_notice()
+            : '<div class="onepaqucpro-license-required">' . esc_html__('Pro version only. Please activate your license to use this feature.', 'one-page-quick-checkout-for-woocommerce-pro') . '</div>';
+    }
+
     // Extract and sanitize attributes
     $product_ids = isset($attributes['product_ids']) ? sanitize_text_field($attributes['product_ids']) : '';
     $category = isset($attributes['category']) ? sanitize_text_field($attributes['category']) : '';
@@ -114,10 +154,18 @@ function onepaqucpro_render_one_page_checkout_block($attributes)
     $attribute = isset($attributes['attribute']) ? sanitize_text_field($attributes['attribute']) : '';
     $terms = isset($attributes['terms']) ? sanitize_text_field($attributes['terms']) : '';
     $template = isset($attributes['template']) ? sanitize_text_field($attributes['template']) : 'product-tabs';
+    $position = isset($attributes['position']) ? sanitize_key($attributes['position']) : 'after_description';
+    $product_label = isset($attributes['product_label']) ? sanitize_text_field($attributes['product_label']) : '';
+    $variation_label = isset($attributes['variation_label']) ? sanitize_text_field($attributes['variation_label']) : '';
+    $updating_selection_text = isset($attributes['updating_selection_text']) ? sanitize_text_field($attributes['updating_selection_text']) : '';
+    $show_images = !empty($attributes['show_images']);
+    $product_layout = isset($attributes['product_layout']) ? sanitize_key($attributes['product_layout']) : 'select_dropdown';
     $borderRadius = isset($attributes['borderRadius']) ? intval($attributes['borderRadius']) : 4;
     $boxShadow = isset($attributes['boxShadow']) ? (bool) $attributes['boxShadow'] : false;
     $primaryColor = isset($attributes['primaryColor']) ? sanitize_hex_color($attributes['primaryColor']) : '#4CAF50';
+    $primaryColor = $primaryColor ? $primaryColor : '#4CAF50';
     $secondaryColor = isset($attributes['secondaryColor']) ? sanitize_hex_color($attributes['secondaryColor']) : '#2196F3';
+    $secondaryColor = $secondaryColor ? $secondaryColor : '#2196F3';
     $buttonStyle = isset($attributes['buttonStyle']) ? sanitize_text_field($attributes['buttonStyle']) : 'filled';
     $spacing = isset($attributes['spacing']) ? intval($attributes['spacing']) : 15;
 
@@ -182,6 +230,47 @@ function onepaqucpro_render_one_page_checkout_block($attributes)
         $shortcode_atts[] = 'template="' . esc_attr($template) . '"';
     }
 
+    if ($template === 'product-selection' && !empty($position)) {
+        $shortcode_atts[] = 'position="' . esc_attr($position) . '"';
+    }
+
+    if ($template === 'product-selection' && $product_label !== '') {
+        $shortcode_atts[] = 'product_label="' . esc_attr($product_label) . '"';
+    }
+
+    if ($template === 'product-selection' && $variation_label !== '') {
+        $shortcode_atts[] = 'variation_label="' . esc_attr($variation_label) . '"';
+    }
+
+    if ($template === 'product-selection' && $updating_selection_text !== '') {
+        $shortcode_atts[] = 'updating_selection_text="' . esc_attr($updating_selection_text) . '"';
+    }
+
+    if ($template === 'product-selection' && $show_images) {
+        $shortcode_atts[] = 'show_images="yes"';
+    }
+
+    if ($template === 'product-selection' && $show_images && !empty($product_layout)) {
+        $shortcode_atts[] = 'product_layout="' . esc_attr($product_layout) . '"';
+    }
+
+    if ($template === 'product-selection') {
+        if (!empty($primaryColor)) {
+            $shortcode_atts[] = 'primary_color="' . esc_attr($primaryColor) . '"';
+        }
+
+        if (!empty($secondaryColor)) {
+            $shortcode_atts[] = 'secondary_color="' . esc_attr($secondaryColor) . '"';
+        }
+
+        $shortcode_atts[] = 'border_radius="' . esc_attr($borderRadius) . '"';
+        $shortcode_atts[] = 'spacing="' . esc_attr($spacing) . '"';
+
+        if (!empty($buttonStyle)) {
+            $shortcode_atts[] = 'button_style="' . esc_attr($buttonStyle) . '"';
+        }
+    }
+
     // Generate the shortcode
     $shortcode = '[plugincy_one_page_checkout';
     if (!empty($shortcode_atts)) {
@@ -233,11 +322,24 @@ function onepaqucpro_enqueue_block_editor_assets()
         margin: 16px 0;
     }
     
-    .plugincy-color-option {
+    .plugincy-color-row {
+        display: grid;
+        grid-template-columns: 28px minmax(0, 1fr);
+        gap: 10px;
+        align-items: flex-start;
         margin-bottom: 16px;
     }
     
-    .plugincy-color-option label {
+    .plugincy-color-row__swatch {
+        width: 24px;
+        height: 24px;
+        margin-top: 28px;
+        border: 1px solid #dcdcde;
+        border-radius: 50%;
+        box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+    }
+
+    .plugincy-color-row label {
         display: block;
         margin-bottom: 8px;
         font-weight: 600;
@@ -338,12 +440,49 @@ function onepaqucpro_validate_block_attributes($attributes)
         'product-slider',
         'product-accordion',
         'product-tabs',
-        'pricing-table'
+        'pricing-table',
+        'product-selection'
     );
     if (isset($attributes['template']) && in_array($attributes['template'], $valid_templates)) {
         $validated['template'] = $attributes['template'];
     } else {
         $validated['template'] = 'product-tabs'; // Default fallback
+    }
+
+    $valid_positions = array(
+        'after_description',
+        'before_checkout',
+        'above_checkout',
+        'before_order_notes',
+        'order_notes',
+        'after_checkout',
+        'below_checkout',
+    );
+    if (isset($attributes['position']) && in_array($attributes['position'], $valid_positions, true)) {
+        $validated['position'] = $attributes['position'];
+    } else {
+        $validated['position'] = 'after_description';
+    }
+
+    if (isset($attributes['product_label'])) {
+        $validated['product_label'] = sanitize_text_field($attributes['product_label']);
+    }
+
+    if (isset($attributes['variation_label'])) {
+        $validated['variation_label'] = sanitize_text_field($attributes['variation_label']);
+    }
+
+    if (isset($attributes['updating_selection_text'])) {
+        $validated['updating_selection_text'] = sanitize_text_field($attributes['updating_selection_text']);
+    }
+
+    $validated['show_images'] = !empty($attributes['show_images']);
+
+    $valid_product_layouts = array('select_dropdown', 'card_dropdown', 'cards');
+    if (isset($attributes['product_layout']) && in_array($attributes['product_layout'], $valid_product_layouts, true)) {
+        $validated['product_layout'] = $attributes['product_layout'];
+    } else {
+        $validated['product_layout'] = 'select_dropdown';
     }
 
     return array_merge(is_array($attributes) ? $attributes : [], is_array($validated) ? $validated : []);

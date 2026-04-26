@@ -1,8 +1,12 @@
 (function (blocks, element, components, blockEditor) {
     const { Fragment } = element;
-    const { TextControl, SelectControl, RangeControl, PanelBody, TabPanel, ColorPicker, ToggleControl } = components;
-    const { InspectorControls } = blockEditor;
+    const { TextControl, SelectControl, RangeControl, PanelBody, TabPanel, ToggleControl } = components;
+    const { InspectorControls, PanelColorSettings } = blockEditor;
     const el = element.createElement;
+    const blockConfig = window.onepaqucproOnePageCheckoutBlock || {};
+    const isLicenseActive = blockConfig.isLicenseActive !== false;
+    const proTitle = blockConfig.proTitle || 'Pro version only.';
+    const proMessage = blockConfig.proMessage || 'Multi Product One Page Checkout requires an active Pro license. Please activate your license to use this feature.';
     
     blocks.registerBlockType('plugincy/one-page-checkout', {
         title: 'Multi Product One Page Checkout',
@@ -40,6 +44,30 @@
                 type: 'string',
                 default: 'product-tabs',
             },
+            position: {
+                type: 'string',
+                default: 'after_description',
+            },
+            product_label: {
+                type: 'string',
+                default: 'Product',
+            },
+            variation_label: {
+                type: 'string',
+                default: 'Choose an option',
+            },
+            updating_selection_text: {
+                type: 'string',
+                default: 'Updating selection...',
+            },
+            show_images: {
+                type: 'boolean',
+                default: false,
+            },
+            product_layout: {
+                type: 'string',
+                default: 'select_dropdown',
+            },
             // Style attributes
             borderRadius: {
                 type: 'number',
@@ -76,6 +104,12 @@
                 attribute,
                 terms,
                 template, 
+                position,
+                product_label,
+                variation_label,
+                updating_selection_text,
+                show_images,
+                product_layout,
                 borderRadius, 
                 boxShadow, 
                 primaryColor, 
@@ -93,6 +127,19 @@
                 { label: 'Product Accordion', value: 'product-accordion' },
                 { label: 'Product Tabs', value: 'product-tabs' },
                 { label: 'Pricing Table', value: 'pricing-table' },
+                { label: 'Product Selection', value: 'product-selection' },
+            ];
+
+            const positionOptions = [
+                { label: 'After checkout description', value: 'after_description' },
+                { label: 'Before order notes', value: 'before_order_notes' },
+                { label: 'After checkout form', value: 'after_checkout' },
+            ];
+
+            const productLayoutOptions = [
+                { label: 'Select Dropdown (Default)', value: 'select_dropdown' },
+                { label: 'Cards in Dropdown', value: 'card_dropdown' },
+                { label: 'Card & More', value: 'cards' },
             ];
 
             // Button style options
@@ -101,6 +148,108 @@
                 { label: 'Outlined', value: 'outlined' },
                 { label: 'Text Only', value: 'text' },
             ];
+
+            const colorSettings = [
+                {
+                    value: primaryColor,
+                    onChange: (value) => setAttributes({ primaryColor: value || '#4CAF50' }),
+                    label: 'Primary Color',
+                },
+                {
+                    value: secondaryColor,
+                    onChange: (value) => setAttributes({ secondaryColor: value || '#2196F3' }),
+                    label: 'Secondary Color',
+                },
+            ];
+
+            const renderCompactColorControls = () => el(
+                PanelBody,
+                {
+                    title: 'Colors & Buttons',
+                    initialOpen: false,
+                },
+                el(
+                    'div',
+                    {
+                        className: 'plugincy-color-row',
+                    },
+                    el(
+                        'span',
+                        {
+                            className: 'plugincy-color-row__swatch',
+                            style: { backgroundColor: primaryColor || '#4CAF50' },
+                            'aria-hidden': 'true',
+                        }
+                    ),
+                    el(
+                        TextControl,
+                        {
+                            label: 'Primary Color',
+                            help: 'Main theme color for buttons and highlights.',
+                            value: primaryColor || '',
+                            onChange: (value) => setAttributes({ primaryColor: value }),
+                        }
+                    )
+                ),
+                el(
+                    'div',
+                    {
+                        className: 'plugincy-color-row',
+                    },
+                    el(
+                        'span',
+                        {
+                            className: 'plugincy-color-row__swatch',
+                            style: { backgroundColor: secondaryColor || '#2196F3' },
+                            'aria-hidden': 'true',
+                        }
+                    ),
+                    el(
+                        TextControl,
+                        {
+                            label: 'Secondary Color',
+                            help: 'Accent color for secondary elements.',
+                            value: secondaryColor || '',
+                            onChange: (value) => setAttributes({ secondaryColor: value }),
+                        }
+                    )
+                ),
+                el(
+                    SelectControl,
+                    {
+                        label: 'Button Style',
+                        help: 'Choose the appearance of checkout buttons',
+                        value: buttonStyle,
+                        options: buttonStyleOptions,
+                        onChange: (value) => setAttributes({ buttonStyle: value }),
+                    }
+                )
+            );
+
+            const renderColorControls = () => {
+                if (PanelColorSettings) {
+                    return el(
+                        PanelColorSettings,
+                        {
+                            title: 'Colors & Buttons',
+                            initialOpen: false,
+                            colorSettings,
+                        },
+                        el(
+                            SelectControl,
+                            {
+                                label: 'Button Style',
+                                help: 'Choose the appearance of checkout buttons',
+                                value: buttonStyle,
+                                options: buttonStyleOptions,
+                                onChange: (value) => setAttributes({ buttonStyle: value }),
+                            }
+                        )
+                    );
+                }
+
+                return renderCompactColorControls();
+            };
 
             // Generate shortcode preview
             const generateShortcode = () => {
@@ -112,6 +261,17 @@
                 if (attribute) shortcode += ` attribute="${attribute}"`;
                 if (terms) shortcode += ` terms="${terms}"`;
                 if (template) shortcode += ` template="${template}"`;
+                if (template === 'product-selection' && position) shortcode += ` position="${position}"`;
+                if (template === 'product-selection' && product_label) shortcode += ` product_label="${product_label}"`;
+                if (template === 'product-selection' && variation_label) shortcode += ` variation_label="${variation_label}"`;
+                if (template === 'product-selection' && updating_selection_text) shortcode += ` updating_selection_text="${updating_selection_text}"`;
+                if (template === 'product-selection' && show_images) shortcode += ' show_images="yes"';
+                if (template === 'product-selection' && show_images && product_layout) shortcode += ` product_layout="${product_layout}"`;
+                if (template === 'product-selection' && primaryColor) shortcode += ` primary_color="${primaryColor}"`;
+                if (template === 'product-selection' && secondaryColor) shortcode += ` secondary_color="${secondaryColor}"`;
+                if (template === 'product-selection' && borderRadius !== undefined) shortcode += ` border_radius="${borderRadius}"`;
+                if (template === 'product-selection' && spacing !== undefined) shortcode += ` spacing="${spacing}"`;
+                if (template === 'product-selection' && buttonStyle) shortcode += ` button_style="${buttonStyle}"`;
                 
                 shortcode += ']';
                 return shortcode;
@@ -149,20 +309,87 @@
                         (tab) => {
                             if (tab.name === 'general') {
                                 return el(
-                                    PanelBody,
-                                    { 
-                                        title: 'Template Settings',
-                                        initialOpen: true 
-                                    },
+                                    Fragment,
+                                    {},
                                     el(
-                                        SelectControl,
+                                        PanelBody,
+                                        { 
+                                            title: 'Template Settings',
+                                            initialOpen: true 
+                                        },
+                                        el(
+                                            SelectControl,
+                                            {
+                                                label: 'Display Template',
+                                                help: 'Choose how products will be displayed on the checkout page',
+                                                value: template,
+                                                options: templateOptions,
+                                                onChange: (value) => setAttributes({ template: value }),
+                                            }
+                                        ),
+                                        template === 'product-selection' && el(
+                                            SelectControl,
+                                            {
+                                                label: 'Product Selection Position',
+                                                help: 'Choose where the product selector appears inside the checkout form.',
+                                                value: position,
+                                                options: positionOptions,
+                                                onChange: (value) => setAttributes({ position: value }),
+                                            }
+                                        ),
+                                        template === 'product-selection' && el(
+                                            ToggleControl,
+                                            {
+                                                label: 'Show Product & Variation Images',
+                                                help: 'Show the selected product image and each variation thumbnail.',
+                                                checked: !!show_images,
+                                                onChange: (value) => setAttributes({ show_images: !!value }),
+                                            }
+                                        ),
+                                        template === 'product-selection' && show_images && el(
+                                            SelectControl,
+                                            {
+                                                label: 'Product Layout',
+                                                help: 'Choose how products appear when images are enabled.',
+                                                value: product_layout,
+                                                options: productLayoutOptions,
+                                                onChange: (value) => setAttributes({ product_layout: value }),
+                                            }
+                                        )
+                                    ),
+                                    template === 'product-selection' && el(
+                                        PanelBody,
                                         {
-                                            label: 'Display Template',
-                                            help: 'Choose how products will be displayed on the checkout page',
-                                            value: template,
-                                            options: templateOptions,
-                                            onChange: (value) => setAttributes({ template: value }),
-                                        }
+                                            title: 'Text Management',
+                                            initialOpen: false
+                                        },
+                                        el(
+                                            TextControl,
+                                            {
+                                                label: 'Product Label',
+                                                help: 'Text shown above the product dropdown.',
+                                                value: product_label,
+                                                onChange: (value) => setAttributes({ product_label: value }),
+                                            }
+                                        ),
+                                        el(
+                                            TextControl,
+                                            {
+                                                label: 'Variation Label',
+                                                help: 'Text shown above the variation options.',
+                                                value: variation_label,
+                                                onChange: (value) => setAttributes({ variation_label: value }),
+                                            }
+                                        ),
+                                        el(
+                                            TextControl,
+                                            {
+                                                label: 'Updating Selection Text',
+                                                help: 'Status text shown while the selected product or variation is updating.',
+                                                value: updating_selection_text,
+                                                onChange: (value) => setAttributes({ updating_selection_text: value }),
+                                            }
+                                        )
                                     )
                                 );
                             } else if (tab.name === 'products') {
@@ -295,81 +522,7 @@
                                             }
                                         )
                                     ),
-                                    el(
-                                        PanelBody,
-                                        { 
-                                            title: 'Colors & Buttons',
-                                            initialOpen: false 
-                                        },
-                                        el(
-                                            'div',
-                                            { 
-                                                className: 'plugincy-color-option',
-                                                style: { marginBottom: '20px' }
-                                            },
-                                            el('label', { 
-                                                style: { 
-                                                    display: 'block', 
-                                                    marginBottom: '8px',
-                                                    fontWeight: '600'
-                                                } 
-                                            }, 'Primary Color'),
-                                            el('p', { 
-                                                style: { 
-                                                    fontSize: '12px', 
-                                                    color: '#666',
-                                                    margin: '0 0 8px 0'
-                                                } 
-                                            }, 'Main theme color for buttons and highlights'),
-                                            el(
-                                                ColorPicker,
-                                                {
-                                                    color: primaryColor,
-                                                    onChangeComplete: (value) => setAttributes({ primaryColor: value.hex }),
-                                                    disableAlpha: true,
-                                                }
-                                            )
-                                        ),
-                                        el(
-                                            'div',
-                                            { 
-                                                className: 'plugincy-color-option',
-                                                style: { marginBottom: '20px' }
-                                            },
-                                            el('label', { 
-                                                style: { 
-                                                    display: 'block', 
-                                                    marginBottom: '8px',
-                                                    fontWeight: '600'
-                                                } 
-                                            }, 'Secondary Color'),
-                                            el('p', { 
-                                                style: { 
-                                                    fontSize: '12px', 
-                                                    color: '#666',
-                                                    margin: '0 0 8px 0'
-                                                } 
-                                            }, 'Accent color for secondary elements'),
-                                            el(
-                                                ColorPicker,
-                                                {
-                                                    color: secondaryColor,
-                                                    onChangeComplete: (value) => setAttributes({ secondaryColor: value.hex }),
-                                                    disableAlpha: true,
-                                                }
-                                            )
-                                        ),
-                                        el(
-                                            SelectControl,
-                                            {
-                                                label: 'Button Style',
-                                                help: 'Choose the appearance of checkout buttons',
-                                                value: buttonStyle,
-                                                options: buttonStyleOptions,
-                                                onChange: (value) => setAttributes({ buttonStyle: value }),
-                                            }
-                                        )
-                                    )
+                                    renderColorControls()
                                 );
                             }
                         }
@@ -389,7 +542,27 @@
                             boxShadow: boxShadow ? '0 2px 8px rgba(0,0,0,0.1)' : 'none'
                         }
                     },                    
-                    el('div', {
+                    !isLicenseActive ? el(
+                        'div',
+                        {
+                            style: {
+                                backgroundColor: '#fff8e5',
+                                border: '1px solid #f0c36d',
+                                borderLeft: '4px solid #d97706',
+                                borderRadius: '4px',
+                                color: '#1f2937',
+                                padding: '16px 18px'
+                            }
+                        },
+                        el('strong', {
+                            style: {
+                                color: '#92400e',
+                                display: 'block',
+                                marginBottom: '6px'
+                            }
+                        }, proTitle),
+                        el('span', {}, proMessage)
+                    ) : el('div', {
                         style: {
                             backgroundColor: '#fff',
                             padding: '15px',
@@ -414,7 +587,18 @@
                 tags,
                 attribute,
                 terms,
-                template 
+                template,
+                position,
+                product_label,
+                variation_label,
+                updating_selection_text,
+                show_images,
+                product_layout,
+                borderRadius,
+                primaryColor,
+                secondaryColor,
+                buttonStyle,
+                spacing
             } = attributes;
 
             // Generate the shortcode with current attributes
@@ -426,6 +610,17 @@
             if (attribute) shortcode += ` attribute="${attribute}"`;
             if (terms) shortcode += ` terms="${terms}"`;
             if (template) shortcode += ` template="${template}"`;
+            if (template === 'product-selection' && position) shortcode += ` position="${position}"`;
+            if (template === 'product-selection' && product_label) shortcode += ` product_label="${product_label}"`;
+            if (template === 'product-selection' && variation_label) shortcode += ` variation_label="${variation_label}"`;
+            if (template === 'product-selection' && updating_selection_text) shortcode += ` updating_selection_text="${updating_selection_text}"`;
+            if (template === 'product-selection' && show_images) shortcode += ' show_images="yes"';
+            if (template === 'product-selection' && show_images && product_layout) shortcode += ` product_layout="${product_layout}"`;
+            if (template === 'product-selection' && primaryColor) shortcode += ` primary_color="${primaryColor}"`;
+            if (template === 'product-selection' && secondaryColor) shortcode += ` secondary_color="${secondaryColor}"`;
+            if (template === 'product-selection' && borderRadius !== undefined) shortcode += ` border_radius="${borderRadius}"`;
+            if (template === 'product-selection' && spacing !== undefined) shortcode += ` spacing="${spacing}"`;
+            if (template === 'product-selection' && buttonStyle) shortcode += ` button_style="${buttonStyle}"`;
             
             shortcode += ']';
 

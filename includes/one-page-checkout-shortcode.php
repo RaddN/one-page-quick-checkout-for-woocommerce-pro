@@ -1,7 +1,7 @@
 <?php
 if (! defined('ABSPATH')) exit; // Exit if accessed directly
 
-// shortcode to display one page checkout [plugincy_one_page_checkout product_ids="" category="" tags="" attribute="" terms="" template=""]
+// shortcode to display one page checkout [plugincy_one_page_checkout product_ids="" category="" tags="" attribute="" terms="" template="" position="" product_label="" variation_label="" updating_selection_text="" show_images="" product_layout="" primary_color="" secondary_color="" border_radius="" spacing="" button_style=""]
 function onepaqucpro_one_page_checkout_shortcode($atts)
 {
     $atts = shortcode_atts(array(
@@ -10,8 +10,26 @@ function onepaqucpro_one_page_checkout_shortcode($atts)
         'tags'        => '',
         'attribute'   => '',
         'terms'       => '',
-        'template'    => 'product-table'
+        'template'    => 'product-table',
+        'position'    => 'after_description',
+        'template_position' => '',
+        'product_label' => '',
+        'variation_label' => '',
+        'updating_selection_text' => '',
+        'show_images' => 'no',
+        'product_layout' => 'select_dropdown',
+        'primary_color' => '',
+        'secondary_color' => '',
+        'border_radius' => '',
+        'spacing' => '',
+        'button_style' => '',
     ), $atts);
+
+    if (function_exists('onepaqucpro_can_use_one_page_checkout_feature') && !onepaqucpro_can_use_one_page_checkout_feature()) {
+        return function_exists('onepaqucpro_get_one_page_checkout_license_notice')
+            ? onepaqucpro_get_one_page_checkout_license_notice()
+            : '<div class="onepaqucpro-license-required">' . esc_html__('Pro version only. Please activate your license to use this feature.', 'one-page-quick-checkout-for-woocommerce-pro') . '</div>';
+    }
 
     ob_start();
 
@@ -67,11 +85,20 @@ function onepaqucpro_one_page_checkout_shortcode($atts)
         return '<div class="rmenupro-one-page-checkout"><p>' . esc_html__('Please provide product IDs, category, tags, or attribute terms.', 'one-page-quick-checkout-for-woocommerce-pro') . '</p></div>';
     }
 
+    $checkout_template = $atts['template'] === 'product-selection' ? 'product-selection' : '';
+    $checkout_template_position = onepaqucpro_normalize_checkout_template_position(
+        !empty($atts['template_position']) ? $atts['template_position'] : $atts['position']
+    );
+
     if (class_exists('WooCommerce') && WC()->cart && get_option("onepaqucpro_checkout_widget_cart_empty", "1") === "1") {
         WC()->cart->empty_cart();
     }
 
-    foreach ($product_ids as $product_id) {
+    $auto_add_product_ids = $checkout_template === 'product-selection'
+        ? array_slice($product_ids, 0, 1)
+        : $product_ids;
+
+    foreach ($auto_add_product_ids as $product_id) {
         $product_id = intval($product_id);
         if ($product_id > 0 && class_exists('WooCommerce') && WC()->cart && get_option("onepaqucpro_checkout_widget_cart_add", "1") === "1") {
             $product = wc_get_product($product_id);
@@ -96,7 +123,9 @@ function onepaqucpro_one_page_checkout_shortcode($atts)
     <div class="rmenupro-one-page-checkout" id="checkout-popup">
         <?php
         // Include the checkout template based on the selected template
-        if ($atts['template'] === 'product-table') {
+        if ($checkout_template === 'product-selection') {
+            // Product selection is rendered inside the checkout form at the requested position.
+        } elseif ($atts['template'] === 'product-table') {
             include plugin_dir_path(__FILE__) . '../templates/product-table-template.php';
         } elseif ($atts['template'] === 'product-list') {
             include plugin_dir_path(__FILE__) . '../templates/product-list-template.php';
@@ -112,12 +141,73 @@ function onepaqucpro_one_page_checkout_shortcode($atts)
             include plugin_dir_path(__FILE__) . '../templates/pricing-table-template.php';
         }
         ?>
+
+        <div class="opc-checkout-form-container">
+            <?php
+            onepaqucpro_display_one_page_checkout_form(array(
+                'checkout_template' => $checkout_template,
+                'checkout_template_position' => $checkout_template_position,
+                'checkout_template_args' => array(
+                    'product_ids' => $product_ids,
+                    'atts' => $atts,
+                ),
+            ));
+            ?>
+        </div>
     </div>
 <?php
 
     return ob_get_clean();
 }
 add_shortcode('plugincy_one_page_checkout', 'onepaqucpro_one_page_checkout_shortcode', 99999);
+
+add_action('wp_ajax_onepaqucpro_product_selection_select_product', 'onepaqucpro_product_selection_select_product');
+add_action('wp_ajax_nopriv_onepaqucpro_product_selection_select_product', 'onepaqucpro_product_selection_select_product');
+
+function onepaqucpro_product_selection_select_product()
+{
+    check_ajax_referer('rmenupro-ajax-nonce', 'nonce');
+
+    if (function_exists('onepaqucpro_can_use_one_page_checkout_feature') && !onepaqucpro_can_use_one_page_checkout_feature()) {
+        wp_send_json_error(array(
+            'message' => esc_html__('Pro version only. Please activate your license to use this feature.', 'one-page-quick-checkout-for-woocommerce-pro'),
+        ));
+    }
+
+    if (!function_exists('WC') || !WC()->cart) {
+        wp_send_json_error(array(
+            'message' => esc_html__('Cart is not available.', 'one-page-quick-checkout-for-woocommerce-pro'),
+        ));
+    }
+
+    $product_id = absint(isset($_POST['product_id']) ? wp_unslash($_POST['product_id']) : 0);
+    $variation_id = absint(isset($_POST['variation_id']) ? wp_unslash($_POST['variation_id']) : 0);
+    $raw_variations = isset($_POST['variations']) ? wp_unslash($_POST['variations']) : array();
+    $variations = is_array($raw_variations) ? array_map('sanitize_text_field', $raw_variations) : array();
+    $product = $product_id ? wc_get_product($product_id) : false;
+
+    if (!$product || !$product->is_purchasable()) {
+        wp_send_json_error(array(
+            'message' => esc_html__('Please choose a valid product.', 'one-page-quick-checkout-for-woocommerce-pro'),
+        ));
+    }
+
+    WC()->cart->empty_cart();
+
+    $added = WC()->cart->add_to_cart($product_id, 1, $variation_id, $variations);
+
+    if (!$added) {
+        wp_send_json_error(array(
+            'message' => esc_html__('The selected product could not be added to the cart.', 'one-page-quick-checkout-for-woocommerce-pro'),
+        ));
+    }
+
+    WC()->cart->calculate_totals();
+
+    wp_send_json_success(array(
+        'message' => esc_html__('Product selection updated.', 'one-page-quick-checkout-for-woocommerce-pro'),
+    ));
+}
 
 
 

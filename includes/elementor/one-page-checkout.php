@@ -105,8 +105,111 @@ function onepaqucpro_plugincy_one_page_checkout_widget()
                         'product-accordion' => esc_html__('Product Accordion', 'one-page-quick-checkout-for-woocommerce-pro'),
                         'product-tabs' => esc_html__('Product Tabs', 'one-page-quick-checkout-for-woocommerce-pro'),
                         'pricing-table' => esc_html__('Pricing Table', 'one-page-quick-checkout-for-woocommerce-pro'),
+                        'product-selection' => esc_html__('Product Selection', 'one-page-quick-checkout-for-woocommerce-pro'),
                     ],
                     'description' => esc_html__('Choose how products will be displayed on the checkout page', 'one-page-quick-checkout-for-woocommerce-pro'),
+                ]
+            );
+
+            $this->add_control(
+                'position',
+                [
+                    'label' => esc_html__('Product Selection Position', 'one-page-quick-checkout-for-woocommerce-pro'),
+                    'type' => \Elementor\Controls_Manager::SELECT,
+                    'default' => 'after_description',
+                    'options' => [
+                        'after_description' => esc_html__('After checkout description', 'one-page-quick-checkout-for-woocommerce-pro'),
+                        'before_order_notes' => esc_html__('Before order notes', 'one-page-quick-checkout-for-woocommerce-pro'),
+                        'after_checkout' => esc_html__('After checkout form', 'one-page-quick-checkout-for-woocommerce-pro'),
+                    ],
+                    'condition' => [
+                        'template' => 'product-selection',
+                    ],
+                    'description' => esc_html__('Choose where the product selector appears inside the checkout form.', 'one-page-quick-checkout-for-woocommerce-pro'),
+                ]
+            );
+
+            $this->add_control(
+                'show_images',
+                [
+                    'label' => esc_html__('Show Product & Variation Images', 'one-page-quick-checkout-for-woocommerce-pro'),
+                    'type' => \Elementor\Controls_Manager::SWITCHER,
+                    'label_on' => esc_html__('Show', 'one-page-quick-checkout-for-woocommerce-pro'),
+                    'label_off' => esc_html__('Hide', 'one-page-quick-checkout-for-woocommerce-pro'),
+                    'return_value' => 'yes',
+                    'default' => '',
+                    'condition' => [
+                        'template' => 'product-selection',
+                    ],
+                    'description' => esc_html__('Show the selected product image and each variation thumbnail.', 'one-page-quick-checkout-for-woocommerce-pro'),
+                ]
+            );
+
+            $this->add_control(
+                'product_layout',
+                [
+                    'label' => esc_html__('Product Layout', 'one-page-quick-checkout-for-woocommerce-pro'),
+                    'type' => \Elementor\Controls_Manager::SELECT,
+                    'default' => 'select_dropdown',
+                    'options' => [
+                        'select_dropdown' => esc_html__('Select Dropdown (Default)', 'one-page-quick-checkout-for-woocommerce-pro'),
+                        'card_dropdown' => esc_html__('Cards in Dropdown', 'one-page-quick-checkout-for-woocommerce-pro'),
+                        'cards' => esc_html__('Card & More', 'one-page-quick-checkout-for-woocommerce-pro'),
+                    ],
+                    'condition' => [
+                        'template' => 'product-selection',
+                        'show_images' => 'yes',
+                    ],
+                    'description' => esc_html__('Choose how products appear when images are enabled.', 'one-page-quick-checkout-for-woocommerce-pro'),
+                ]
+            );
+
+            $this->end_controls_section();
+
+            $this->start_controls_section(
+                'product_selection_text_section',
+                [
+                    'label' => esc_html__('Text Management', 'one-page-quick-checkout-for-woocommerce-pro'),
+                    'tab' => \Elementor\Controls_Manager::TAB_CONTENT,
+                    'condition' => [
+                        'template' => 'product-selection',
+                    ],
+                ]
+            );
+
+            $this->add_control(
+                'product_label',
+                [
+                    'label' => esc_html__('Product Label', 'one-page-quick-checkout-for-woocommerce-pro'),
+                    'type' => \Elementor\Controls_Manager::TEXT,
+                    'default' => esc_html__('Product', 'one-page-quick-checkout-for-woocommerce-pro'),
+                    'dynamic' => [
+                        'active' => true,
+                    ],
+                ]
+            );
+
+            $this->add_control(
+                'variation_label',
+                [
+                    'label' => esc_html__('Variation Label', 'one-page-quick-checkout-for-woocommerce-pro'),
+                    'type' => \Elementor\Controls_Manager::TEXT,
+                    'default' => esc_html__('Choose an option', 'one-page-quick-checkout-for-woocommerce-pro'),
+                    'dynamic' => [
+                        'active' => true,
+                    ],
+                ]
+            );
+
+            $this->add_control(
+                'updating_selection_text',
+                [
+                    'label' => esc_html__('Updating Selection Text', 'one-page-quick-checkout-for-woocommerce-pro'),
+                    'type' => \Elementor\Controls_Manager::TEXT,
+                    'default' => esc_html__('Updating selection...', 'one-page-quick-checkout-for-woocommerce-pro'),
+                    'dynamic' => [
+                        'active' => true,
+                    ],
                 ]
             );
 
@@ -448,6 +551,13 @@ function onepaqucpro_plugincy_one_page_checkout_widget()
          */
         protected function render()
         {
+            if (function_exists('onepaqucpro_can_use_one_page_checkout_feature') && !onepaqucpro_can_use_one_page_checkout_feature()) {
+                echo function_exists('onepaqucpro_get_one_page_checkout_license_notice')
+                    ? onepaqucpro_get_one_page_checkout_license_notice()
+                    : '<div class="onepaqucpro-license-required">' . esc_html__('Pro version only. Please activate your license to use this feature.', 'one-page-quick-checkout-for-woocommerce-pro') . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                return;
+            }
+
             $settings = $this->get_settings_for_display();
 
             // Build shortcode attributes
@@ -475,6 +585,55 @@ function onepaqucpro_plugincy_one_page_checkout_widget()
 
             if (!empty($settings['template'])) {
                 $shortcode_attrs[] = 'template="' . esc_attr($settings['template']) . '"';
+            }
+
+            if (!empty($settings['position']) && !empty($settings['template']) && $settings['template'] === 'product-selection') {
+                $shortcode_attrs[] = 'position="' . esc_attr($settings['position']) . '"';
+            }
+
+            if (!empty($settings['product_label']) && !empty($settings['template']) && $settings['template'] === 'product-selection') {
+                $shortcode_attrs[] = 'product_label="' . esc_attr($settings['product_label']) . '"';
+            }
+
+            if (!empty($settings['variation_label']) && !empty($settings['template']) && $settings['template'] === 'product-selection') {
+                $shortcode_attrs[] = 'variation_label="' . esc_attr($settings['variation_label']) . '"';
+            }
+
+            if (!empty($settings['updating_selection_text']) && !empty($settings['template']) && $settings['template'] === 'product-selection') {
+                $shortcode_attrs[] = 'updating_selection_text="' . esc_attr($settings['updating_selection_text']) . '"';
+            }
+
+            if (!empty($settings['show_images']) && !empty($settings['template']) && $settings['template'] === 'product-selection') {
+                $shortcode_attrs[] = 'show_images="' . esc_attr($settings['show_images']) . '"';
+            }
+
+            if (!empty($settings['product_layout']) && !empty($settings['show_images']) && !empty($settings['template']) && $settings['template'] === 'product-selection') {
+                $shortcode_attrs[] = 'product_layout="' . esc_attr($settings['product_layout']) . '"';
+            }
+
+            if (!empty($settings['template']) && $settings['template'] === 'product-selection') {
+                $primary_color = !empty($settings['primary_color']) ? sanitize_hex_color($settings['primary_color']) : '';
+                $secondary_color = !empty($settings['secondary_color']) ? sanitize_hex_color($settings['secondary_color']) : '';
+
+                if (!empty($primary_color)) {
+                    $shortcode_attrs[] = 'primary_color="' . esc_attr($primary_color) . '"';
+                }
+
+                if (!empty($secondary_color)) {
+                    $shortcode_attrs[] = 'secondary_color="' . esc_attr($secondary_color) . '"';
+                }
+
+                if (isset($settings['border_radius']['size']) && $settings['border_radius']['size'] !== '') {
+                    $shortcode_attrs[] = 'border_radius="' . esc_attr($settings['border_radius']['size']) . '"';
+                }
+
+                if (isset($settings['spacing']['size']) && $settings['spacing']['size'] !== '') {
+                    $shortcode_attrs[] = 'spacing="' . esc_attr($settings['spacing']['size']) . '"';
+                }
+
+                if (!empty($settings['button_style'])) {
+                    $shortcode_attrs[] = 'button_style="' . esc_attr($settings['button_style']) . '"';
+                }
             }
 
             // Build the shortcode

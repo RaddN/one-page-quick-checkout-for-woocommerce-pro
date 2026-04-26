@@ -121,11 +121,19 @@ function onepaqucpro_cart_documentation()
                         
                         <h4>Shortcode Example</h4>
                         <pre><code>[plugincy_one_page_checkout product_ids="152,153,151,142" template="product-tabs"]</code></pre>
+                        <pre><code>[plugincy_one_page_checkout product_ids="152,153,151,142" template="product-selection" position="after_description" product_label="Product" variation_label="Choose an option" updating_selection_text="Updating selection..." show_images="yes" product_layout="select_dropdown" primary_color="#4CAF50" secondary_color="#2196F3" border_radius="4" spacing="15"]</code></pre>
                         
                         <h4>Parameters</h4>
                         <ul>
                             <li><code>product_ids</code>: Comma-separated list of product IDs to include</li>
                             <li><code>template</code>: Display template (see Available Templates section)</li>
+                            <li><code>position</code>: Optional placement for embedded checkout templates. Supported values: <code>after_description</code>, <code>before_order_notes</code>, <code>after_checkout</code>.</li>
+                            <li><code>product_label</code>: Optional product dropdown label for the <code>product-selection</code> template.</li>
+                            <li><code>variation_label</code>: Optional variation option label for the <code>product-selection</code> template.</li>
+                            <li><code>updating_selection_text</code>: Optional status text shown while the <code>product-selection</code> template updates the checkout.</li>
+                            <li><code>show_images</code>: Optional image display for the <code>product-selection</code> template. Use <code>yes</code> to show product and variation images.</li>
+                            <li><code>product_layout</code>: Optional product image layout for the <code>product-selection</code> template when <code>show_images</code> is enabled. Supported values: <code>select_dropdown</code> (Select Dropdown), <code>card_dropdown</code> (Cards in Dropdown), <code>cards</code> (Card & More).</li>
+                            <li><code>primary_color</code>, <code>secondary_color</code>, <code>border_radius</code>, <code>spacing</code>: Optional style values used by the <code>product-selection</code> template and passed automatically from the block and Elementor widget style controls.</li>
                         </ul>
                     </div>
 
@@ -167,6 +175,11 @@ function onepaqucpro_cart_documentation()
                             <div class="plugincy-template">
                                 <h4>pricing-table</h4>
                                 <p>Displays products in a comparison table style.</p>
+                            </div>
+
+                            <div class="plugincy-template">
+                                <h4>product-selection</h4>
+                                <p>Displays product and variation selection inside the checkout form before the WooCommerce checkout fields.</p>
                             </div>
                         </div>
                     </div>
