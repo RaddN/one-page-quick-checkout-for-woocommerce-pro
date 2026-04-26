@@ -377,12 +377,60 @@ function onepaqucpro_ajax_add_to_cart()
 
     $variation_id = empty($_POST['variation_id']) ? 0 : absint($_POST['variation_id']);
     $raw_variations = isset($_POST['variations']) ? wp_unslash($_POST['variations']) : array();
-    $variations = is_array($raw_variations) ? array_map('sanitize_text_field', $raw_variations) : array();
+    $variations = array();
+
+    if (is_array($raw_variations)) {
+        foreach ($raw_variations as $attribute_key => $attribute_value) {
+            if (!is_scalar($attribute_key) || !is_scalar($attribute_value)) {
+                continue;
+            }
+
+            $normalized_key = function_exists('onepaqucpro_normalize_attr_key')
+                ? onepaqucpro_normalize_attr_key((string) $attribute_key)
+                : sanitize_key((string) $attribute_key);
+            $normalized_value = function_exists('onepaqucpro_normalize_attr_value')
+                ? onepaqucpro_normalize_attr_value((string) $attribute_value)
+                : sanitize_title((string) $attribute_value);
+
+            if ($normalized_key !== '' && $normalized_value !== '') {
+                $variations[$normalized_key] = $normalized_value;
+            }
+        }
+    }
 
     $product = wc_get_product($product_id);
     $product_status = $product ? $product->get_status() : get_post_status($product_id);
     $can_add_private_product = 'private' === $product_status && (current_user_can('read_private_products') || current_user_can('edit_post', $product_id));
     $can_add_by_status = in_array($product_status, array('publish'), true) || $can_add_private_product;
+
+    if ($product instanceof WC_Product_Variable) {
+        if ($variation_id <= 0 && !empty($variations)) {
+            $data_store = WC_Data_Store::load('product');
+            $variation_id = (int) $data_store->find_matching_product_variation($product, $variations);
+        }
+
+        if ($variation_id > 0) {
+            $variation_product = wc_get_product($variation_id);
+
+            if ($variation_product instanceof WC_Product_Variation && (int) $variation_product->get_parent_id() === (int) $product_id) {
+                foreach ((array) $variation_product->get_variation_attributes() as $attribute_key => $attribute_value) {
+                    if ($attribute_value === '' || $attribute_value === null) {
+                        continue;
+                    }
+
+                    $normalized_key = function_exists('onepaqucpro_normalize_attr_key')
+                        ? onepaqucpro_normalize_attr_key($attribute_key)
+                        : sanitize_key((string) $attribute_key);
+
+                    if (empty($variations[$normalized_key])) {
+                        $variations[$normalized_key] = function_exists('onepaqucpro_normalize_attr_value')
+                            ? onepaqucpro_normalize_attr_value($attribute_value)
+                            : sanitize_title((string) $attribute_value);
+                    }
+                }
+            }
+        }
+    }
 
     $passed_validation = apply_filters('woocommerce_add_to_cart_validation', true, $product_id, $quantity, $variation_id, $variations);
 

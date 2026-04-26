@@ -3,7 +3,7 @@
  * Plugin Name: One Page Quick Checkout for WooCommerce Pro
  * Plugin URI:  https://plugincy.com/one-page-quick-checkout-for-woocommerce/
  * Description: Enhance WooCommerce with popup checkout, cart drawer, and flexible checkout templates to boost conversions.
- * Version: 1.1.9.27
+ * Version: 1.1.9.30
  * Author: plugincy
  * Author URI: https://plugincy.com
  * license: GPL2
@@ -43,7 +43,7 @@ if (! defined('ABSPATH')) exit; // Exit if accessed directly
 
 define('ONEPAQUCPRO_PLUGIN_URL', plugin_dir_url(__FILE__));
 
-define("RMENUPRO_VERSION", "1.1.9.27");
+define("RMENUPRO_VERSION", "1.1.9.30");
 
 require_once plugin_dir_path(__FILE__) . 'admin/license-tab.php';
 
@@ -305,24 +305,24 @@ function onepaqucpro_cart_enqueue_scripts()
         }
     }
 
-    wp_enqueue_style('rmenupro-cart-style', plugin_dir_url(__FILE__) . 'assets/css/rmenu-cart.css', array(), "1.1.9.27");
+    wp_enqueue_style('rmenupro-cart-style', plugin_dir_url(__FILE__) . 'assets/css/rmenu-cart.css', array(), "1.1.9.30");
     if (get_option('onepaqucpro_checkout_layout', 'two_column') === "two_column") {
-        wp_enqueue_style('checkout-form-two-column', plugin_dir_url(__FILE__) . 'assets/css/checkout-form-two-column.css', array(), "1.1.9.27");
+        wp_enqueue_style('checkout-form-two-column', plugin_dir_url(__FILE__) . 'assets/css/checkout-form-two-column.css', array(), "1.1.9.30");
     }
-    wp_enqueue_script('rmenupro-cart-script', plugin_dir_url(__FILE__) . 'assets/js/rmenu-cart.js', array('jquery'), "1.1.9.27", true);
-    wp_enqueue_script('cart-script', plugin_dir_url(__FILE__) . 'assets/js/cart.js', array('jquery'), "1.1.9.27", true);
+    wp_enqueue_script('rmenupro-cart-script', plugin_dir_url(__FILE__) . 'assets/js/rmenu-cart.js', array('jquery'), "1.1.9.30", true);
+    wp_enqueue_script('cart-script', plugin_dir_url(__FILE__) . 'assets/js/cart.js', array('jquery'), "1.1.9.30", true);
     wp_enqueue_script(
         'onepaqucpro-checkout-blocks-script',
         plugin_dir_url(__FILE__) . 'assets/js/checkout-blocks.js',
         array('jquery', 'cart-script'),
-        "1.1.9.27",
+        "1.1.9.30",
         true
     );
     wp_enqueue_script(
         'onepaqucpro-checkout-customizer-compat',
         plugin_dir_url(__FILE__) . 'assets/js/checkout-customizer-compat.js',
         array('rmenupro-cart-script'),
-        "1.1.9.27",
+        "1.1.9.30",
         true
     );
     $direct_checkout_behave = [
@@ -405,9 +405,9 @@ function onepaqucpro_cart_admin_styles($hook)
     $current_page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
 
     if ($hook === 'toplevel_page_onepaqucpro_cart' || $current_page === 'onepaqucpro_cart_recovery' || $current_page === 'onepaqucpro_cart_recovery_template') {
-        wp_enqueue_style('onepaqucpro_cart_admin_css', plugin_dir_url(__FILE__) . 'assets/css/admin-style.css', array(), "1.1.9.27");
-        wp_enqueue_style('select2-css', plugin_dir_url(__FILE__) . 'assets/css/select2.min.css', array(), "1.1.9.27");
-        wp_enqueue_script('select2-js', plugin_dir_url(__FILE__) . 'assets/js/select2.min.js', array('jquery'), "1.1.9.27", true);
+        wp_enqueue_style('onepaqucpro_cart_admin_css', plugin_dir_url(__FILE__) . 'assets/css/admin-style.css', array(), "1.1.9.30");
+        wp_enqueue_style('select2-css', plugin_dir_url(__FILE__) . 'assets/css/select2.min.css', array(), "1.1.9.30");
+        wp_enqueue_script('select2-js', plugin_dir_url(__FILE__) . 'assets/js/select2.min.js', array('jquery'), "1.1.9.30", true);
     }
     if ($current_page === 'onepaqucpro_cart_recovery' || $current_page === 'onepaqucpro_cart_recovery_template') {
         wp_enqueue_style(
@@ -424,8 +424,8 @@ function onepaqucpro_cart_admin_styles($hook)
             true
         );
     }
-    wp_enqueue_style('onepaqucpro_cart_admin_css', plugin_dir_url(__FILE__) . 'assets/css/admin-documentation.css', array(), "1.1.9.27");
-    wp_enqueue_script('rmenupro-admin-script', plugin_dir_url(__FILE__) . 'assets/js/admin-documentation.js', array('jquery'), "1.1.9.27", true);
+    wp_enqueue_style('onepaqucpro_cart_admin_css', plugin_dir_url(__FILE__) . 'assets/css/admin-documentation.css', array(), "1.1.9.30");
+    wp_enqueue_script('rmenupro-admin-script', plugin_dir_url(__FILE__) . 'assets/js/admin-documentation.js', array('jquery'), "1.1.9.30", true);
     wp_enqueue_editor();
 }
 
@@ -451,7 +451,7 @@ function onepaqucpro_editor_script()
         'onepaquc_editor_script',
         plugin_dir_url(__FILE__) . 'includes/blocks/editor.js',
         array('wp-blocks', 'wp-element', 'wp-edit-post', 'wp-dom-ready', 'wp-plugins'),
-        '1.1.9.27',
+        '1.1.9.30',
         true
     );
 }
@@ -1515,7 +1515,7 @@ function onepaqucpro_check_for_plugin_updates($transient, $license_manager)
     }
 
     $plugin_file = plugin_basename(__FILE__); // This will automatically get the correct path
-    $current_version = defined('RMENUPRO_VERSION') ? RMENUPRO_VERSION : '1.1.9.27';
+    $current_version = defined('RMENUPRO_VERSION') ? RMENUPRO_VERSION : '1.1.9.30';
 
     $update_info = $license_manager->check_for_updates();
 
@@ -1835,7 +1835,7 @@ class onepaqucpro_cart_analytics_main
         $this->analytics = new onepaqucpro_cart_anaylytics(
             '03',
             'https://plugincy.com/wp-json/product-analytics/v1',
-            "1.1.9.27",
+            "1.1.9.30",
             'One Page Quick Checkout for WooCommerce',
             __FILE__ // Pass the main plugin file
         );
@@ -2051,8 +2051,9 @@ function onepaqucpro_handle_url_add_to_cart()
         // Ensure all attributes required by the variation are present
         $required = $variation_product->get_variation_attributes(); // e.g. ['attribute_pa_color'=>'blue']
         foreach ($required as $req_key => $req_val) {
-            if (empty($variation[$req_key])) {
-                $variation[$req_key] = $req_val;
+            $normalized_req_key = onepaqucpro_normalize_attr_key($req_key);
+            if (empty($variation[$normalized_req_key])) {
+                $variation[$normalized_req_key] = onepaqucpro_normalize_attr_value($req_val);
             }
         }
     }
@@ -2099,12 +2100,297 @@ function onepaqucpro_handle_url_add_to_cart()
 }
 
 /**
+ * Clean a variation attribute key without losing encoded or non-Latin taxonomy names.
+ */
+function onepaqucpro_clean_variation_attribute_key($key)
+{
+    if (is_array($key) || is_object($key)) {
+        return '';
+    }
+
+    $key = trim((string) wp_unslash($key));
+    $key = wp_strip_all_tags($key);
+    $key = preg_replace('/\s+/', '', $key);
+    $key = preg_replace('/[^\p{L}\p{N}_\-%]/u', '', $key);
+
+    return strtolower($key);
+}
+
+/**
+ * Clean a variation attribute value while preserving WooCommerce term slugs.
+ */
+function onepaqucpro_prepare_variation_attribute_value($value)
+{
+    if (is_array($value) || is_object($value)) {
+        return '';
+    }
+
+    if (is_bool($value)) {
+        $value = $value ? 'yes' : 'no';
+    }
+
+    $value = trim((string) wp_unslash($value));
+    $value = wp_strip_all_tags($value);
+    $value = preg_replace('/[\r\n\t\0\x0B]+/', ' ', $value);
+
+    return trim($value);
+}
+
+function onepaqucpro_attribute_component_is_encoded($value)
+{
+    return preg_match('/%[0-9a-f]{2}/i', (string) $value) === 1;
+}
+
+function onepaqucpro_decode_attribute_component($value)
+{
+    $value = (string) $value;
+
+    return onepaqucpro_attribute_component_is_encoded($value) ? rawurldecode($value) : $value;
+}
+
+function onepaqucpro_unique_attribute_candidates($candidates)
+{
+    $unique = array();
+
+    foreach ((array) $candidates as $candidate) {
+        $candidate = onepaqucpro_clean_variation_attribute_key($candidate);
+
+        if ($candidate === '' || in_array($candidate, $unique, true)) {
+            continue;
+        }
+
+        $unique[] = $candidate;
+    }
+
+    return $unique;
+}
+
+function onepaqucpro_get_attribute_taxonomy_candidates($attribute_key)
+{
+    $key = onepaqucpro_clean_variation_attribute_key($attribute_key);
+
+    if (strpos($key, 'attribute_') === 0) {
+        $key = substr($key, strlen('attribute_'));
+    }
+
+    if ($key === '') {
+        return array();
+    }
+
+    $decoded = onepaqucpro_decode_attribute_component($key);
+    $candidates = array($key, $decoded);
+
+    foreach (array($key, $decoded) as $candidate) {
+        if ($candidate === '') {
+            continue;
+        }
+
+        if (function_exists('wc_sanitize_taxonomy_name')) {
+            $candidates[] = wc_sanitize_taxonomy_name($candidate);
+
+            if (strpos($candidate, 'pa_') === 0) {
+                $candidates[] = 'pa_' . wc_sanitize_taxonomy_name(substr($candidate, 3));
+            }
+        }
+
+        if (function_exists('sanitize_title')) {
+            $candidates[] = sanitize_title($candidate);
+
+            if (strpos($candidate, 'pa_') === 0) {
+                $candidates[] = 'pa_' . sanitize_title(substr($candidate, 3));
+            }
+        }
+    }
+
+    return onepaqucpro_unique_attribute_candidates($candidates);
+}
+
+function onepaqucpro_find_product_variation_attribute_definition($product, $attribute_key)
+{
+    $fallback_key = '';
+    $candidates = onepaqucpro_get_attribute_taxonomy_candidates($attribute_key);
+
+    if (!empty($candidates[0])) {
+        $fallback_key = $candidates[0];
+    }
+
+    if (!$product || !is_object($product) || !method_exists($product, 'get_attributes')) {
+        return array(
+            'key' => $fallback_key,
+            'attribute' => null,
+        );
+    }
+
+    $product_attributes = (array) $product->get_attributes();
+
+    foreach ($candidates as $candidate) {
+        if (isset($product_attributes[$candidate])) {
+            return array(
+                'key' => $candidate,
+                'attribute' => $product_attributes[$candidate],
+            );
+        }
+    }
+
+    foreach ($product_attributes as $product_attr_key => $product_attribute) {
+        $product_candidates = onepaqucpro_get_attribute_taxonomy_candidates($product_attr_key);
+
+        if (!empty(array_intersect($candidates, $product_candidates))) {
+            return array(
+                'key' => $product_attr_key,
+                'attribute' => $product_attribute,
+            );
+        }
+    }
+
+    return array(
+        'key' => $fallback_key,
+        'attribute' => null,
+    );
+}
+
+function onepaqucpro_resolve_attribute_taxonomy($attribute_key, $product = null)
+{
+    $definition = onepaqucpro_find_product_variation_attribute_definition($product, $attribute_key);
+    $candidates = onepaqucpro_get_attribute_taxonomy_candidates($attribute_key);
+
+    if (!empty($definition['key'])) {
+        array_unshift($candidates, $definition['key']);
+    }
+
+    if (!empty($definition['attribute']) && is_object($definition['attribute']) && method_exists($definition['attribute'], 'get_name')) {
+        array_unshift($candidates, $definition['attribute']->get_name());
+    }
+
+    $candidates = onepaqucpro_unique_attribute_candidates($candidates);
+
+    foreach ($candidates as $candidate) {
+        if (taxonomy_exists($candidate)) {
+            return $candidate;
+        }
+    }
+
+    return !empty($candidates[0]) ? $candidates[0] : '';
+}
+
+function onepaqucpro_get_variation_attribute_taxonomy_label($attribute_key, $product = null)
+{
+    $taxonomy = onepaqucpro_resolve_attribute_taxonomy($attribute_key, $product);
+    $label = $taxonomy && function_exists('wc_attribute_label') ? wc_attribute_label($taxonomy, $product) : '';
+    $label = trim(onepaqucpro_decode_attribute_component($label));
+
+    if ($label !== '') {
+        return $label;
+    }
+
+    $fallback = $taxonomy ?: str_replace('attribute_', '', (string) $attribute_key);
+    $fallback = onepaqucpro_decode_attribute_component($fallback);
+    $fallback = preg_replace('/^pa_/', '', $fallback);
+    $fallback = str_replace(array('_', '-'), ' ', $fallback);
+
+    return ucwords(trim($fallback));
+}
+
+function onepaqucpro_get_variation_attribute_value_candidates($value)
+{
+    $value = onepaqucpro_prepare_variation_attribute_value($value);
+
+    if ($value === '') {
+        return array();
+    }
+
+    $decoded = onepaqucpro_decode_attribute_component($value);
+    $candidates = array($value, strtolower($value), $decoded);
+
+    if (function_exists('sanitize_title')) {
+        $candidates[] = sanitize_title($decoded);
+        $candidates[] = sanitize_title($value);
+    }
+
+    $unique = array();
+    foreach ($candidates as $candidate) {
+        $candidate = trim((string) $candidate);
+
+        if ($candidate === '' || in_array($candidate, $unique, true)) {
+            continue;
+        }
+
+        $unique[] = $candidate;
+    }
+
+    return $unique;
+}
+
+function onepaqucpro_get_variation_attribute_label($attribute_key, $attribute_value, $product = null)
+{
+    $value = onepaqucpro_prepare_variation_attribute_value($attribute_value);
+
+    if ($value === '') {
+        return '';
+    }
+
+    $taxonomy = onepaqucpro_resolve_attribute_taxonomy($attribute_key, $product);
+    $value_candidates = onepaqucpro_get_variation_attribute_value_candidates($value);
+
+    if ($taxonomy && taxonomy_exists($taxonomy)) {
+        foreach ($value_candidates as $candidate) {
+            $term = get_term_by('slug', $candidate, $taxonomy);
+            if ($term && !is_wp_error($term)) {
+                return $term->name;
+            }
+        }
+
+        foreach ($value_candidates as $candidate) {
+            $term = get_term_by('name', onepaqucpro_decode_attribute_component($candidate), $taxonomy);
+            if ($term && !is_wp_error($term)) {
+                return $term->name;
+            }
+        }
+    }
+
+    $definition = onepaqucpro_find_product_variation_attribute_definition($product, $attribute_key);
+    $product_attribute = !empty($definition['attribute']) ? $definition['attribute'] : null;
+
+    if ($product_attribute && is_object($product_attribute) && method_exists($product_attribute, 'is_taxonomy') && $product_attribute->is_taxonomy()) {
+        $product_taxonomy = method_exists($product_attribute, 'get_name') ? $product_attribute->get_name() : $taxonomy;
+        $term_taxonomy = taxonomy_exists($product_taxonomy) ? $product_taxonomy : (taxonomy_exists($taxonomy) ? $taxonomy : '');
+
+        foreach ((array) $product_attribute->get_options() as $term_id) {
+            $term = $term_taxonomy ? get_term($term_id, $term_taxonomy) : get_term($term_id);
+
+            if (!$term || is_wp_error($term)) {
+                continue;
+            }
+
+            $term_candidates = onepaqucpro_get_variation_attribute_value_candidates($term->slug);
+            $term_candidates[] = (string) $term->name;
+
+            if (!empty(array_intersect($value_candidates, $term_candidates))) {
+                return $term->name;
+            }
+        }
+    }
+
+    if ($product_attribute && is_object($product_attribute) && method_exists($product_attribute, 'is_taxonomy') && !$product_attribute->is_taxonomy()) {
+        foreach ((array) $product_attribute->get_options() as $option) {
+            $option = onepaqucpro_prepare_variation_attribute_value($option);
+            $option_candidates = onepaqucpro_get_variation_attribute_value_candidates($option);
+
+            if (!empty(array_intersect($value_candidates, $option_candidates))) {
+                return onepaqucpro_decode_attribute_component($option);
+            }
+        }
+    }
+
+    return onepaqucpro_decode_attribute_component($value);
+}
+
+/**
  * Normalize attribute key to Woo format (must start with 'attribute_').
  */
 function onepaqucpro_normalize_attr_key($key)
 {
-    $key = wc_clean(wp_unslash($key));
-    $key = strtolower($key);
+    $key = onepaqucpro_clean_variation_attribute_key($key);
     if (strpos($key, 'attribute_') !== 0) {
         $key = 'attribute_' . $key;
     }
@@ -2116,7 +2402,17 @@ function onepaqucpro_normalize_attr_key($key)
  */
 function onepaqucpro_normalize_attr_value($value)
 {
-    return sanitize_title(wc_clean(wp_unslash($value)));
+    $value = onepaqucpro_prepare_variation_attribute_value($value);
+
+    if ($value === '') {
+        return '';
+    }
+
+    if (onepaqucpro_attribute_component_is_encoded($value)) {
+        return strtolower($value);
+    }
+
+    return sanitize_title($value);
 }
 
 /**

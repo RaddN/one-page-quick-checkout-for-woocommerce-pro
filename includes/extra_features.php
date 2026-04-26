@@ -152,14 +152,10 @@ function onepaqucpro_get_validated_variations( $product ) {
             continue;
         }
 
-        // Tax class
-        $tax_class = $variation_obj->get_tax_class();
-        if ( ! empty( $tax_class ) ) {
-            $tax_classes = WC_Tax::get_tax_classes(); // names, not slugs
-            if ( ! in_array( $tax_class, $tax_classes, true ) ) {
-                continue;
-            }
-        }
+        // Tax class does not determine whether a variation is selectable.
+        // WooCommerce commonly stores "Same as parent" as `parent`; older
+        // versions of this helper rejected that valid value and returned no
+        // variations for otherwise purchasable variable products.
 
         // Shipping class
         $shipping_class_id = $variation_obj->get_shipping_class_id();
@@ -232,14 +228,43 @@ function onepaqucpro_get_validated_variations( $product ) {
             $attr_value = isset( $attributes[ $attr_name ] ) ? $attributes[ $attr_name ] : '';
 
             if ( '' === $attr_value ) {
-                $options = $attr_data['normalized_options'];
+                $options = $attr_data['options'];
                 if ( empty( $options ) ) {
                     $options = [ '' ];
                 }
-                $values_per_attribute[ $attr_name ] = $options;
+
+                $values_per_attribute[ $attr_name ] = [];
+
+                foreach ( $options as $option ) {
+                    $normalized_option = $normalize_attribute_value( $option );
+
+                    if ( '' === $normalized_option ) {
+                        continue;
+                    }
+
+                    $values_per_attribute[ $attr_name ][] = [
+                        'key'  => $normalized_option,
+                        'raw'  => $option,
+                        'fill' => true,
+                    ];
+                }
+
+                if ( empty( $values_per_attribute[ $attr_name ] ) ) {
+                    $values_per_attribute[ $attr_name ][] = [
+                        'key'  => '',
+                        'raw'  => '',
+                        'fill' => true,
+                    ];
+                }
             } else {
                 $specificity++;
-                $values_per_attribute[ $attr_name ] = [ $attr_value ];
+                $values_per_attribute[ $attr_name ] = [
+                    [
+                        'key'  => $attr_value,
+                        'raw'  => $attr_value,
+                        'fill' => false,
+                    ],
+                ];
             }
         }
 
@@ -267,7 +292,7 @@ function onepaqucpro_get_validated_variations( $product ) {
             $key_parts = [];
 
             foreach ( $combination_values as $attr_name => $attr_value ) {
-                $key_parts[ $attr_name ] = $attr_name . '=' . $attr_value;
+                $key_parts[ $attr_name ] = $attr_name . '=' . ( isset( $attr_value['key'] ) ? $attr_value['key'] : '' );
             }
 
             ksort( $key_parts );
@@ -279,8 +304,12 @@ function onepaqucpro_get_validated_variations( $product ) {
                 : [];
 
             foreach ( $combination_values as $attr_name => $attr_value ) {
+                if ( empty( $attr_value['fill'] ) ) {
+                    continue;
+                }
+
                 $attr_key = 0 === strpos( $attr_name, 'attribute_' ) ? $attr_name : 'attribute_' . $attr_name;
-                $variation_for_combo['attributes'][ $attr_key ] = $attr_value;
+                $variation_for_combo['attributes'][ $attr_key ] = isset( $attr_value['raw'] ) ? $attr_value['raw'] : '';
             }
 
             if ( ! isset( $combination_map[ $combination_key ] ) ) {
@@ -302,7 +331,7 @@ function onepaqucpro_get_validated_variations( $product ) {
     }
 
     if ( empty( $combination_order ) ) {
-        return [];
+        return $all_variations;
     }
 
     $result = [];
@@ -739,35 +768,41 @@ class onepaqucpro_add_variation_buttons_on_archive
                 // Build options per attribute (expand "Any" to options ASSIGNED to this product only)
                 $attr_options = []; // [attr_key => [ ['slug'=>..., 'label'=>...], ... ]]
                 foreach ($variation['attributes'] as $attribute_name => $attribute_value) {
-                    $attr_key = str_replace('attribute_', '', $attribute_name);
+                    $attr_key = function_exists('onepaqucpro_resolve_attribute_taxonomy')
+                        ? onepaqucpro_resolve_attribute_taxonomy($attribute_name, $product)
+                        : str_replace('attribute_', '', $attribute_name);
 
                     // Specific value chosen -> just that one
                     if ($attribute_value !== '') {
                         $slug  = $attribute_value;
-                        $label = $slug;
-
-                        if (taxonomy_exists($attr_key)) {
-                            $term = get_term_by('slug', $slug, $attr_key);
-                            if ($term && !is_wp_error($term)) {
-                                $label = $term->name;
-                            }
-                        }
+                        $label = function_exists('onepaqucpro_get_variation_attribute_label')
+                            ? onepaqucpro_get_variation_attribute_label($attr_key, $slug, $product)
+                            : $slug;
                         $attr_options[$attr_key][] = ['slug' => $slug, 'label' => $label];
                         continue;
                     }
 
                     // "Any ..." chosen -> expand to options that are ASSIGNED on THIS product
-                    $prod_attrs = $product->get_attributes();
-                    if (isset($prod_attrs[$attr_key])) {
+                    $attribute_definition = function_exists('onepaqucpro_find_product_variation_attribute_definition')
+                        ? onepaqucpro_find_product_variation_attribute_definition($product, $attr_key)
+                        : array(
+                            'key' => $attr_key,
+                            'attribute' => isset($product->get_attributes()[$attr_key]) ? $product->get_attributes()[$attr_key] : null,
+                        );
+                    if (!empty($attribute_definition['key'])) {
+                        $attr_key = $attribute_definition['key'];
+                    }
+                    if (!empty($attribute_definition['attribute'])) {
                         /** @var WC_Product_Attribute $pa */
-                        $pa = $prod_attrs[$attr_key];
+                        $pa = $attribute_definition['attribute'];
 
                         if ($pa->is_taxonomy()) {
                             // taxonomy attribute: options are term IDs
                             $term_ids = (array) $pa->get_options();
+                            $taxonomy = function_exists('onepaqucpro_resolve_attribute_taxonomy') ? onepaqucpro_resolve_attribute_taxonomy($attr_key, $product) : $attr_key;
                             if (!empty($term_ids)) {
                                 $terms = get_terms([
-                                    'taxonomy'   => $attr_key,
+                                    'taxonomy'   => $taxonomy,
                                     'hide_empty' => false,
                                     'include'    => $term_ids,
                                 ]);
@@ -786,8 +821,8 @@ class onepaqucpro_add_variation_buttons_on_archive
                             foreach ($values as $val) {
                                 $val = (string) $val;
                                 $attr_options[$attr_key][] = [
-                                    'slug'  => sanitize_title($val),
-                                    'label' => $val,
+                                    'slug'  => function_exists('onepaqucpro_normalize_attr_value') ? onepaqucpro_normalize_attr_value($val) : sanitize_title($val),
+                                    'label' => function_exists('onepaqucpro_decode_attribute_component') ? onepaqucpro_decode_attribute_component($val) : $val,
                                 ];
                             }
                         }
@@ -851,22 +886,32 @@ class onepaqucpro_add_variation_buttons_on_archive
                 $var_attrs = [];
 
                 foreach ($variation['attributes'] as $attribute_name => $attribute_value) {
-                    $attr_key   = str_replace('attribute_', '', $attribute_name); // e.g., pa_color or custom
+                    $attr_key   = function_exists('onepaqucpro_resolve_attribute_taxonomy')
+                        ? onepaqucpro_resolve_attribute_taxonomy($attribute_name, $product)
+                        : str_replace('attribute_', '', $attribute_name); // e.g., pa_color or custom
                     $slug       = $attribute_value;
                     if ($slug === '') {
-                        $attr_key   = str_replace('attribute_', '', $attribute_name);
-                        $prod_attrs = $product->get_attributes();
+                        $attribute_definition = function_exists('onepaqucpro_find_product_variation_attribute_definition')
+                            ? onepaqucpro_find_product_variation_attribute_definition($product, $attr_key)
+                            : array(
+                                'key' => $attr_key,
+                                'attribute' => isset($product->get_attributes()[$attr_key]) ? $product->get_attributes()[$attr_key] : null,
+                            );
+                        if (!empty($attribute_definition['key'])) {
+                            $attr_key = $attribute_definition['key'];
+                        }
 
-                        if (isset($prod_attrs[$attr_key])) {
+                        if (!empty($attribute_definition['attribute'])) {
                             /** @var WC_Product_Attribute $pa */
-                            $pa = $prod_attrs[$attr_key];
+                            $pa = $attribute_definition['attribute'];
 
                             if ($pa->is_taxonomy()) {
                                 // taxonomy attribute: options are term IDs
                                 $term_ids = (array) $pa->get_options();
+                                $taxonomy = function_exists('onepaqucpro_resolve_attribute_taxonomy') ? onepaqucpro_resolve_attribute_taxonomy($attr_key, $product) : $attr_key;
                                 if (!empty($term_ids)) {
                                     $terms = get_terms([
-                                        'taxonomy'   => $attr_key,
+                                        'taxonomy'   => $taxonomy,
                                         'hide_empty' => false,
                                         'include'    => $term_ids,
                                     ]);
@@ -874,7 +919,7 @@ class onepaqucpro_add_variation_buttons_on_archive
                                         foreach ($terms as $term) {
                                             if (!isset($attributes_terms[$attr_key])) {
                                                 $attributes_terms[$attr_key] = [
-                                                    'label' => wc_attribute_label($attr_key, $product),
+                                                    'label' => function_exists('onepaqucpro_get_variation_attribute_taxonomy_label') ? onepaqucpro_get_variation_attribute_taxonomy_label($attr_key, $product) : wc_attribute_label($attr_key, $product),
                                                     'terms' => [],
                                                 ];
                                             }
@@ -888,14 +933,14 @@ class onepaqucpro_add_variation_buttons_on_archive
                                 if (!empty($values)) {
                                     if (!isset($attributes_terms[$attr_key])) {
                                         $attributes_terms[$attr_key] = [
-                                            'label' => wc_attribute_label($attr_key, $product) ?: ucfirst(str_replace('pa_', '', $attr_key)),
+                                            'label' => function_exists('onepaqucpro_get_variation_attribute_taxonomy_label') ? onepaqucpro_get_variation_attribute_taxonomy_label($attr_key, $product) : (wc_attribute_label($attr_key, $product) ?: ucfirst(str_replace('pa_', '', $attr_key))),
                                             'terms' => [],
                                         ];
                                     }
                                     foreach ($values as $val) {
                                         $val = (string) $val;
-                                        $val_slug = sanitize_title($val);
-                                        $attributes_terms[$attr_key]['terms'][$val_slug] = $val;
+                                        $val_slug = function_exists('onepaqucpro_normalize_attr_value') ? onepaqucpro_normalize_attr_value($val) : sanitize_title($val);
+                                        $attributes_terms[$attr_key]['terms'][$val_slug] = function_exists('onepaqucpro_decode_attribute_component') ? onepaqucpro_decode_attribute_component($val) : $val;
                                     }
                                 }
                             }
@@ -903,15 +948,12 @@ class onepaqucpro_add_variation_buttons_on_archive
                         continue;
                     }
 
-                    $attr_label = wc_attribute_label($attr_key, $product);
-                    $value_label = $slug;
-
-                    if (taxonomy_exists($attr_key)) {
-                        $term = get_term_by('slug', $slug, $attr_key);
-                        if ($term && !is_wp_error($term)) {
-                            $value_label = $term->name;
-                        }
-                    }
+                    $attr_label = function_exists('onepaqucpro_get_variation_attribute_taxonomy_label')
+                        ? onepaqucpro_get_variation_attribute_taxonomy_label($attr_key, $product)
+                        : wc_attribute_label($attr_key, $product);
+                    $value_label = function_exists('onepaqucpro_get_variation_attribute_label')
+                        ? onepaqucpro_get_variation_attribute_label($attr_key, $slug, $product)
+                        : $slug;
 
                     if (!isset($attributes_terms[$attr_key])) {
                         $attributes_terms[$attr_key] = [
@@ -1009,35 +1051,41 @@ function onepaqucpro_add_variation_buttons_to_loop($link, $product)
             // Build options per attribute (expand "Any" to options ASSIGNED to this product only)
             $attr_options = []; // [attr_key => [ ['slug'=>..., 'label'=>...], ... ]]
             foreach ($variation['attributes'] as $attribute_name => $attribute_value) {
-                $attr_key = str_replace('attribute_', '', $attribute_name);
+                $attr_key = function_exists('onepaqucpro_resolve_attribute_taxonomy')
+                    ? onepaqucpro_resolve_attribute_taxonomy($attribute_name, $product)
+                    : str_replace('attribute_', '', $attribute_name);
 
                 // Specific value chosen -> just that one
                 if ($attribute_value !== '') {
                     $slug  = $attribute_value;
-                    $label = $slug;
-
-                    if (taxonomy_exists($attr_key)) {
-                        $term = get_term_by('slug', $slug, $attr_key);
-                        if ($term && !is_wp_error($term)) {
-                            $label = $term->name;
-                        }
-                    }
+                    $label = function_exists('onepaqucpro_get_variation_attribute_label')
+                        ? onepaqucpro_get_variation_attribute_label($attr_key, $slug, $product)
+                        : $slug;
                     $attr_options[$attr_key][] = ['slug' => $slug, 'label' => $label];
                     continue;
                 }
 
                 // "Any ..." chosen -> expand to options that are ASSIGNED on THIS product
-                $prod_attrs = $product->get_attributes();
-                if (isset($prod_attrs[$attr_key])) {
+                $attribute_definition = function_exists('onepaqucpro_find_product_variation_attribute_definition')
+                    ? onepaqucpro_find_product_variation_attribute_definition($product, $attr_key)
+                    : array(
+                        'key' => $attr_key,
+                        'attribute' => isset($product->get_attributes()[$attr_key]) ? $product->get_attributes()[$attr_key] : null,
+                    );
+                if (!empty($attribute_definition['key'])) {
+                    $attr_key = $attribute_definition['key'];
+                }
+                if (!empty($attribute_definition['attribute'])) {
                     /** @var WC_Product_Attribute $pa */
-                    $pa = $prod_attrs[$attr_key];
+                    $pa = $attribute_definition['attribute'];
 
                     if ($pa->is_taxonomy()) {
                         // taxonomy attribute: options are term IDs
                         $term_ids = (array) $pa->get_options();
+                        $taxonomy = function_exists('onepaqucpro_resolve_attribute_taxonomy') ? onepaqucpro_resolve_attribute_taxonomy($attr_key, $product) : $attr_key;
                         if (!empty($term_ids)) {
                             $terms = get_terms([
-                                'taxonomy'   => $attr_key,
+                                'taxonomy'   => $taxonomy,
                                 'hide_empty' => false,
                                 'include'    => $term_ids,
                             ]);
@@ -1056,8 +1104,8 @@ function onepaqucpro_add_variation_buttons_to_loop($link, $product)
                         foreach ($values as $val) {
                             $val = (string) $val;
                             $attr_options[$attr_key][] = [
-                                'slug'  => sanitize_title($val),
-                                'label' => $val,
+                                'slug'  => function_exists('onepaqucpro_normalize_attr_value') ? onepaqucpro_normalize_attr_value($val) : sanitize_title($val),
+                                'label' => function_exists('onepaqucpro_decode_attribute_component') ? onepaqucpro_decode_attribute_component($val) : $val,
                             ];
                         }
                     }
@@ -1120,22 +1168,32 @@ function onepaqucpro_add_variation_buttons_to_loop($link, $product)
             $var_attrs = [];
 
             foreach ($variation['attributes'] as $attribute_name => $attribute_value) {
-                $attr_key   = str_replace('attribute_', '', $attribute_name);
+                $attr_key   = function_exists('onepaqucpro_resolve_attribute_taxonomy')
+                    ? onepaqucpro_resolve_attribute_taxonomy($attribute_name, $product)
+                    : str_replace('attribute_', '', $attribute_name);
                 $slug       = $attribute_value;
                 if ($slug === '') {
-                    $attr_key   = str_replace('attribute_', '', $attribute_name);
-                    $prod_attrs = $product->get_attributes();
+                    $attribute_definition = function_exists('onepaqucpro_find_product_variation_attribute_definition')
+                        ? onepaqucpro_find_product_variation_attribute_definition($product, $attr_key)
+                        : array(
+                            'key' => $attr_key,
+                            'attribute' => isset($product->get_attributes()[$attr_key]) ? $product->get_attributes()[$attr_key] : null,
+                        );
+                    if (!empty($attribute_definition['key'])) {
+                        $attr_key = $attribute_definition['key'];
+                    }
 
-                    if (isset($prod_attrs[$attr_key])) {
+                    if (!empty($attribute_definition['attribute'])) {
                         /** @var WC_Product_Attribute $pa */
-                        $pa = $prod_attrs[$attr_key];
+                        $pa = $attribute_definition['attribute'];
 
                         if ($pa->is_taxonomy()) {
                             // taxonomy attribute: options are term IDs
                             $term_ids = (array) $pa->get_options();
+                            $taxonomy = function_exists('onepaqucpro_resolve_attribute_taxonomy') ? onepaqucpro_resolve_attribute_taxonomy($attr_key, $product) : $attr_key;
                             if (!empty($term_ids)) {
                                 $terms = get_terms([
-                                    'taxonomy'   => $attr_key,
+                                    'taxonomy'   => $taxonomy,
                                     'hide_empty' => false,
                                     'include'    => $term_ids,
                                 ]);
@@ -1143,7 +1201,7 @@ function onepaqucpro_add_variation_buttons_to_loop($link, $product)
                                     foreach ($terms as $term) {
                                         if (!isset($attributes_terms[$attr_key])) {
                                             $attributes_terms[$attr_key] = [
-                                                'label' => wc_attribute_label($attr_key, $product),
+                                                'label' => function_exists('onepaqucpro_get_variation_attribute_taxonomy_label') ? onepaqucpro_get_variation_attribute_taxonomy_label($attr_key, $product) : wc_attribute_label($attr_key, $product),
                                                 'terms' => [],
                                             ];
                                         }
@@ -1157,14 +1215,14 @@ function onepaqucpro_add_variation_buttons_to_loop($link, $product)
                             if (!empty($values)) {
                                 if (!isset($attributes_terms[$attr_key])) {
                                     $attributes_terms[$attr_key] = [
-                                        'label' => wc_attribute_label($attr_key, $product) ?: ucfirst(str_replace('pa_', '', $attr_key)),
+                                        'label' => function_exists('onepaqucpro_get_variation_attribute_taxonomy_label') ? onepaqucpro_get_variation_attribute_taxonomy_label($attr_key, $product) : (wc_attribute_label($attr_key, $product) ?: ucfirst(str_replace('pa_', '', $attr_key))),
                                         'terms' => [],
                                     ];
                                 }
                                 foreach ($values as $val) {
                                     $val = (string) $val;
-                                    $val_slug = sanitize_title($val);
-                                    $attributes_terms[$attr_key]['terms'][$val_slug] = $val;
+                                    $val_slug = function_exists('onepaqucpro_normalize_attr_value') ? onepaqucpro_normalize_attr_value($val) : sanitize_title($val);
+                                    $attributes_terms[$attr_key]['terms'][$val_slug] = function_exists('onepaqucpro_decode_attribute_component') ? onepaqucpro_decode_attribute_component($val) : $val;
                                 }
                             }
                         }
@@ -1172,15 +1230,12 @@ function onepaqucpro_add_variation_buttons_to_loop($link, $product)
                     continue;
                 }
 
-                $attr_label = wc_attribute_label($attr_key, $product);
-                $value_label = $slug;
-
-                if (taxonomy_exists($attr_key)) {
-                    $term = get_term_by('slug', $slug, $attr_key);
-                    if ($term && !is_wp_error($term)) {
-                        $value_label = $term->name;
-                    }
-                }
+                $attr_label = function_exists('onepaqucpro_get_variation_attribute_taxonomy_label')
+                    ? onepaqucpro_get_variation_attribute_taxonomy_label($attr_key, $product)
+                    : wc_attribute_label($attr_key, $product);
+                $value_label = function_exists('onepaqucpro_get_variation_attribute_label')
+                    ? onepaqucpro_get_variation_attribute_label($attr_key, $slug, $product)
+                    : $slug;
 
                 if (!isset($attributes_terms[$attr_key])) {
                     $attributes_terms[$attr_key] = [

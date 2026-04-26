@@ -169,7 +169,10 @@ function onepaqucpro_get_archive_variation_popup_data($product)
     $default_attributes = array();
 
     foreach ((array) $product->get_default_attributes() as $key => $value) {
-        $default_attributes[str_replace('attribute_', '', (string) $key)] = (string) $value;
+        $default_key = function_exists('onepaqucpro_resolve_attribute_taxonomy')
+            ? onepaqucpro_resolve_attribute_taxonomy((string) $key, $product)
+            : str_replace('attribute_', '', (string) $key);
+        $default_attributes[$default_key] = (string) $value;
     }
 
     foreach ($available_variations as $variation) {
@@ -181,23 +184,33 @@ function onepaqucpro_get_archive_variation_popup_data($product)
         }
 
         foreach ($variation['attributes'] as $attribute_name => $attribute_value) {
-            $attr_key = str_replace('attribute_', '', (string) $attribute_name);
+            $attr_key = function_exists('onepaqucpro_resolve_attribute_taxonomy')
+                ? onepaqucpro_resolve_attribute_taxonomy((string) $attribute_name, $product)
+                : str_replace('attribute_', '', (string) $attribute_name);
             $slug = (string) $attribute_value;
 
             if ($slug === '') {
-                $prod_attrs = $product->get_attributes();
+                $attribute_definition = function_exists('onepaqucpro_find_product_variation_attribute_definition')
+                    ? onepaqucpro_find_product_variation_attribute_definition($product, $attr_key)
+                    : array(
+                        'key' => $attr_key,
+                        'attribute' => isset($product->get_attributes()[$attr_key]) ? $product->get_attributes()[$attr_key] : null,
+                    );
+                if (!empty($attribute_definition['key'])) {
+                    $attr_key = $attribute_definition['key'];
+                }
                 $attr_keys_indexed[$attr_key] = true;
 
-                if (!isset($prod_attrs[$attr_key])) {
+                if (empty($attribute_definition['attribute'])) {
                     continue;
                 }
 
                 /** @var WC_Product_Attribute $product_attribute */
-                $product_attribute = $prod_attrs[$attr_key];
+                $product_attribute = $attribute_definition['attribute'];
 
                 if (!isset($attributes_terms[$attr_key])) {
                     $attributes_terms[$attr_key] = array(
-                        'label' => wc_attribute_label($attr_key, $product) ?: ucfirst(str_replace('pa_', '', $attr_key)),
+                        'label' => function_exists('onepaqucpro_get_variation_attribute_taxonomy_label') ? onepaqucpro_get_variation_attribute_taxonomy_label($attr_key, $product) : (wc_attribute_label($attr_key, $product) ?: ucfirst(str_replace('pa_', '', $attr_key))),
                         'options' => array(),
                     );
                 }
@@ -205,8 +218,9 @@ function onepaqucpro_get_archive_variation_popup_data($product)
                 if ($product_attribute->is_taxonomy()) {
                     $term_ids = (array) $product_attribute->get_options();
                     if (!empty($term_ids)) {
+                        $taxonomy = function_exists('onepaqucpro_resolve_attribute_taxonomy') ? onepaqucpro_resolve_attribute_taxonomy($attr_key, $product) : $attr_key;
                         $terms = get_terms(array(
-                            'taxonomy' => $attr_key,
+                            'taxonomy' => $taxonomy,
                             'hide_empty' => false,
                             'include' => $term_ids,
                         ));
@@ -223,10 +237,10 @@ function onepaqucpro_get_archive_variation_popup_data($product)
                 } else {
                     foreach ((array) $product_attribute->get_options() as $raw_value) {
                         $raw_value = (string) $raw_value;
-                        $raw_slug = sanitize_title($raw_value);
+                        $raw_slug = function_exists('onepaqucpro_normalize_attr_value') ? onepaqucpro_normalize_attr_value($raw_value) : sanitize_title($raw_value);
                         $attributes_terms[$attr_key]['options'][$raw_slug] = array(
                             'slug' => $raw_slug,
-                            'label' => $raw_value,
+                            'label' => function_exists('onepaqucpro_decode_attribute_component') ? onepaqucpro_decode_attribute_component($raw_value) : $raw_value,
                         );
                     }
                 }
@@ -234,15 +248,12 @@ function onepaqucpro_get_archive_variation_popup_data($product)
                 continue;
             }
 
-            $attr_label = wc_attribute_label($attr_key, $product);
-            $value_label = $slug;
-
-            if (taxonomy_exists($attr_key)) {
-                $term = get_term_by('slug', $slug, $attr_key);
-                if ($term && !is_wp_error($term)) {
-                    $value_label = $term->name;
-                }
-            }
+            $attr_label = function_exists('onepaqucpro_get_variation_attribute_taxonomy_label')
+                ? onepaqucpro_get_variation_attribute_taxonomy_label($attr_key, $product)
+                : wc_attribute_label($attr_key, $product);
+            $value_label = function_exists('onepaqucpro_get_variation_attribute_label')
+                ? onepaqucpro_get_variation_attribute_label($attr_key, $slug, $product)
+                : $slug;
 
             if (!isset($attributes_terms[$attr_key])) {
                 $attributes_terms[$attr_key] = array(

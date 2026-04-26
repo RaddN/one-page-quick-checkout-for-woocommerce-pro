@@ -96,18 +96,15 @@ $format_variation_attributes = function ($variation_attributes, $product = null)
             continue;
         }
 
-        $taxonomy = str_replace('attribute_', '', $attribute_key);
-        $value = $attribute_value;
-
-        if (taxonomy_exists($taxonomy)) {
-            $term = get_term_by('slug', $attribute_value, $taxonomy);
-            if ($term && !is_wp_error($term)) {
-                $value = $term->name;
-            }
-        }
+        $label = function_exists('onepaqucpro_get_variation_attribute_taxonomy_label')
+            ? onepaqucpro_get_variation_attribute_taxonomy_label($attribute_key, $product)
+            : wc_attribute_label(str_replace('attribute_', '', $attribute_key), $product);
+        $value = function_exists('onepaqucpro_get_variation_attribute_label')
+            ? onepaqucpro_get_variation_attribute_label($attribute_key, $attribute_value, $product)
+            : $attribute_value;
 
         $parts[] = array(
-            'label' => wc_attribute_label($taxonomy, $product),
+            'label' => $label,
             'value' => $value,
         );
     }
@@ -120,6 +117,40 @@ $format_variation_attributes = function ($variation_attributes, $product = null)
     }
 
     return $parts;
+};
+
+$normalize_variation_attributes = function ($variation_attributes) {
+    $normalized = array();
+
+    foreach ((array) $variation_attributes as $attribute_key => $attribute_value) {
+        if ($attribute_value === '' || $attribute_value === null || is_array($attribute_value)) {
+            continue;
+        }
+
+        $attribute_key = function_exists('onepaqucpro_clean_variation_attribute_key')
+            ? onepaqucpro_clean_variation_attribute_key($attribute_key)
+            : preg_replace('/[^\p{L}\p{N}_\-%]/u', '', trim((string) $attribute_key));
+
+        if ($attribute_key === '') {
+            continue;
+        }
+
+        if (strpos($attribute_key, 'attribute_') !== 0) {
+            $attribute_key = 'attribute_' . $attribute_key;
+        }
+
+        $attribute_value = function_exists('onepaqucpro_prepare_variation_attribute_value')
+            ? onepaqucpro_prepare_variation_attribute_value($attribute_value)
+            : preg_replace('/[\r\n\t\0\x0B]+/', ' ', wp_strip_all_tags(trim((string) $attribute_value)));
+
+        if ($attribute_value === '') {
+            continue;
+        }
+
+        $normalized[$attribute_key] = $attribute_value;
+    }
+
+    return $normalized;
 };
 
 $clean_price_text = function ($price_html) {
@@ -221,7 +252,9 @@ foreach ($product_ids as $product_id) {
                 continue;
             }
 
-            $variation_attributes = $variation->get_variation_attributes();
+            $variation_attributes = !empty($variation_data['attributes']) && is_array($variation_data['attributes'])
+                ? $normalize_variation_attributes($variation_data['attributes'])
+                : $normalize_variation_attributes($variation->get_variation_attributes());
             $display_price = wc_get_price_to_display($variation);
             $variation_prices[] = wc_format_decimal($display_price, wc_get_price_decimals());
 

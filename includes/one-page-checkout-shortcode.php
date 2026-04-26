@@ -2,6 +2,43 @@
 if (! defined('ABSPATH')) exit; // Exit if accessed directly
 
 // shortcode to display one page checkout [plugincy_one_page_checkout product_ids="" category="" tags="" attribute="" terms="" template="" position="" product_label="" variation_label="" updating_selection_text="" show_images="" product_layout="" primary_color="" secondary_color="" border_radius="" spacing="" button_style=""]
+if (!function_exists('onepaqucpro_sanitize_variation_attributes_for_cart')) {
+    function onepaqucpro_sanitize_variation_attributes_for_cart($attributes)
+    {
+        $sanitized = array();
+
+        foreach ((array) $attributes as $attribute_key => $attribute_value) {
+            if ($attribute_value === '' || $attribute_value === null || is_array($attribute_value)) {
+                continue;
+            }
+
+            $attribute_key = function_exists('onepaqucpro_normalize_attr_key')
+                ? onepaqucpro_normalize_attr_key($attribute_key)
+                : preg_replace('/[^\p{L}\p{N}_\-%]/u', '', trim((string) wp_unslash($attribute_key)));
+
+            if ($attribute_key === '') {
+                continue;
+            }
+
+            if (function_exists('onepaqucpro_normalize_attr_key') === false && strpos($attribute_key, 'attribute_') !== 0) {
+                $attribute_key = 'attribute_' . $attribute_key;
+            }
+
+            $attribute_value = function_exists('onepaqucpro_normalize_attr_value')
+                ? onepaqucpro_normalize_attr_value($attribute_value)
+                : preg_replace('/[\r\n\t\0\x0B]+/', ' ', wp_strip_all_tags(trim((string) wp_unslash($attribute_value))));
+
+            if ($attribute_value === '') {
+                continue;
+            }
+
+            $sanitized[$attribute_key] = $attribute_value;
+        }
+
+        return $sanitized;
+    }
+}
+
 function onepaqucpro_one_page_checkout_shortcode($atts)
 {
     $atts = shortcode_atts(array(
@@ -108,7 +145,11 @@ function onepaqucpro_one_page_checkout_shortcode($atts)
                     $variation_id = $available_variations[0]['variation_id'];
                     $variation = wc_get_product($variation_id);
                     if ($variation && $variation->is_purchasable()) {
-                        WC()->cart->add_to_cart($product_id, 1, $variation_id);
+                        $variation_attributes = !empty($available_variations[0]['attributes']) && is_array($available_variations[0]['attributes'])
+                            ? onepaqucpro_sanitize_variation_attributes_for_cart($available_variations[0]['attributes'])
+                            : onepaqucpro_sanitize_variation_attributes_for_cart($variation->get_variation_attributes());
+
+                        WC()->cart->add_to_cart($product_id, 1, $variation_id, $variation_attributes);
                     }
                 }
             } else {
@@ -183,13 +224,29 @@ function onepaqucpro_product_selection_select_product()
     $product_id = absint(isset($_POST['product_id']) ? wp_unslash($_POST['product_id']) : 0);
     $variation_id = absint(isset($_POST['variation_id']) ? wp_unslash($_POST['variation_id']) : 0);
     $raw_variations = isset($_POST['variations']) ? wp_unslash($_POST['variations']) : array();
-    $variations = is_array($raw_variations) ? array_map('sanitize_text_field', $raw_variations) : array();
+    $variations = is_array($raw_variations) ? onepaqucpro_sanitize_variation_attributes_for_cart($raw_variations) : array();
     $product = $product_id ? wc_get_product($product_id) : false;
 
     if (!$product || !$product->is_purchasable()) {
         wp_send_json_error(array(
             'message' => esc_html__('Please choose a valid product.', 'one-page-quick-checkout-for-woocommerce-pro'),
         ));
+    }
+
+    if ($product->is_type('variable')) {
+        $variation = $variation_id ? wc_get_product($variation_id) : false;
+
+        if (!$variation || (int) $variation->get_parent_id() !== (int) $product_id || !$variation->is_purchasable()) {
+            wp_send_json_error(array(
+                'message' => esc_html__('Please choose a valid variation.', 'one-page-quick-checkout-for-woocommerce-pro'),
+            ));
+        }
+
+        foreach (onepaqucpro_sanitize_variation_attributes_for_cart($variation->get_variation_attributes()) as $attribute_key => $attribute_value) {
+            if (empty($variations[$attribute_key])) {
+                $variations[$attribute_key] = $attribute_value;
+            }
+        }
     }
 
     WC()->cart->empty_cart();
