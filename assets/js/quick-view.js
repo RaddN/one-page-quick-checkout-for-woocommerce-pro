@@ -17,6 +17,8 @@
         nextBtn: null,
         currentProductId: null,
         isLoading: false,
+        pendingCloseOnAdd: false,
+        closeOnAddTimer: null,
         settings: rmenupro_quick_view_params,
         productsData: {}, // Store all product data here
         productsLoaded: false, // Track if products are loaded
@@ -96,6 +98,15 @@
                 e.preventDefault();
                 self.navigateProduct('next');
                 return false;
+            });
+
+            // Close the quick view popup after a successful add-to-cart when enabled.
+            this.modal.on('click', '.add_to_cart_button, .single_add_to_cart_button, button[name="add-to-cart"]', function () {
+                self.trackCloseOnAddIntent();
+            });
+
+            $(document.body).on('added_to_cart', function (event, fragments, cartHash, $button) {
+                self.maybeCloseAfterAddToCart($button);
             });
 
             // Keyboard navigation
@@ -624,6 +635,52 @@
             if (typeof $.fn.trigger !== 'undefined') {
                 $(document.body).trigger('init_add_to_cart_quantity');
             }
+        },
+
+        /**
+         * Track add-to-cart clicks that start inside the quick view modal.
+         */
+        trackCloseOnAddIntent: function () {
+            var self = this;
+
+            if (!self.settings.close_on_add || !self.modal.hasClass('active')) {
+                return;
+            }
+
+            self.pendingCloseOnAdd = true;
+            clearTimeout(self.closeOnAddTimer);
+
+            self.closeOnAddTimer = setTimeout(function () {
+                self.pendingCloseOnAdd = false;
+            }, 10000);
+        },
+
+        /**
+         * Close the modal only after a successful add-to-cart from quick view.
+         */
+        maybeCloseAfterAddToCart: function ($button) {
+            var self = this;
+            var addedFromQuickView = false;
+
+            if (!self.settings.close_on_add || !self.modal.hasClass('active')) {
+                self.pendingCloseOnAdd = false;
+                return;
+            }
+
+            if ($button && $button.length) {
+                addedFromQuickView = $button.closest(self.modal).length > 0;
+            }
+
+            if (!addedFromQuickView && !self.pendingCloseOnAdd) {
+                return;
+            }
+
+            self.pendingCloseOnAdd = false;
+            clearTimeout(self.closeOnAddTimer);
+
+            setTimeout(function () {
+                self.closeQuickView();
+            }, 100);
         },
 
         /**

@@ -2389,8 +2389,8 @@ function onepaqucpro_cart_dashboard()
                                 </tr>
 
                                 <tr class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
-                                    <?php $onepaquc_helper->sec_head('th', 'rmenu-settings-label', '', 'Close on Add to Cart (Coming Soon)', 'When enabled, the quick view popup will automatically close after adding a product to cart.'); ?>
-                                    <td class="rmenu-settings-control disabled">
+                                    <?php $onepaquc_helper->sec_head('th', 'rmenu-settings-label', '', 'Close on Add to Cart', 'When enabled, the quick view popup will automatically close after adding a product to cart.'); ?>
+                                    <td class="rmenu-settings-control">
                                         <?php $onepaquc_helper->switcher('rmenupro_quick_view_close_on_add', 0); ?>
                                     </td>
                                 </tr>
