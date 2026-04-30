@@ -610,7 +610,7 @@ class onepaqucpro_License_Manager
                                 <label for="onepaquc_license_key" style="font-size: 16px;margin: 0;"><?php echo esc_html__('Your License Key', 'one-page-quick-checkout-for-woocommerce-pro'); ?></label>
                             </div>
                             <div style="position: relative;">
-                                <input type="text" style="width: 100%;border: 1px solid #eee;padding: 6px 0 6px 15px;" id="onepaquc_license_key" name="onepaquc_license_key" value="<?php echo esc_attr($license_key); ?>" class="regular-text" placeholder="Enter your license key" />
+                                <input type="text" style="width: 100%;border: 1px solid #eee;padding: 6px 0 6px 15px;" id="onepaquc_license_key" name="onepaquc_license_key" value="<?php echo esc_attr($license_key); ?>"  placeholder="Enter your license key" />
                                 <div style="vertical-align: middle;margin-left: 8px;position: absolute;right: 0;top: 0;background: #dcffdc;height: 100%;display: flex;align-items: center;justify-content: center;padding: 0 20px;border-radius: 0 2px 2px 0;cursor:pointer;gap: 2px;">
                                     <?php if ($is_valid && !$is_expired): ?>
                                         <span class="dashicons dashicons-yes-alt" style="color: green; margin-top: 3px;"></span>

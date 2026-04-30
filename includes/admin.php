@@ -696,14 +696,14 @@ function onepaqucpro_cart_dashboard()
                             <tr>
                                 <?php $onepaquc_helper->sec_head('th', '', '', 'Top Position', 'Set the top position of the floating cart.'); ?>
                                 <td class="rmenupro-settings-control">
-                                    <input type="text" name="rmenu_cart_top_position" value="<?php echo esc_attr(get_option('rmenu_cart_top_position', '50%')); ?>" class="regular-text" />
+                                    <input type="text" name="rmenu_cart_top_position" value="<?php echo esc_attr(get_option('rmenu_cart_top_position', '50%')); ?>"  />
                                 </td>
                             </tr>
 
                             <tr>
                                 <?php $onepaquc_helper->sec_head('th', '', '', 'Left Position', 'Set the left position of the floating cart.'); ?>
                                 <td class="rmenupro-settings-control">
-                                    <input type="text" name="rmenu_cart_left_position" value="<?php echo esc_attr(get_option('rmenu_cart_left_position', '100%')); ?>" class="regular-text" />
+                                    <input type="text" name="rmenu_cart_left_position" value="<?php echo esc_attr(get_option('rmenu_cart_left_position', '100%')); ?>"  />
                                 </td>
                             </tr>
                         </table>
@@ -849,7 +849,7 @@ function onepaqucpro_cart_dashboard()
                                             $direct_checkout_text = 'Buy Now';
                                         }
                                         ?>
-                                        <input type="text" name="txt-direct-checkout" value="<?php echo esc_attr($direct_checkout_text); ?>" class="regular-text" />
+                                        <input type="text" name="txt-direct-checkout" value="<?php echo esc_attr($direct_checkout_text); ?>"  />
                                     </td>
                                 </tr>
 
@@ -1577,11 +1577,6 @@ function onepaqucpro_cart_dashboard()
                             transform: translateX(18px);
                         }
 
-                        .rmenupro-select {
-                            min-width: 200px;
-                            max-width: 100%;
-                        }
-
                         .rmenupro-color-picker {
                             padding: 0;
                             border: 1px solid #8c8f94;
@@ -1968,7 +1963,7 @@ function onepaqucpro_cart_dashboard()
                                             $quick_view_button_text = 'Quick View';
                                         }
                                         ?>
-                                        <input type="text" name="rmenupro_quick_view_button_text" value="<?php echo esc_attr($quick_view_button_text); ?>" class="regular-text" />
+                                        <input type="text" name="rmenupro_quick_view_button_text" value="<?php echo esc_attr($quick_view_button_text); ?>"  />
                                     </td>
                                 </tr>
                                 <tr>
@@ -2209,13 +2204,13 @@ function onepaqucpro_cart_dashboard()
                                     <tr class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?> rmenupro-custom-size-row" style="<?php echo (get_option('rmenupro_quick_view_modal_size', 'medium') == 'custom') ? 'display:flex;' : 'display:none;'; ?>">
                                         <?php $onepaquc_helper->sec_head('th', 'rmenu-settings-label', '', 'Custom Width', 'Custom width in pixels (e.g., 800).'); ?>
                                         <td class="rmenupro-settings-control">
-                                            <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="text" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_quick_view_custom_width' : 'rmenupro_quick_view_custom_width'; ?>" value="<?php echo esc_attr(get_option('rmenupro_quick_view_custom_width', '800')); ?>" class="regular-text" />
+                                            <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="text" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_quick_view_custom_width' : 'rmenupro_quick_view_custom_width'; ?>" value="<?php echo esc_attr(get_option('rmenupro_quick_view_custom_width', '800')); ?>"  />
                                         </td>
                                     </tr>
                                     <tr class="rmenupro-custom-size-row rmenupro-settings-column <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>" style="<?php echo (get_option('rmenupro_quick_view_modal_size', 'medium') == 'custom') ? 'display:flex;' : 'display:none;'; ?>">
                                         <?php $onepaquc_helper->sec_head('th', 'rmenu-settings-label', '', 'Custom Height', 'Custom height in pixels (e.g., 600) or \'auto\'.'); ?>
                                         <td class="rmenupro-settings-control">
-                                            <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="text" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_quick_view_custom_height' : 'rmenupro_quick_view_custom_height'; ?>" value="<?php echo esc_attr(get_option('rmenupro_quick_view_custom_height', '600')); ?>" class="regular-text" />
+                                            <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="text" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_quick_view_custom_height' : 'rmenupro_quick_view_custom_height'; ?>" value="<?php echo esc_attr(get_option('rmenupro_quick_view_custom_height', '600')); ?>"  />
                                         </td>
                                     </tr>
 
@@ -2353,7 +2348,7 @@ function onepaqucpro_cart_dashboard()
                                         $details_text = 'View Full Details';
                                     }
                                     ?>
-                                    <input type="text" id="view_details_text" name="rmenupro_quick_view_details_text" value="<?php echo esc_attr($details_text); ?>" class="regular-text" />
+                                    <input type="text" id="view_details_text" name="rmenupro_quick_view_details_text" value="<?php echo esc_attr($details_text); ?>"  />
                                 </td>
                             </tr>
                         </table>
@@ -2422,14 +2417,14 @@ function onepaqucpro_cart_dashboard()
                                 <tr class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
                                     <?php $onepaquc_helper->sec_head('th', 'rmenu-settings-label', '', 'Event Category', 'The event category name used for analytics tracking.'); ?>
                                     <td class="rmenupro-settings-control">
-                                        <input type="text" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_quick_view_event_category' : 'rmenupro_quick_view_event_category'; ?>" value="<?php echo esc_attr(get_option('rmenupro_quick_view_event_category', 'one-page-quick-checkout-for-woocommerce-pro')); ?>" class="regular-text" />
+                                        <input type="text" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_quick_view_event_category' : 'rmenupro_quick_view_event_category'; ?>" value="<?php echo esc_attr(get_option('rmenupro_quick_view_event_category', 'one-page-quick-checkout-for-woocommerce-pro')); ?>"  />
                                     </td>
                                 </tr>
 
                                 <tr class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
                                     <?php $onepaquc_helper->sec_head('th', 'rmenu-settings-label', '', 'Event Action', 'The event action name used for analytics tracking.'); ?>
                                     <td class="rmenupro-settings-control">
-                                        <input type="text" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_quick_view_event_action' : 'rmenupro_quick_view_event_action'; ?>" value="<?php echo esc_attr(get_option('rmenupro_quick_view_event_action', 'Quick View')); ?>" class="regular-text" />
+                                        <input type="text" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_quick_view_event_action' : 'rmenupro_quick_view_event_action'; ?>" value="<?php echo esc_attr(get_option('rmenupro_quick_view_event_action', 'Quick View')); ?>"  />
                                     </td>
                                 </tr>
                             </table>
@@ -2454,7 +2449,7 @@ function onepaqucpro_cart_dashboard()
                             <tr class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>" id="rmenupro-specific-pages-row" style="<?php echo (get_option('rmenupro_quick_view_load_scripts', 'wc-only') == 'specific') ? 'display:block;' : 'display:none;'; ?>">
                                 <?php $onepaquc_helper->sec_head('th', 'rmenu-settings-label', '', 'Specific Pages IDs', 'Enter the IDs of the specific pages where you want to load the quick view.'); ?>
                                 <td class="rmenupro-settings-control">
-                                    <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="text" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_quick_view_specific_pages' : 'rmenupro_quick_view_specific_pages'; ?>" value="<?php echo esc_attr(get_option('rmenupro_quick_view_specific_pages', '')); ?>" class="regular-text" />
+                                    <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="text" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_quick_view_specific_pages' : 'rmenupro_quick_view_specific_pages'; ?>" value="<?php echo esc_attr(get_option('rmenupro_quick_view_specific_pages', '')); ?>"  />
                                     /td>
                             </tr>
                             <tr>
@@ -2795,28 +2790,28 @@ function onepaqucpro_cart_dashboard()
                                 <tr>
                                     <?php $onepaquc_helper->sec_head('th', 'rmenu-settings-label', '', 'Button Text', 'Customize the text displayed on the Add to Cart button for simple products.'); ?>
                                     <td class="rmenupro-settings-control">
-                                        <input type="text" name="txt-add-to-cart" value="<?php echo esc_attr(get_option('txt-add-to-cart', 'Add to Cart')); ?>" class="regular-text" />
+                                        <input type="text" name="txt-add-to-cart" value="<?php echo esc_attr(get_option('txt-add-to-cart', 'Add to Cart')); ?>"  />
                                     </td>
                                 </tr>
 
                                 <tr>
                                     <?php $onepaquc_helper->sec_head('th', 'rmenu-settings-label', '', 'Variable Product Button Text', 'Customize the text displayed on the Add to Cart button for variable products.'); ?>
                                     <td class="rmenupro-settings-control">
-                                        <input type="text" name="txt-select-options" value="<?php echo esc_attr(get_option('txt-select-options', 'Select Options')); ?>" class="regular-text" />
+                                        <input type="text" name="txt-select-options" value="<?php echo esc_attr(get_option('txt-select-options', 'Select Options')); ?>"  />
                                     </td>
                                 </tr>
 
                                 <tr>
                                     <?php $onepaquc_helper->sec_head('th', 'rmenu-settings-label', '', 'Read More Button Text', 'Customize the text displayed on the Read More button.'); ?>
                                     <td class="rmenupro-settings-control">
-                                        <input type="text" name="txt-read-more" value="<?php echo esc_attr(get_option('txt-read-more', 'Select Options')); ?>" class="regular-text" />
+                                        <input type="text" name="txt-read-more" value="<?php echo esc_attr(get_option('txt-read-more', 'Select Options')); ?>"  />
                                     </td>
                                 </tr>
 
                                 <tr>
                                     <?php $onepaquc_helper->sec_head('th', 'rmenu-settings-label', '', 'Grouped Product Button Text', 'Customize the text displayed on the Add to Cart button for grouped products.'); ?>
                                     <td class="rmenupro-settings-control">
-                                        <input type="text" name="rmenupro_grouped_add_to_cart_text" value="<?php echo esc_attr(get_option('rmenupro_grouped_add_to_cart_text', 'View Products')); ?>" class="regular-text" />
+                                        <input type="text" name="rmenupro_grouped_add_to_cart_text" value="<?php echo esc_attr(get_option('rmenupro_grouped_add_to_cart_text', 'View Products')); ?>"  />
                                     </td>
                                 </tr>
                             </table>
@@ -3129,7 +3124,7 @@ function onepaqucpro_cart_dashboard()
                                 <tr class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only ' : ''; ?>rmenupro-notification-dependent<?php echo $notification_style === 'default' ? ' rmenupro-hidden-setting' : ''; ?>">
                                     <?php $onepaquc_helper->sec_head('th', 'rmenu-settings-label', '', 'Success Message', 'Customize the success message shown after adding to cart. Use {product} as a placeholder for the product name.'); ?>
                                     <td class="rmenupro-settings-control">
-                                        <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="text" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_add_to_cart_success_message' : 'rmenupro_add_to_cart_success_message'; ?>" value="<?php echo esc_attr(get_option('rmenupro_add_to_cart_success_message', '{product} has been added to your cart.')); ?>" class="regular-text" />
+                                        <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="text" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_add_to_cart_success_message' : 'rmenupro_add_to_cart_success_message'; ?>" value="<?php echo esc_attr(get_option('rmenupro_add_to_cart_success_message', '{product} has been added to your cart.')); ?>"  />
                                     </td>
                                 </tr>
 
@@ -3329,7 +3324,7 @@ function onepaqucpro_cart_dashboard()
                                 <tr class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
                                     <?php $onepaquc_helper->sec_head('th', 'rmenu-settings-label', '', 'Mobile Button Text (Coming Soon)', 'Set a different button text for mobile devices. Leave empty to use the default text.'); ?>
                                     <td class="rmenupro-settings-control disabled">
-                                        <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="text" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_mobile_add_to_cart_text' : 'rmenupro_mobile_add_to_cart_text'; ?>" value="<?php echo esc_attr(get_option('rmenupro_mobile_add_to_cart_text', '')); ?>" class="regular-text" />
+                                        <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="text" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_mobile_add_to_cart_text' : 'rmenupro_mobile_add_to_cart_text'; ?>" value="<?php echo esc_attr(get_option('rmenupro_mobile_add_to_cart_text', '')); ?>"  />
                                     </td>
                                 </tr>
 

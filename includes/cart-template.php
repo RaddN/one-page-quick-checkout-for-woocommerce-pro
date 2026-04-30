@@ -269,9 +269,13 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
                     <?php endif; ?>
 
                     <!-- Cart Summary -->
+                    <?php
+                    $onepaqucpro_subtotal_label = get_option('txt_subtotal');
+                    $onepaqucpro_total_label = get_option('txt_total');
+                    ?>
                     <div class="cart-summary">
                         <div class="summary-row">
-                            <span>Subtotal</span>
+                            <span><?php echo $onepaqucpro_subtotal_label ? esc_html($onepaqucpro_subtotal_label) : esc_html__('Subtotal', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
                             <span><?php echo wp_kses_post(wc_price(WC()->cart->get_subtotal())); ?></span>
                         </div>
 
@@ -283,7 +287,7 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
                         </div>
 
                         <div class="summary-row total">
-                            <span>Total</span>
+                            <span><?php echo $onepaqucpro_total_label ? esc_html($onepaqucpro_total_label) : esc_html__('Total', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
                             <span><?php echo wp_kses_post(wc_price(WC()->cart->get_total('raw'))); ?></span>
                         </div>
                     </div>

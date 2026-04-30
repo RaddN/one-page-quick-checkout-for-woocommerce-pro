@@ -128,7 +128,7 @@ function onepaqucpro_trust_badges_settings_content()
                                         <p>
                                             <label><?php esc_html_e('Text:', 'one-page-quick-checkout-for-woocommerce-pro'); ?></label>
                                             <input type="text" name="onepaqucpro_my_trust_badges_items[<?php echo esc_attr($index); ?>][text]"
-                                                value="<?php echo esc_attr($badge['text']); ?>" class="regular-text" />
+                                                value="<?php echo esc_attr($badge['text']); ?>"  />
                                         </p>
                                     </div>
                                 </div>
@@ -190,7 +190,7 @@ function onepaqucpro_trust_badges_settings_content()
                     <p>
                         <label><?php esc_html_e('Text:', 'one-page-quick-checkout-for-woocommerce-pro'); ?></label>
                         <input <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> type="text" name="onepaqucpro_my_trust_badges_items[{{index}}][text]"
-                            value="<?php esc_html_e('New Badge {{index}}', 'one-page-quick-checkout-for-woocommerce-pro'); ?>" class="regular-text" />
+                            value="<?php esc_html_e('New Badge {{index}}', 'one-page-quick-checkout-for-woocommerce-pro'); ?>"  />
                     </p>
                 </div>
             </div>

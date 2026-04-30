@@ -98,6 +98,7 @@ require_once plugin_dir_path(__FILE__) . 'includes/class_helper.php';
 require_once plugin_dir_path(__FILE__) . 'includes/cart-recovery-tracker.php';
 require_once plugin_dir_path(__FILE__) . 'includes/cart-recovery.php';
 require_once plugin_dir_path(__FILE__) . 'includes/blocks/checkout-form-block.php';
+require_once plugin_dir_path(__FILE__) . 'includes/qc-debug.php';
 
 if (class_exists('Onepaqucpro_Cart_Recovery_Tracker')) {
     register_activation_hook(__FILE__, array('Onepaqucpro_Cart_Recovery_Tracker', 'install'));
@@ -122,6 +123,13 @@ $onepaqucpro_string_settings_fields = [
     "onepaqucpro_checkout_widget_cart_empty",
     "onepaqucpro_checkout_widget_cart_add",
     "onepaqucpro_checkout_hide_cart_button",
+    "your_cart",
+    "txt_subtotal",
+    "txt_total",
+    "txt_checkout",
+    "txt_Select_All",
+    "txt_Selected",
+    "txt_you_may_like",
     "rmenupro_quantity_control",
     "rmenupro_at_one_product_cart",
     "rmenupro_disable_cart_page",
@@ -133,6 +141,8 @@ $onepaqucpro_string_settings_fields = [
     "rmenupro_add_img_before_product",
     "rmenupro_add_direct_checkout_button",
     "rmenupro_enable_custom_add_to_cart",
+    "txt-add-to-cart",
+    "rmenupro_grouped_add_to_cart_text",
     "rmenupro_wc_checkout_guest_enabled",
     "rmenupro_wc_checkout_mobile_optimize",
     "rmenupro_wc_direct_checkout_position",
