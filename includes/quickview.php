@@ -596,6 +596,8 @@ class RMENUPRO_Quick_View
             'is_in_stock' => $product->is_in_stock(),
             'rating_html' => '',
             'add_to_cart_url' => $product->add_to_cart_url(),
+            'add_to_cart_text' => $product->add_to_cart_text(),
+            'external_url' => $product->is_type('external') && method_exists($product, 'get_product_url') ? $product->get_product_url() : '',
             'stock_quantity' => $product->get_stock_quantity(),
             'min_purchase_quantity' => $product->get_min_purchase_quantity(),
             'max_purchase_quantity' => $product->get_max_purchase_quantity(),
