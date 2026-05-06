@@ -383,6 +383,10 @@ jQuery(document).ready(function ($) {
         if (totalElement) {
             totalElement.innerHTML = data.total; // Use innerHTML
         }
+
+        if (typeof window.onepaqucproSyncFloatingCartButtonVisibility === 'function' && data.cart_count !== undefined) {
+            window.onepaqucproSyncFloatingCartButtonVisibility(data.cart_count);
+        }
     }
 
     $(document).on('click', '.quantity-btn', function () {

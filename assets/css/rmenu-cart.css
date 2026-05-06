@@ -19,6 +19,10 @@ html {
   align-items: center;
 }
 
+.rwc_cart-button.onepaqucpro-cart-button-hidden {
+  display: none !important;
+}
+
 .cart-icon {
   font-size: 24px;
 }

@@ -19,6 +19,54 @@ jQuery(document).ready(function ($) {
     let isUpdatingCart = false;
     $isonepagewidget = ($('.checkout-popup,#checkout-popup').length) ? $('.checkout-popup,#checkout-popup').data('isonepagewidget') : false;
 
+    function isHideEmptyFloatingCartButtonEnabled($button) {
+        const params = typeof onepaqucpro_wc_cart_params !== 'undefined' ? onepaqucpro_wc_cart_params : {};
+
+        if (params.hide_empty_floating_cart_button !== undefined) {
+            return params.hide_empty_floating_cart_button === true || String(params.hide_empty_floating_cart_button) === '1';
+        }
+
+        return $button && $button.length && String($button.data('hide-empty-cart-button')) === '1';
+    }
+
+    function normalizeCartCount(count, $button) {
+        let resolvedCount = count;
+
+        if (resolvedCount === undefined || resolvedCount === null || resolvedCount === '') {
+            resolvedCount = $button && $button.length ? $button.find('.cart-count').first().text() : 0;
+        }
+
+        resolvedCount = parseInt(resolvedCount, 10);
+
+        return isNaN(resolvedCount) ? 0 : resolvedCount;
+    }
+
+    function syncFloatingCartButtonVisibility(count) {
+        const $button = $('.rwc_cart-button');
+
+        if (!$button.length) {
+            return;
+        }
+
+        const currentCount = normalizeCartCount(count, $button);
+        const shouldHide = isHideEmptyFloatingCartButtonEnabled($button) && currentCount < 1;
+        $button.attr('data-cart-count', currentCount);
+        $button.toggleClass('onepaqucpro-cart-button-hidden', shouldHide);
+        $button.prop('hidden', shouldHide);
+
+        if (shouldHide) {
+            $button.attr({
+                'aria-hidden': 'true',
+                'tabindex': '-1'
+            });
+        } else {
+            $button.removeAttr('hidden aria-hidden tabindex');
+        }
+    }
+
+    window.onepaqucproSyncFloatingCartButtonVisibility = syncFloatingCartButtonVisibility;
+    syncFloatingCartButtonVisibility();
+
     function hasInlineCheckoutFormOnPage() {
         const inlineClassicCheckout = $('form.checkout.woocommerce-checkout').filter(function () {
             return !$(this).closest('.checkout-popup').not('.onepagecheckoutwidget').length;
@@ -70,6 +118,7 @@ jQuery(document).ready(function ($) {
                     }
 
                     $('.rmenupro-cart').html(cartHtml);
+                    syncFloatingCartButtonVisibility(response.data.cart_count);
 
                     if (popupCheckoutVisible) {
                         $('.cart-drawer').removeClass('open');
@@ -109,6 +158,7 @@ jQuery(document).ready(function ($) {
 
             // Update the cart count display
             cartCountElement.textContent = currentCount;
+            syncFloatingCartButtonVisibility(currentCount);
         } else {
             console.error('Cart count element not found.');
         }

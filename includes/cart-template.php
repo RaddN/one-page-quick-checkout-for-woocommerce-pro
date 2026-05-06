@@ -106,6 +106,24 @@ function onepaqucpro_cart_drawer_get_you_may_also_like_html($parent_product_id, 
     return trim(ob_get_clean());
 }
 
+function onepaqucpro_get_cart_contents_count()
+{
+    if (!function_exists('WC') || !WC() || !WC()->cart) {
+        return 0;
+    }
+
+    return (int) WC()->cart->get_cart_contents_count();
+}
+
+function onepaqucpro_hide_empty_cart_button_enabled()
+{
+    if (!function_exists('onepaqucpro_premium_feature') || !onepaqucpro_premium_feature()) {
+        return false;
+    }
+
+    return get_option('rmenu_hide_empty_cart_button', '0') === '1';
+}
+
 // Shortcode to display cart icon and drawer
 function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $product_title_tag = 'p', $position = "", $top = "", $left = "")
 {
@@ -119,6 +137,17 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
 
     // Get selected cart icon or fallback to default
     $selected_icon = isset($cart_icons[$cart_icon]) ? $cart_icons[$cart_icon] : $cart_icons['cart'];
+    $cart_count = onepaqucpro_get_cart_contents_count();
+    $hide_empty_cart_button = onepaqucpro_hide_empty_cart_button_enabled();
+    $hide_cart_button_now = $hide_empty_cart_button && $cart_count < 1;
+    $cart_button_classes = array(
+        'rwc_cart-button',
+        'plugincy_pos_' . sanitize_html_class($position),
+    );
+
+    if ($hide_cart_button_now) {
+        $cart_button_classes[] = 'onepaqucpro-cart-button-hidden';
+    }
 
     $allowed_svg = array(
         'svg' => array(
@@ -143,18 +172,12 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
     );
 ?>
 
-    <button class="rwc_cart-button plugincy_pos_<?php echo esc_attr($position); ?>" data-cart-icon="<?php echo esc_attr($cart_icon); ?>" data-product_title_tag="<?php echo esc_attr($product_title_tag); ?>" data-drawer-position="<?php echo esc_attr($drawer_position); ?>" onclick="openCartDrawer('<?php echo esc_attr($drawer_position); ?>')">
+    <button type="button" class="<?php echo esc_attr(implode(' ', $cart_button_classes)); ?>" data-cart-icon="<?php echo esc_attr($cart_icon); ?>" data-product_title_tag="<?php echo esc_attr($product_title_tag); ?>" data-drawer-position="<?php echo esc_attr($drawer_position); ?>" data-hide-empty-cart-button="<?php echo esc_attr($hide_empty_cart_button ? '1' : '0'); ?>" data-cart-count="<?php echo esc_attr($cart_count); ?>" onclick="openCartDrawer('<?php echo esc_attr($drawer_position); ?>')" <?php echo $hide_cart_button_now ? 'hidden aria-hidden="true" tabindex="-1"' : ''; ?>>
         <span class="cart-icon">
             <?php echo wp_kses($selected_icon, $allowed_svg); ?>
         </span>
         <span class="cart-count">
-            <?php
-            if (function_exists('WC') && WC()->cart) {
-                echo esc_html(WC()->cart->get_cart_contents_count());
-            } else {
-                echo '0';
-            }
-            ?>
+            <?php echo esc_html($cart_count); ?>
         </span>
     </button>
     <div class="cart-drawer <?php echo esc_attr($drawer_position); ?>">

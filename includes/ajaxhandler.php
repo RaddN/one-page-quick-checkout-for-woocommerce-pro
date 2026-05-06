@@ -266,7 +266,8 @@ function onepaqucpro_handle_remove_cart_item()
         wp_send_json_success(array(
             'subtotal' => $subtotal,
             'discount_total' => $cart->get_discount_total(),
-            'total' => $total
+            'total' => $total,
+            'cart_count' => $cart->get_cart_contents_count()
         ));
     } else {
         wp_send_json_error(array(
