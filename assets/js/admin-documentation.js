@@ -174,6 +174,320 @@ document.addEventListener("DOMContentLoaded", function () {
     initializeActiveTab();
 });
 
+document.addEventListener("DOMContentLoaded", function () {
+    const editor = document.getElementById("onepaqucpro-floating-cart-editor");
+
+    if (!editor) {
+        return;
+    }
+
+    const controls = editor.querySelectorAll("[data-floating-cart-control]");
+    const panels = editor.querySelectorAll("[data-floating-preview-panel]");
+    const modeButtons = editor.querySelectorAll("[data-floating-preview-mode]");
+    const previewButton = editor.querySelector(".onepaqucpro-floating-preview-button");
+    const previewStage = editor.querySelector(".onepaqucpro-floating-preview-stage");
+    const actionBar = document.createElement("div");
+    const actionToggle = document.createElement("button");
+    let activeVisualField = "";
+    const textFallbacks = {};
+
+    function getControl(field) {
+        return editor.querySelector('[data-floating-cart-control="' + field + '"]');
+    }
+
+    function getControlValue(field) {
+        const control = getControl(field);
+
+        if (!control) {
+            return "";
+        }
+
+        if (control.type === "checkbox") {
+            return control.checked ? "1" : "0";
+        }
+
+        return control.value;
+    }
+
+    function getTextFallback(field) {
+        const control = getControl(field);
+
+        if (textFallbacks[field]) {
+            return textFallbacks[field];
+        }
+
+        if (control && control.getAttribute("placeholder")) {
+            return control.getAttribute("placeholder");
+        }
+
+        return "";
+    }
+
+    function setControlValue(field, value) {
+        const control = getControl(field);
+
+        if (!control || control.type === "checkbox" || control.disabled) {
+            return;
+        }
+
+        control.value = value;
+        control.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+
+    actionBar.className = "onepaqucpro-floating-visual-actionbar";
+    actionBar.hidden = true;
+    actionToggle.type = "button";
+    actionToggle.className = "onepaqucpro-floating-preview-toggle dashicons dashicons-visibility";
+    actionToggle.setAttribute("aria-label", "Toggle selected cart element");
+    actionBar.appendChild(actionToggle);
+    editor.querySelector(".onepaqucpro-floating-preview-stage").appendChild(actionBar);
+
+    function positionActionBar(targetNode, field) {
+        const control = getControl(field);
+
+        if (!control || control.type !== "checkbox") {
+            actionBar.hidden = true;
+            activeVisualField = "";
+            return;
+        }
+
+        const stage = editor.querySelector(".onepaqucpro-floating-preview-stage");
+        const stageRect = stage.getBoundingClientRect();
+        const targetRect = targetNode.getBoundingClientRect();
+
+        activeVisualField = field;
+        actionBar.hidden = false;
+        actionBar.style.top = Math.max(8, targetRect.top - stageRect.top - 10) + "px";
+        actionBar.style.left = Math.min(stageRect.width - 42, Math.max(8, targetRect.right - stageRect.left - 10)) + "px";
+        actionToggle.classList.toggle("is-disabled", !control.checked);
+        actionToggle.setAttribute("aria-pressed", control.checked ? "true" : "false");
+        actionToggle.setAttribute("title", control.checked ? "Disable this element" : "Enable this element");
+    }
+
+    function setPreviewVisibility(field) {
+        const control = getControl(field);
+        const parts = editor.querySelectorAll('[data-preview-part="' + field + '"]');
+
+        if (!control || !parts.length || control.type !== "checkbox") {
+            return;
+        }
+
+        parts.forEach(function (part) {
+            part.classList.toggle("is-preview-hidden", !control.checked);
+        });
+
+        if (activeVisualField === field) {
+            actionToggle.classList.toggle("is-disabled", !control.checked);
+            actionToggle.setAttribute("aria-pressed", control.checked ? "true" : "false");
+            actionToggle.setAttribute("title", control.checked ? "Disable this element" : "Enable this element");
+        }
+    }
+
+    function updatePreviewText(field) {
+        const nodes = editor.querySelectorAll('[data-preview-text="' + field + '"]');
+        const rawValue = getControlValue(field);
+        const value = rawValue || getTextFallback(field);
+
+        nodes.forEach(function (node) {
+            if (document.activeElement !== node) {
+                node.textContent = value;
+            }
+        });
+    }
+
+    function updateButtonStyle() {
+        if (!previewButton || !previewStage) {
+            return;
+        }
+
+        const background = getControlValue("rmenu_cart_bg_color");
+        const color = getControlValue("rmenu_cart_text_color");
+        const hoverBackground = getControlValue("rmenu_cart_hover_bg");
+        const hoverColor = getControlValue("rmenu_cart_hover_text");
+        const radius = getControlValue("rmenu_cart_border_radius");
+
+        if (background) {
+            previewStage.style.setProperty("--onepaqucpro-floating-primary", background);
+        }
+
+        if (color) {
+            previewStage.style.setProperty("--onepaqucpro-floating-primary-text", color);
+        }
+
+        if (hoverBackground) {
+            previewStage.style.setProperty("--onepaqucpro-floating-primary-hover", hoverBackground);
+        }
+
+        if (hoverColor) {
+            previewStage.style.setProperty("--onepaqucpro-floating-primary-hover-text", hoverColor);
+        }
+
+        if (radius) {
+            previewStage.style.setProperty("--onepaqucpro-floating-button-radius", radius);
+        }
+    }
+
+    function updateDependencyVisibility() {
+        const itemSelectEnabled = getControlValue("rmenu_floating_cart_show_item_select") === "1";
+        const selectBarParts = editor.querySelectorAll('[data-preview-part="rmenu_floating_cart_show_select_bar"]');
+
+        selectBarParts.forEach(function (part) {
+            const selectBarEnabled = getControlValue("rmenu_floating_cart_show_select_bar") === "1";
+            part.classList.toggle("is-preview-hidden", !itemSelectEnabled || !selectBarEnabled);
+        });
+
+        const summaryEnabled = getControlValue("rmenu_floating_cart_show_summary") === "1";
+        ["rmenu_floating_cart_show_subtotal", "rmenu_floating_cart_show_discount", "rmenu_floating_cart_show_total"].forEach(function (field) {
+            editor.querySelectorAll('[data-preview-part="' + field + '"]').forEach(function (part) {
+                part.classList.toggle("is-preview-hidden", !summaryEnabled || getControlValue(field) !== "1");
+            });
+        });
+    }
+
+    function syncPreview() {
+        controls.forEach(function (control) {
+            const field = control.getAttribute("data-floating-cart-control");
+
+            if (control.type === "checkbox") {
+                setPreviewVisibility(field);
+            } else {
+                updatePreviewText(field);
+            }
+        });
+
+        updateButtonStyle();
+        updateDependencyVisibility();
+    }
+
+    controls.forEach(function (control) {
+        control.addEventListener("input", syncPreview);
+        control.addEventListener("change", syncPreview);
+        control.addEventListener("focus", function () {
+            const field = control.getAttribute("data-floating-cart-control");
+
+            editor.querySelectorAll(".is-preview-focused").forEach(function (node) {
+                node.classList.remove("is-preview-focused");
+            });
+
+            editor.querySelectorAll('[data-preview-target="' + field + '"], [data-preview-part="' + field + '"]').forEach(function (node) {
+                node.classList.add("is-preview-focused");
+            });
+        });
+    });
+
+    editor.querySelectorAll("[data-preview-text]").forEach(function (node) {
+        const field = node.getAttribute("data-preview-text");
+        const fallback = (node.textContent || "").trim();
+
+        if (fallback) {
+            textFallbacks[field] = fallback;
+        }
+
+        node.setAttribute("contenteditable", "true");
+        node.setAttribute("spellcheck", "false");
+        node.classList.add("is-visual-text-editor");
+        node.setAttribute("title", "Click and type to edit this text");
+
+        node.addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                node.blur();
+            }
+        });
+
+        node.addEventListener("input", function () {
+            setControlValue(field, node.textContent.trim());
+        });
+
+        node.addEventListener("blur", function () {
+            const value = node.textContent.trim();
+
+            if (!value) {
+                const fallbackValue = getTextFallback(field);
+                node.textContent = fallbackValue;
+                setControlValue(field, "");
+                syncPreview();
+                return;
+            }
+
+            setControlValue(field, value);
+        });
+    });
+
+    actionToggle.addEventListener("click", function (event) {
+        const control = getControl(activeVisualField);
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (!control || control.type !== "checkbox") {
+            return;
+        }
+
+        if (control.disabled) {
+            control.focus({ preventScroll: true });
+            return;
+        }
+
+        control.checked = !control.checked;
+        control.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+
+    editor.querySelectorAll("[data-preview-target], [data-preview-part]").forEach(function (node) {
+        node.addEventListener("mouseenter", function () {
+            const field = node.getAttribute("data-preview-part") || node.getAttribute("data-preview-target");
+            positionActionBar(node, field);
+        });
+
+        node.addEventListener("focus", function () {
+            const field = node.getAttribute("data-preview-part") || node.getAttribute("data-preview-target");
+            positionActionBar(node, field);
+        }, true);
+
+        node.addEventListener("click", function (event) {
+            if (event.target.closest(".onepaqucpro-floating-preview-toggle") || event.target.closest("[contenteditable]")) {
+                return;
+            }
+
+            const field = node.getAttribute("data-preview-part") || node.getAttribute("data-preview-target");
+            const control = getControl(field);
+            const wrapper = editor.querySelector('[data-floating-control-wrap="' + field + '"]');
+
+            if (!control) {
+                return;
+            }
+
+            event.preventDefault();
+            positionActionBar(node, field);
+            control.focus({ preventScroll: true });
+            control.scrollIntoView({ behavior: "smooth", block: "center" });
+
+            if (wrapper) {
+                wrapper.classList.add("is-control-focused");
+                window.setTimeout(function () {
+                    wrapper.classList.remove("is-control-focused");
+                }, 1200);
+            }
+        });
+    });
+
+    modeButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+            const mode = button.getAttribute("data-floating-preview-mode");
+
+            modeButtons.forEach(function (modeButton) {
+                modeButton.classList.toggle("active", modeButton === button);
+            });
+
+            panels.forEach(function (panel) {
+                panel.hidden = panel.getAttribute("data-floating-preview-panel") !== mode;
+            });
+        });
+    });
+
+    syncPreview();
+});
+
 
 
 

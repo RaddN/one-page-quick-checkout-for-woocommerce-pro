@@ -108,11 +108,11 @@ function onepaqucpro_render_floating_cart_pro_switch($name, $label, $default = '
     $field_name = $premium_enabled ? $name : 'pro_' . $name;
     $value = $premium_enabled ? get_option($name, $default) : '0';
     ?>
-    <div class="rmenupro-settings-field plugincy_row items_center <?php echo !$premium_enabled ? 'pro-only' : ''; ?>">
+    <div class="rmenupro-settings-field plugincy_row items_center onepaqucpro-floating-control <?php echo !$premium_enabled ? 'pro-only' : ''; ?>" data-floating-control-wrap="<?php echo esc_attr($name); ?>">
         <label class="rmenupro-settings-label"><?php echo esc_html($label); ?></label>
         <div class="rmenupro-settings-control">
             <label class="switch">
-                <input type="checkbox" name="<?php echo esc_attr($field_name); ?>" value="1" <?php echo !$premium_enabled ? 'disabled' : ''; ?> <?php checked('1', $value, true); ?> />
+                <input type="checkbox" name="<?php echo esc_attr($field_name); ?>" value="1" data-floating-cart-control="<?php echo esc_attr($name); ?>" <?php echo !$premium_enabled ? 'disabled' : ''; ?> <?php checked('1', $value, true); ?> />
                 <span class="slider round"></span>
             </label>
             <span class="<?php echo !$premium_enabled ? 'dashicons dashicons-lock plugincy_lock-icon' : ''; ?>"></span>
@@ -127,14 +127,22 @@ function onepaqucpro_render_floating_cart_pro_text_field($name, $label, $placeho
     $field_name = $premium_enabled ? $name : 'pro_' . $name;
     $value = $premium_enabled ? get_option($name, '') : '';
     ?>
-    <label class="rmenupro-settings-field <?php echo !$premium_enabled ? 'pro-only' : ''; ?>">
+    <label class="rmenupro-settings-field onepaqucpro-floating-control <?php echo !$premium_enabled ? 'pro-only' : ''; ?>" data-floating-control-wrap="<?php echo esc_attr($name); ?>">
         <span class="rmenupro-settings-label"><?php echo esc_html($label); ?></span>
         <span class="rmenupro-settings-control">
-            <input type="text" name="<?php echo esc_attr($field_name); ?>" value="<?php echo esc_attr($value); ?>" placeholder="<?php echo esc_attr($placeholder); ?>" <?php echo !$premium_enabled ? 'disabled' : ''; ?> />
+            <input type="text" name="<?php echo esc_attr($field_name); ?>" value="<?php echo esc_attr($value); ?>" placeholder="<?php echo esc_attr($placeholder); ?>" data-floating-cart-control="<?php echo esc_attr($name); ?>" <?php echo !$premium_enabled ? 'disabled' : ''; ?> />
             <span class="<?php echo !$premium_enabled ? 'dashicons dashicons-lock plugincy_lock-icon' : ''; ?>"></span>
         </span>
     </label>
     <?php
+}
+
+function onepaqucpro_get_floating_cart_admin_preview_text($name, $defaults, $fallback = '')
+{
+    $default = isset($defaults[$name]) ? $defaults[$name] : $fallback;
+    $value = get_option($name, $default);
+
+    return trim((string) $value) !== '' ? $value : $default;
 }
 
 // Dashboard page
@@ -695,7 +703,9 @@ function onepaqucpro_cart_dashboard()
                 ?>
             </div>
             <div class="tab-content" id="tab-9">
-                <div class="mb-4">
+                <div id="onepaqucpro-floating-cart-editor" class="onepaqucpro-floating-editor">
+                <div class="onepaqucpro-floating-editor-left">
+                <div class="mb-4 onepaqucpro-floating-editor-intro">
                     <?php $onepaquc_helper->sec_head('h2', '', '<span class="dashicons dashicons-cart"></span>', 'Floating Cart Settings', ''); ?>
                     <p class="description">Configure the appearance and behavior of your floating cart. Enable the floating cart to provide users with quick access to their cart from any page on your site.</p>
                 </div>
@@ -716,7 +726,7 @@ function onepaqucpro_cart_dashboard()
                                 <?php $onepaquc_helper->sec_head('th', '', '', 'Hide If Cart Empty', 'Hide the floating cart button while the cart is empty.'); ?>
                                 <td class="rmenupro-settings-control">
                                     <label class="switch">
-                                        <input type="checkbox" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_rmenu_hide_empty_cart_button' : 'rmenu_hide_empty_cart_button'; ?>" value="1" <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> <?php checked(1, onepaqucpro_premium_feature() ? get_option('rmenu_hide_empty_cart_button', 0) : 0, true); ?> />
+                                        <input type="checkbox" name="<?php echo !onepaqucpro_premium_feature() ? 'pro_rmenu_hide_empty_cart_button' : 'rmenu_hide_empty_cart_button'; ?>" value="1" data-floating-cart-control="rmenu_hide_empty_cart_button" <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> <?php checked(1, onepaqucpro_premium_feature() ? get_option('rmenu_hide_empty_cart_button', 0) : 0, true); ?> />
                                         <span class="slider round"></span>
                                     </label>
                                     <span class="<?php echo !onepaqucpro_premium_feature() ? 'dashicons dashicons-lock plugincy_lock-icon' : ''; ?>"></span>
@@ -727,7 +737,7 @@ function onepaqucpro_cart_dashboard()
                                 <?php $onepaquc_helper->sec_head('th', '', '', 'Cart Checkout Behavior', 'Choose the behavior of the cart checkout process.'); ?>
                                 <td class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
                                     <?php $floating_cart_checkout_behavior = function_exists('onepaqucpro_get_floating_cart_checkout_behavior') ? onepaqucpro_get_floating_cart_checkout_behavior() : get_option('rmenu_cart_checkout_behavior', 'direct_checkout'); ?>
-                                    <select name="rmenu_cart_checkout_behavior" class="rmenu-select">
+                                    <select name="rmenu_cart_checkout_behavior" class="rmenu-select" data-floating-cart-control="rmenu_cart_checkout_behavior">
                                         <option value="direct_checkout" <?php selected($floating_cart_checkout_behavior, 'direct_checkout'); ?>>Direct Checkout</option>
                                         <option <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> value="popup_checkout" <?php selected($floating_cart_checkout_behavior, 'popup_checkout'); ?>>Popup Checkout</option>
                                     </select>
@@ -745,14 +755,14 @@ function onepaqucpro_cart_dashboard()
                             <tr>
                                 <?php $onepaquc_helper->sec_head('th', '', '', 'Top Position', 'Set the top position of the floating cart.'); ?>
                                 <td class="rmenupro-settings-control">
-                                    <input type="text" name="rmenu_cart_top_position" value="<?php echo esc_attr(get_option('rmenu_cart_top_position', '50%')); ?>"  />
+                                    <input type="text" name="rmenu_cart_top_position" value="<?php echo esc_attr(get_option('rmenu_cart_top_position', '50%')); ?>" data-floating-cart-control="rmenu_cart_top_position" />
                                 </td>
                             </tr>
 
                             <tr>
                                 <?php $onepaquc_helper->sec_head('th', '', '', 'Left Position', 'Set the left position of the floating cart.'); ?>
                                 <td class="rmenupro-settings-control">
-                                    <input type="text" name="rmenu_cart_left_position" value="<?php echo esc_attr(get_option('rmenu_cart_left_position', '100%')); ?>"  />
+                                    <input type="text" name="rmenu_cart_left_position" value="<?php echo esc_attr(get_option('rmenu_cart_left_position', '100%')); ?>" data-floating-cart-control="rmenu_cart_left_position" />
                                 </td>
                             </tr>
                         </table>
@@ -760,24 +770,24 @@ function onepaqucpro_cart_dashboard()
                 </div>
 
                 <div class="rmenu-settings-section plugincy_card mb-4">
-                    <?php $onepaquc_helper->sec_head('h2', 'plugincy_sec_head', '<span class="dashicons dashicons-admin-appearance"></span>', 'Button Style Settings', 'Configure the style of the floating cart button.'); ?>
+                    <?php $onepaquc_helper->sec_head('h2', 'plugincy_sec_head', '<span class="dashicons dashicons-admin-appearance"></span>', 'Floating Cart Colors & Button Shape', 'Configure the cart primary colors used by the launcher and drawer action buttons.'); ?>
 
 
                     <div class="rmenupro-settings-row rmenupro-settings-row-columns">
                         <div class="rmenu-settings-column">
                             <div class="rmenupro-settings-field  plugincy_row items_center">
-                                <label class="rmenupro-settings-label">Background Color</label>
+                                <label class="rmenupro-settings-label">Primary Color</label>
                                 <div class="rmenupro-settings-control">
-                                    <input type="color" name="rmenu_cart_bg_color" value="<?php echo esc_attr(get_option('rmenu_cart_bg_color', '#96588a')); ?>" class="rmenu-color-picker" />
+                                    <input type="color" name="rmenu_cart_bg_color" value="<?php echo esc_attr(get_option('rmenu_cart_bg_color', '#96588a')); ?>" class="rmenu-color-picker" data-floating-cart-control="rmenu_cart_bg_color" />
                                 </div>
                             </div>
                         </div>
 
                         <div class="rmenu-settings-column">
                             <div class="rmenupro-settings-field  plugincy_row items_center">
-                                <label class="rmenupro-settings-label">Text Color</label>
+                                <label class="rmenupro-settings-label">Primary Text Color</label>
                                 <div class="rmenupro-settings-control">
-                                    <input type="color" name="rmenu_cart_text_color" value="<?php echo esc_attr(get_option('rmenu_cart_text_color', '#ffffff')); ?>" class="rmenu-color-picker" />
+                                    <input type="color" name="rmenu_cart_text_color" value="<?php echo esc_attr(get_option('rmenu_cart_text_color', '#ffffff')); ?>" class="rmenu-color-picker" data-floating-cart-control="rmenu_cart_text_color" />
                                 </div>
                             </div>
                         </div>
@@ -786,18 +796,18 @@ function onepaqucpro_cart_dashboard()
                     <div class="rmenupro-settings-row rmenupro-settings-row-columns">
                         <div class="rmenu-settings-column">
                             <div class="rmenupro-settings-field  plugincy_row items_center">
-                                <label class="rmenupro-settings-label">Hover Background</label>
+                                <label class="rmenupro-settings-label">Primary Hover Color</label>
                                 <div class="rmenupro-settings-control">
-                                    <input type="color" name="rmenu_cart_hover_bg" value="<?php echo esc_attr(get_option('rmenu_cart_hover_bg', '#f8f8f8')); ?>" class="rmenu-color-picker" />
+                                    <input type="color" name="rmenu_cart_hover_bg" value="<?php echo esc_attr(get_option('rmenu_cart_hover_bg', '#f8f8f8')); ?>" class="rmenu-color-picker" data-floating-cart-control="rmenu_cart_hover_bg" />
                                 </div>
                             </div>
                         </div>
 
                         <div class="rmenu-settings-column">
                             <div class="rmenupro-settings-field plugincy_row items_center">
-                                <label class="rmenupro-settings-label">Hover Text Color</label>
+                                <label class="rmenupro-settings-label">Primary Hover Text Color</label>
                                 <div class="rmenupro-settings-control">
-                                    <input type="color" name="rmenu_cart_hover_text" value="<?php echo esc_attr(get_option('rmenu_cart_hover_text', '#000000')); ?>" class="rmenu-color-picker" />
+                                    <input type="color" name="rmenu_cart_hover_text" value="<?php echo esc_attr(get_option('rmenu_cart_hover_text', '#000000')); ?>" class="rmenu-color-picker" data-floating-cart-control="rmenu_cart_hover_text" />
                                 </div>
                             </div>
                         </div>
@@ -805,9 +815,9 @@ function onepaqucpro_cart_dashboard()
 
                     <div class="rmenupro-settings-row">
                         <div class="rmenupro-settings-field plugincy_row items_center">
-                            <label class="rmenupro-settings-label">Border Radius</label>
+                            <label class="rmenupro-settings-label">Floating Button Radius</label>
                             <div class="rmenu-settings-control">
-                                <input type="text" name="rmenu_cart_border_radius" value="<?php echo esc_attr(get_option('rmenu_cart_border_radius', '5px 0 0 5px')); ?>" placeholder="0px 0px 0px 0px" />
+                                <input type="text" name="rmenu_cart_border_radius" value="<?php echo esc_attr(get_option('rmenu_cart_border_radius', '5px 0 0 5px')); ?>" placeholder="0px 0px 0px 0px" data-floating-cart-control="rmenu_cart_border_radius" />
                             </div>
                         </div>
                     </div>
@@ -875,6 +885,125 @@ function onepaqucpro_cart_dashboard()
                             <?php onepaqucpro_render_floating_cart_pro_text_field($field_name, $field_label, isset($floating_cart_text_defaults[$field_name]) ? $floating_cart_text_defaults[$field_name] : ''); ?>
                         <?php endforeach; ?>
                     </div>
+                </div>
+                </div>
+
+                <div class="onepaqucpro-floating-editor-right" aria-label="<?php esc_attr_e('Floating cart visual preview', 'one-page-quick-checkout-for-woocommerce-pro'); ?>">
+                    <?php
+                    $floating_preview_text = array(
+                        'your_cart' => onepaqucpro_get_floating_cart_admin_preview_text('your_cart', $floating_cart_text_defaults, 'Your Cart'),
+                        'txt_Select_All' => onepaqucpro_get_floating_cart_admin_preview_text('txt_Select_All', $floating_cart_text_defaults, 'Select All'),
+                        'txt_Selected' => onepaqucpro_get_floating_cart_admin_preview_text('txt_Selected', $floating_cart_text_defaults, 'selected'),
+                        'rmenu_floating_cart_empty_title' => onepaqucpro_get_floating_cart_admin_preview_text('rmenu_floating_cart_empty_title', $floating_cart_text_defaults, 'Your Cart is Empty'),
+                        'rmenu_floating_cart_shop_button_text' => onepaqucpro_get_floating_cart_admin_preview_text('rmenu_floating_cart_shop_button_text', $floating_cart_text_defaults, 'Shop Now'),
+                        'rmenu_floating_cart_coupon_placeholder' => onepaqucpro_get_floating_cart_admin_preview_text('rmenu_floating_cart_coupon_placeholder', $floating_cart_text_defaults, 'Enter coupon code'),
+                        'rmenu_floating_cart_coupon_button_text' => onepaqucpro_get_floating_cart_admin_preview_text('rmenu_floating_cart_coupon_button_text', $floating_cart_text_defaults, 'Apply'),
+                        'txt_you_may_like' => onepaqucpro_get_floating_cart_admin_preview_text('txt_you_may_like', $floating_cart_text_defaults, 'You may also like'),
+                        'rmenu_floating_cart_related_add_to_cart_text' => onepaqucpro_get_floating_cart_admin_preview_text('rmenu_floating_cart_related_add_to_cart_text', $floating_cart_text_defaults, 'Add to cart'),
+                        'txt_subtotal' => onepaqucpro_get_floating_cart_admin_preview_text('txt_subtotal', $floating_cart_text_defaults, 'Subtotal'),
+                        'rmenu_floating_cart_discount_label' => onepaqucpro_get_floating_cart_admin_preview_text('rmenu_floating_cart_discount_label', $floating_cart_text_defaults, 'Discount'),
+                        'txt_total' => onepaqucpro_get_floating_cart_admin_preview_text('txt_total', $floating_cart_text_defaults, 'Total'),
+                        'txt_checkout' => onepaqucpro_get_floating_cart_admin_preview_text('txt_checkout', $floating_cart_text_defaults, 'Checkout'),
+                    );
+                    $floating_preview_bg = get_option('rmenu_cart_bg_color', '#96588a');
+                    $floating_preview_text_color = get_option('rmenu_cart_text_color', '#ffffff');
+                    $floating_preview_radius = get_option('rmenu_cart_border_radius', '5px 0 0 5px');
+                    ?>
+                    <div class="onepaqucpro-floating-preview-toolbar">
+                        <div>
+                            <h3><?php esc_html_e('Visual Cart Editor', 'one-page-quick-checkout-for-woocommerce-pro'); ?></h3>
+                            <p><?php esc_html_e('Edit text directly and use the eye controls to manage drawer elements.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></p>
+                        </div>
+                        <div class="onepaqucpro-floating-preview-modes" role="group" aria-label="<?php esc_attr_e('Preview mode', 'one-page-quick-checkout-for-woocommerce-pro'); ?>">
+                            <button type="button" class="button active" data-floating-preview-mode="cart"><?php esc_html_e('Cart', 'one-page-quick-checkout-for-woocommerce-pro'); ?></button>
+                            <button type="button" class="button" data-floating-preview-mode="empty"><?php esc_html_e('Empty', 'one-page-quick-checkout-for-woocommerce-pro'); ?></button>
+                        </div>
+                    </div>
+
+                    <div class="onepaqucpro-floating-preview-stage" style="--onepaqucpro-floating-primary: <?php echo esc_attr($floating_preview_bg); ?>; --onepaqucpro-floating-primary-text: <?php echo esc_attr($floating_preview_text_color); ?>; --onepaqucpro-floating-primary-hover: <?php echo esc_attr(get_option('rmenu_cart_hover_bg', '#f8f8f8')); ?>; --onepaqucpro-floating-primary-hover-text: <?php echo esc_attr(get_option('rmenu_cart_hover_text', '#000000')); ?>; --onepaqucpro-floating-button-radius: <?php echo esc_attr($floating_preview_radius); ?>;">
+                        <button type="button" class="onepaqucpro-floating-preview-button" data-preview-target="rmenu_floating_cart_show_cart_icon">
+                            <span class="dashicons dashicons-cart" data-preview-part="rmenu_floating_cart_show_cart_icon"></span>
+                            <span class="onepaqucpro-floating-preview-count" data-preview-part="rmenu_floating_cart_show_cart_count">2</span>
+                        </button>
+
+                        <div class="onepaqucpro-floating-preview-drawer" data-floating-preview-panel="cart">
+                            <div class="onepaqucpro-floating-preview-header" data-preview-target="your_cart">
+                                <h2 data-preview-text="your_cart"><?php echo esc_html($floating_preview_text['your_cart']); ?></h2>
+                                <span class="dashicons dashicons-no-alt"></span>
+                            </div>
+                            <div class="onepaqucpro-floating-preview-select" data-preview-part="rmenu_floating_cart_show_select_bar" data-preview-target="rmenu_floating_cart_show_select_bar">
+                                <span><input type="checkbox" checked> <span data-preview-text="txt_Select_All"><?php echo esc_html($floating_preview_text['txt_Select_All']); ?></span></span>
+                                <span>2 <span data-preview-text="txt_Selected"><?php echo esc_html($floating_preview_text['txt_Selected']); ?></span></span>
+                            </div>
+                            <div class="onepaqucpro-floating-preview-item">
+                                <input type="checkbox" checked data-preview-part="rmenu_floating_cart_show_item_select" data-preview-target="rmenu_floating_cart_show_item_select">
+                                <button type="button" class="onepaqucpro-floating-preview-remove" data-preview-part="rmenu_floating_cart_show_remove_item" data-preview-target="rmenu_floating_cart_show_remove_item">&times;</button>
+                                <div class="onepaqucpro-floating-preview-image" data-preview-part="rmenu_floating_cart_show_product_image" data-preview-target="rmenu_floating_cart_show_product_image"><span class="dashicons dashicons-format-image"></span></div>
+                                <div class="onepaqucpro-floating-preview-item-main">
+                                    <div class="onepaqucpro-floating-preview-title" data-preview-part="rmenu_floating_cart_show_product_title" data-preview-target="rmenu_floating_cart_show_product_title">B100 Pro Wireless Gaming Headset - Black</div>
+                                    <div class="onepaqucpro-floating-preview-actions">
+                                        <div class="onepaqucpro-floating-preview-qty" data-preview-part="rmenu_floating_cart_show_quantity" data-preview-target="rmenu_floating_cart_show_quantity"><button type="button">-</button><span>1</span><button type="button">+</button></div>
+                                        <div class="onepaqucpro-floating-preview-variation-editor" data-preview-part="rmenu_floating_cart_show_variation_editor" data-preview-target="rmenu_floating_cart_show_variation_editor">
+                                            <button type="button" class="onepaqucpro-floating-preview-variation-toggle" aria-expanded="false">
+                                                <span class="dashicons dashicons-update"></span>
+                                            </button>
+                                            <div class="onepaqucpro-floating-preview-variation-panel">
+                                                <label>
+                                                    <span><?php esc_html_e('Color', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                                                    <select>
+                                                        <option><?php esc_html_e('Black', 'one-page-quick-checkout-for-woocommerce-pro'); ?></option>
+                                                        <option><?php esc_html_e('Blue', 'one-page-quick-checkout-for-woocommerce-pro'); ?></option>
+                                                    </select>
+                                                </label>
+                                                <label>
+                                                    <span><?php esc_html_e('Size', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                                                    <select>
+                                                        <option><?php esc_html_e('Standard', 'one-page-quick-checkout-for-woocommerce-pro'); ?></option>
+                                                        <option><?php esc_html_e('Large', 'one-page-quick-checkout-for-woocommerce-pro'); ?></option>
+                                                    </select>
+                                                </label>
+                                                <div class="onepaqucpro-floating-preview-variation-actions">
+                                                    <button type="button" class="onepaqucpro-floating-preview-variation-update"><?php esc_html_e('Update', 'one-page-quick-checkout-for-woocommerce-pro'); ?></button>
+                                                    <button type="button" class="onepaqucpro-floating-preview-variation-cancel"><?php esc_html_e('Cancel', 'one-page-quick-checkout-for-woocommerce-pro'); ?></button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <strong data-preview-part="rmenu_floating_cart_show_product_price" data-preview-target="rmenu_floating_cart_show_product_price">500.00&#2547;</strong>
+                            </div>
+                            <div class="onepaqucpro-floating-preview-coupon" data-preview-part="rmenu_floating_cart_show_coupon" data-preview-target="rmenu_floating_cart_show_coupon">
+                                <span data-preview-text="rmenu_floating_cart_coupon_placeholder"><?php echo esc_html($floating_preview_text['rmenu_floating_cart_coupon_placeholder']); ?></span>
+                                <button type="button" data-preview-text="rmenu_floating_cart_coupon_button_text"><?php echo esc_html($floating_preview_text['rmenu_floating_cart_coupon_button_text']); ?></button>
+                            </div>
+                            <div class="onepaqucpro-floating-preview-related" data-preview-part="rmenu_floating_cart_show_recommendations" data-preview-target="rmenu_floating_cart_show_recommendations">
+                                <h4 data-preview-text="txt_you_may_like"><?php echo esc_html($floating_preview_text['txt_you_may_like']); ?></h4>
+                                <div class="onepaqucpro-floating-preview-products">
+                                    <div><span class="dashicons dashicons-format-image"></span><p>Fastest MacBook</p><strong>650.00&#2547;</strong><button type="button" data-preview-text="rmenu_floating_cart_related_add_to_cart_text"><?php echo esc_html($floating_preview_text['rmenu_floating_cart_related_add_to_cart_text'] ? $floating_preview_text['rmenu_floating_cart_related_add_to_cart_text'] : 'Add to cart'); ?></button></div>
+                                    <div><span class="dashicons dashicons-format-image"></span><p>Desktop PC Core i5</p><strong>570.00&#2547;</strong><button type="button" data-preview-text="rmenu_floating_cart_related_add_to_cart_text"><?php echo esc_html($floating_preview_text['rmenu_floating_cart_related_add_to_cart_text'] ? $floating_preview_text['rmenu_floating_cart_related_add_to_cart_text'] : 'Add to cart'); ?></button></div>
+                                </div>
+                            </div>
+                            <div class="onepaqucpro-floating-preview-summary" data-preview-part="rmenu_floating_cart_show_summary" data-preview-target="rmenu_floating_cart_show_summary">
+                                <div data-preview-part="rmenu_floating_cart_show_subtotal" data-preview-target="rmenu_floating_cart_show_subtotal"><span data-preview-text="txt_subtotal"><?php echo esc_html($floating_preview_text['txt_subtotal']); ?></span><span>1,150.00&#2547;</span></div>
+                                <div data-preview-part="rmenu_floating_cart_show_discount" data-preview-target="rmenu_floating_cart_show_discount"><span data-preview-text="rmenu_floating_cart_discount_label"><?php echo esc_html($floating_preview_text['rmenu_floating_cart_discount_label']); ?></span><span>- 50.00&#2547;</span></div>
+                                <div class="total" data-preview-part="rmenu_floating_cart_show_total" data-preview-target="rmenu_floating_cart_show_total"><span data-preview-text="txt_total"><?php echo esc_html($floating_preview_text['txt_total']); ?></span><span>1,210.00&#2547;</span></div>
+                            </div>
+                            <button type="button" class="onepaqucpro-floating-preview-checkout" data-preview-part="rmenu_floating_cart_show_checkout" data-preview-target="rmenu_floating_cart_show_checkout" data-preview-text="txt_checkout"><?php echo esc_html($floating_preview_text['txt_checkout']); ?></button>
+                        </div>
+
+                        <div class="onepaqucpro-floating-preview-drawer onepaqucpro-floating-preview-empty" data-floating-preview-panel="empty" hidden>
+                            <div class="onepaqucpro-floating-preview-header" data-preview-target="your_cart">
+                                <h2 data-preview-text="your_cart"><?php echo esc_html($floating_preview_text['your_cart']); ?></h2>
+                                <span class="dashicons dashicons-no-alt"></span>
+                            </div>
+                            <div class="onepaqucpro-floating-preview-empty-body">
+                                <span class="dashicons dashicons-cart" data-preview-part="rmenu_floating_cart_show_empty_icon" data-preview-target="rmenu_floating_cart_show_empty_icon"></span>
+                                <p data-preview-text="rmenu_floating_cart_empty_title"><?php echo esc_html($floating_preview_text['rmenu_floating_cart_empty_title']); ?></p>
+                                <button type="button" data-preview-part="rmenu_floating_cart_show_shop_button" data-preview-target="rmenu_floating_cart_show_shop_button" data-preview-text="rmenu_floating_cart_shop_button_text"><?php echo esc_html($floating_preview_text['rmenu_floating_cart_shop_button_text']); ?></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 </div>
 
                 <!-- <div class="rmenu-settings-section">
