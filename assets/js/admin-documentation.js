@@ -188,7 +188,16 @@ document.addEventListener("DOMContentLoaded", function () {
     const previewStage = editor.querySelector(".onepaqucpro-floating-preview-stage");
     const actionBar = document.createElement("div");
     const actionToggle = document.createElement("button");
+    const actionEdit = document.createElement("button");
+    const editModal = document.createElement("div");
+    const iconClassMap = {
+        cart: "dashicons-cart",
+        "shopping-bag": "dashicons-store",
+        basket: "dashicons-products"
+    };
     let activeVisualField = "";
+    let activeVisualNode = null;
+    let actionHideTimer = null;
     const textFallbacks = {};
 
     function getControl(field) {
@@ -239,15 +248,29 @@ document.addEventListener("DOMContentLoaded", function () {
     actionToggle.type = "button";
     actionToggle.className = "onepaqucpro-floating-preview-toggle dashicons dashicons-visibility";
     actionToggle.setAttribute("aria-label", "Toggle selected cart element");
+    actionEdit.type = "button";
+    actionEdit.className = "onepaqucpro-floating-preview-edit dashicons dashicons-edit";
+    actionEdit.setAttribute("aria-label", "Edit selected cart element");
     actionBar.appendChild(actionToggle);
+    actionBar.appendChild(actionEdit);
     editor.querySelector(".onepaqucpro-floating-preview-stage").appendChild(actionBar);
+
+    editModal.className = "onepaqucpro-floating-edit-modal";
+    editModal.hidden = true;
+    editModal.innerHTML = '<div class="onepaqucpro-floating-edit-modal__backdrop" data-floating-edit-close></div><div class="onepaqucpro-floating-edit-modal__panel" role="dialog" aria-modal="true" aria-label="Floating cart element settings"><div class="onepaqucpro-floating-edit-modal__header"><strong>Element Settings</strong><button type="button" class="dashicons dashicons-no-alt" data-floating-edit-close aria-label="Close element settings"></button></div><div class="onepaqucpro-floating-edit-modal__body"></div></div>';
+    editor.appendChild(editModal);
 
     function positionActionBar(targetNode, field) {
         const control = getControl(field);
+        const textNodes = collectTextNodes(targetNode);
+        const hasToggleSetting = !!control && control.type === "checkbox";
+        const hasPanelSettings = textNodes.length > 0 || targetNode.querySelector("[data-preview-icon]") || targetNode.matches("[data-preview-icon]");
+        const hasEditableSettings = hasToggleSetting || hasPanelSettings;
 
-        if (!control || control.type !== "checkbox") {
-            actionBar.hidden = true;
+        if (!hasEditableSettings) {
+            hideActionBar();
             activeVisualField = "";
+            activeVisualNode = null;
             return;
         }
 
@@ -256,12 +279,39 @@ document.addEventListener("DOMContentLoaded", function () {
         const targetRect = targetNode.getBoundingClientRect();
 
         activeVisualField = field;
+        activeVisualNode = targetNode;
         actionBar.hidden = false;
         actionBar.style.top = Math.max(8, targetRect.top - stageRect.top - 10) + "px";
-        actionBar.style.left = Math.min(stageRect.width - 42, Math.max(8, targetRect.right - stageRect.left - 10)) + "px";
-        actionToggle.classList.toggle("is-disabled", !control.checked);
-        actionToggle.setAttribute("aria-pressed", control.checked ? "true" : "false");
-        actionToggle.setAttribute("title", control.checked ? "Disable this element" : "Enable this element");
+        actionBar.style.left = Math.min(stageRect.width - 72, Math.max(8, targetRect.right - stageRect.left - 10)) + "px";
+        actionToggle.hidden = !hasToggleSetting;
+        actionEdit.hidden = !hasPanelSettings;
+
+        if (hasToggleSetting) {
+            actionToggle.classList.toggle("is-disabled", !control.checked);
+            actionToggle.setAttribute("aria-pressed", control.checked ? "true" : "false");
+            actionToggle.setAttribute("title", control.checked ? "Disable this element" : "Enable this element");
+        }
+    }
+
+    function hideActionBar() {
+        actionBar.hidden = true;
+        activeVisualField = "";
+        activeVisualNode = null;
+    }
+
+    function scheduleActionBarHide() {
+        window.clearTimeout(actionHideTimer);
+        actionHideTimer = window.setTimeout(function () {
+            if (
+                actionBar.matches(":hover") ||
+                (activeVisualNode && activeVisualNode.matches(":hover")) ||
+                (activeVisualNode && activeVisualNode.contains(document.activeElement))
+            ) {
+                return;
+            }
+
+            hideActionBar();
+        }, 120);
     }
 
     function setPreviewVisibility(field) {
@@ -293,6 +343,257 @@ document.addEventListener("DOMContentLoaded", function () {
                 node.textContent = value;
             }
         });
+    }
+
+    function collectTextNodes(targetNode) {
+        if (!targetNode) {
+            return [];
+        }
+
+        const nodes = [];
+
+        if (targetNode.matches && targetNode.matches("[data-preview-text]")) {
+            nodes.push(targetNode);
+        }
+
+        targetNode.querySelectorAll("[data-preview-text]").forEach(function (node) {
+            if (nodes.indexOf(node) === -1) {
+                nodes.push(node);
+            }
+        });
+
+        return nodes;
+    }
+
+    function getFieldLabel(field) {
+        const control = getControl(field);
+
+        if (!control) {
+            return field.replace(/^rmenu_floating_cart_/, "").replace(/^txt_/, "").replace(/_/g, " ");
+        }
+
+        const wrapper = control.closest("[data-floating-control-wrap]");
+        const row = control.closest("tr");
+        const label = wrapper ? wrapper.querySelector("label, .rmenupro-settings-label") : null;
+        const rowLabel = row ? row.querySelector("th") : null;
+
+        return ((label && label.textContent) || (rowLabel && rowLabel.textContent) || control.name || field)
+            .replace(/\s+/g, " ")
+            .replace(/\s+\?.*$/, "")
+            .trim();
+    }
+
+    function buildTextSetting(body, node) {
+        const field = node.getAttribute("data-preview-text");
+        const row = document.createElement("label");
+        const input = document.createElement("input");
+
+        row.className = "onepaqucpro-floating-edit-field";
+        row.innerHTML = "<span></span>";
+        row.querySelector("span").textContent = getFieldLabel(field);
+        input.type = "text";
+        input.value = getControlValue(field) || getTextFallback(field);
+        input.addEventListener("input", function () {
+            setControlValue(field, input.value);
+            updatePreviewText(field);
+        });
+        row.appendChild(input);
+        body.appendChild(row);
+    }
+
+    function buildToggleSetting(body, field, labelText) {
+        const control = getControl(field);
+
+        if (!control || control.type !== "checkbox") {
+            return;
+        }
+
+        const row = document.createElement("label");
+        const input = document.createElement("input");
+        const text = document.createElement("span");
+
+        row.className = "onepaqucpro-floating-edit-toggle";
+        input.type = "checkbox";
+        input.checked = control.checked;
+        input.disabled = control.disabled;
+        text.textContent = labelText || "Show this element";
+        input.addEventListener("change", function () {
+            control.checked = input.checked;
+            control.dispatchEvent(new Event("change", { bubbles: true }));
+        });
+        row.appendChild(input);
+        row.appendChild(text);
+        body.appendChild(row);
+    }
+
+    function buildIconSetting(body) {
+        const control = getControl("rmenu_floating_cart_icon");
+
+        if (!control) {
+            return;
+        }
+
+        const row = document.createElement("label");
+        const select = document.createElement("select");
+
+        row.className = "onepaqucpro-floating-edit-field";
+        row.innerHTML = "<span>Floating cart icon</span>";
+        Array.prototype.forEach.call(control.options, function (option) {
+            const clone = option.cloneNode(true);
+            clone.selected = option.selected;
+            select.appendChild(clone);
+        });
+        select.value = control.value;
+        select.addEventListener("change", function () {
+            control.value = select.value;
+            control.dispatchEvent(new Event("change", { bubbles: true }));
+        });
+        row.appendChild(select);
+        body.appendChild(row);
+    }
+
+    function buildControlSetting(body, field) {
+        const control = getControl(field);
+
+        if (!control) {
+            return;
+        }
+
+        if (control.type === "checkbox") {
+            buildToggleSetting(body, field, getFieldLabel(field));
+            return;
+        }
+
+        const row = document.createElement("label");
+        const fieldControl = control.tagName === "SELECT" ? document.createElement("select") : document.createElement("input");
+
+        row.className = "onepaqucpro-floating-edit-field";
+        row.innerHTML = "<span></span>";
+        row.querySelector("span").textContent = getFieldLabel(field);
+
+        if (control.tagName === "SELECT") {
+            Array.prototype.forEach.call(control.options, function (option) {
+                const clone = option.cloneNode(true);
+                clone.selected = option.selected;
+                fieldControl.appendChild(clone);
+            });
+        } else {
+            fieldControl.type = control.type || "text";
+        }
+
+        fieldControl.value = control.value;
+        fieldControl.disabled = control.disabled;
+        fieldControl.addEventListener("input", function () {
+            control.value = fieldControl.value;
+            control.dispatchEvent(new Event("input", { bubbles: true }));
+        });
+        fieldControl.addEventListener("change", function () {
+            control.value = fieldControl.value;
+            control.dispatchEvent(new Event("change", { bubbles: true }));
+        });
+        row.appendChild(fieldControl);
+        body.appendChild(row);
+    }
+
+    function buildSectionTitle(body, title) {
+        const heading = document.createElement("h4");
+
+        heading.className = "onepaqucpro-floating-edit-section-title";
+        heading.textContent = title;
+        body.appendChild(heading);
+    }
+
+    function openEditModal() {
+        if (!activeVisualNode) {
+            return;
+        }
+
+        const body = editModal.querySelector(".onepaqucpro-floating-edit-modal__body");
+        const heading = editModal.querySelector(".onepaqucpro-floating-edit-modal__header strong");
+        const textNodes = collectTextNodes(activeVisualNode);
+        const isCartLauncher = activeVisualNode.classList.contains("onepaqucpro-floating-preview-button") || activeVisualNode.matches("[data-preview-icon]") || activeVisualNode.querySelector("[data-preview-icon]");
+        const isCheckoutButton = activeVisualNode.classList.contains("onepaqucpro-floating-preview-checkout");
+
+        body.innerHTML = "";
+        heading.textContent = getFieldLabel(activeVisualField);
+        buildToggleSetting(body, activeVisualField);
+
+        if (isCartLauncher) {
+            buildToggleSetting(body, "rmenu_enable_sticky_cart", "Enable sticky cart");
+            buildIconSetting(body);
+            buildControlSetting(body, "rmenu_hide_empty_cart_button");
+            buildSectionTitle(body, "Position Settings");
+            buildControlSetting(body, "rmenu_cart_top_position");
+            buildControlSetting(body, "rmenu_cart_left_position");
+        }
+
+        if (isCheckoutButton) {
+            buildControlSetting(body, "rmenu_cart_checkout_behavior");
+        }
+
+        textNodes.forEach(function (node) {
+            buildTextSetting(body, node);
+        });
+
+        if (!body.children.length) {
+            const empty = document.createElement("p");
+            empty.className = "description";
+            empty.textContent = "No editable settings are mapped to this element.";
+            body.appendChild(empty);
+        }
+
+        editModal.hidden = false;
+    }
+
+    function updateCartIcon() {
+        const value = getControlValue("rmenu_floating_cart_icon") || "cart";
+        const iconClass = iconClassMap[value] || iconClassMap.cart;
+
+        editor.querySelectorAll("[data-preview-icon='cart']").forEach(function (icon) {
+            Object.keys(iconClassMap).forEach(function (key) {
+                icon.classList.remove(iconClassMap[key]);
+            });
+            icon.classList.add(iconClass);
+        });
+    }
+
+    function parsePreviewPosition(value, axisLength, fallbackPx, maxPx) {
+        const raw = String(value || "").trim();
+        let px = fallbackPx;
+
+        if (raw.slice(-1) === "%") {
+            px = axisLength * (parseFloat(raw) || 0) / 100;
+        } else if (raw) {
+            px = parseFloat(raw);
+        }
+
+        if (!Number.isFinite(px)) {
+            px = fallbackPx;
+        }
+
+        return Math.max(8, Math.min(px, Math.max(8, maxPx)));
+    }
+
+    function updateLauncherPosition() {
+        if (!previewButton || !previewStage) {
+            return;
+        }
+
+        const enabled = getControlValue("rmenu_enable_sticky_cart") === "1";
+        const stageRect = previewStage.getBoundingClientRect();
+        const drawer = editor.querySelector(".onepaqucpro-floating-preview-drawer:not([hidden])");
+        const drawerRect = drawer ? drawer.getBoundingClientRect() : null;
+        const buttonRect = previewButton.getBoundingClientRect();
+        const leftMax = drawerRect
+            ? drawerRect.left - stageRect.left - buttonRect.width - 8
+            : stageRect.width - buttonRect.width - 8;
+        const topMax = stageRect.height - buttonRect.height - 8;
+        const top = parsePreviewPosition(getControlValue("rmenu_cart_top_position"), stageRect.height, 34, topMax);
+        const left = parsePreviewPosition(getControlValue("rmenu_cart_left_position"), stageRect.width, 18, leftMax);
+
+        previewButton.style.top = top + "px";
+        previewButton.style.left = left + "px";
+        previewStage.classList.toggle("is-sticky-disabled", !enabled);
     }
 
     function updateButtonStyle() {
@@ -356,6 +657,8 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         updateButtonStyle();
+        updateCartIcon();
+        updateLauncherPosition();
         updateDependencyVisibility();
     }
 
@@ -433,19 +736,42 @@ document.addEventListener("DOMContentLoaded", function () {
         control.dispatchEvent(new Event("change", { bubbles: true }));
     });
 
+    actionEdit.addEventListener("click", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        openEditModal();
+    });
+
+    editModal.addEventListener("click", function (event) {
+        if (event.target.closest("[data-floating-edit-close]")) {
+            event.preventDefault();
+            editModal.hidden = true;
+        }
+    });
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && !editModal.hidden) {
+            editModal.hidden = true;
+        }
+    });
+
     editor.querySelectorAll("[data-preview-target], [data-preview-part]").forEach(function (node) {
         node.addEventListener("mouseenter", function () {
             const field = node.getAttribute("data-preview-part") || node.getAttribute("data-preview-target");
             positionActionBar(node, field);
         });
 
+        node.addEventListener("mouseleave", scheduleActionBarHide);
+
         node.addEventListener("focus", function () {
             const field = node.getAttribute("data-preview-part") || node.getAttribute("data-preview-target");
             positionActionBar(node, field);
         }, true);
 
+        node.addEventListener("focusout", scheduleActionBarHide, true);
+
         node.addEventListener("click", function (event) {
-            if (event.target.closest(".onepaqucpro-floating-preview-toggle") || event.target.closest("[contenteditable]")) {
+            if (event.target.closest(".onepaqucpro-floating-preview-toggle") || event.target.closest(".onepaqucpro-floating-preview-edit") || event.target.closest("[contenteditable]")) {
                 return;
             }
 
@@ -471,6 +797,12 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
+    actionBar.addEventListener("mouseenter", function () {
+        window.clearTimeout(actionHideTimer);
+    });
+
+    actionBar.addEventListener("mouseleave", scheduleActionBarHide);
+
     modeButtons.forEach(function (button) {
         button.addEventListener("click", function () {
             const mode = button.getAttribute("data-floating-preview-mode");
@@ -486,6 +818,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     syncPreview();
+    hideActionBar();
+    window.addEventListener("resize", updateLauncherPosition);
 });
 
 

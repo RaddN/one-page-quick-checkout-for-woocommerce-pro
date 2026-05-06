@@ -248,6 +248,7 @@ $onepaqucpro_string_settings_fields = [
     "rmenu_cart_hover_bg",
     "rmenu_cart_hover_text",
     "rmenu_cart_border_radius",
+    "rmenu_floating_cart_icon",
     "rmenu_show_cart_icon",
     "rmenu_show_cart_count",
     "rmenu_show_cart_total",
@@ -287,8 +288,11 @@ $onepaqucpro_floating_cart_premium_text_fields = [
     'txt_you_may_like' => 'You may also like',
     'rmenu_floating_cart_empty_title' => 'Your Cart is Empty',
     'rmenu_floating_cart_shop_button_text' => 'Shop Now',
+    'rmenu_floating_cart_coupon_title' => 'Have a coupon?',
     'rmenu_floating_cart_coupon_placeholder' => 'Enter coupon code',
     'rmenu_floating_cart_coupon_button_text' => 'Apply',
+    'rmenu_floating_cart_variation_update_text' => 'Update',
+    'rmenu_floating_cart_variation_cancel_text' => 'Cancel',
     'rmenu_floating_cart_applied_coupons_heading' => 'Applied Coupons:',
     'rmenu_floating_cart_remove_coupon_text' => 'Remove',
     'rmenu_floating_cart_discount_label' => 'Discount',
@@ -1929,7 +1933,16 @@ if (get_option("rmenu_enable_sticky_cart", 0)) {
     function onepaqucpro_display_cart()
     {
         if (class_exists('WooCommerce')) {
-            echo do_shortcode('[plugincy_cart drawer="right" cart_icon="cart" product_title_tag="p" position="fixed"]');
+            $cart_icon = get_option('rmenu_floating_cart_icon', 'cart');
+            $top_position = get_option('rmenu_cart_top_position', '50%');
+            $left_position = get_option('rmenu_cart_left_position', '100%');
+
+            echo do_shortcode(sprintf(
+                '[plugincy_cart drawer="right" cart_icon="%s" product_title_tag="p" position="fixed" top="%s" left="%s"]',
+                esc_attr($cart_icon),
+                esc_attr($top_position),
+                esc_attr($left_position)
+            ));
         }
     }
 

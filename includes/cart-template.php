@@ -184,6 +184,7 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
     $shop_button_text = onepaqucpro_get_floating_cart_text('rmenu_floating_cart_shop_button_text', __('Shop Now', 'one-page-quick-checkout-for-woocommerce-pro'));
     $select_all_label = onepaqucpro_get_floating_cart_text('txt_Select_All', __('Select All', 'one-page-quick-checkout-for-woocommerce-pro'));
     $selected_suffix = onepaqucpro_get_floating_cart_selected_suffix();
+    $coupon_title = onepaqucpro_get_floating_cart_text('rmenu_floating_cart_coupon_title', __('Have a coupon?', 'one-page-quick-checkout-for-woocommerce-pro'));
     $coupon_placeholder = onepaqucpro_get_floating_cart_text('rmenu_floating_cart_coupon_placeholder', __('Enter coupon code', 'one-page-quick-checkout-for-woocommerce-pro'));
     $coupon_button_text = onepaqucpro_get_floating_cart_text('rmenu_floating_cart_coupon_button_text', __('Apply', 'one-page-quick-checkout-for-woocommerce-pro'));
     $applied_coupons_heading = onepaqucpro_get_floating_cart_text('rmenu_floating_cart_applied_coupons_heading', __('Applied Coupons:', 'one-page-quick-checkout-for-woocommerce-pro'));
@@ -313,6 +314,9 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
                     <!-- Coupon Section -->
                     <?php if ($show_coupon) : ?>
                         <div class="coupon-section">
+                            <?php if ($coupon_title !== '') : ?>
+                                <h4 class="coupon-section-title"><?php echo esc_html($coupon_title); ?></h4>
+                            <?php endif; ?>
                             <div class="coupon-form">
                                 <input type="text" id="coupon-code" placeholder="<?php echo esc_attr($coupon_placeholder); ?>" class="coupon-input">
                                 <button id="apply-coupon" class="apply-coupon-button"><?php echo esc_html($coupon_button_text); ?></button>
@@ -750,6 +754,13 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
                 padding: 15px;
                 background-color: var(--secondary-color);
                 border-radius: 8px;
+            }
+
+            .cart-drawer .coupon-section-title {
+                margin: 0 0 10px;
+                color: var(--text-color);
+                font-size: 15px;
+                font-weight: 700;
             }
 
             .cart-drawer .coupon-form {

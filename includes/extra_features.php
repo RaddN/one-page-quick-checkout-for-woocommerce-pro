@@ -492,6 +492,12 @@ function onepaqucpro_get_cart_item_variation_editor_html($cart_item, $cart_item_
         : array();
     $context = sanitize_html_class((string) $context);
     $toggle_label = esc_attr__('Change options', 'one-page-quick-checkout-for-woocommerce-pro');
+    $update_button_text = function_exists('onepaqucpro_get_floating_cart_text')
+        ? onepaqucpro_get_floating_cart_text('rmenu_floating_cart_variation_update_text', __('Update', 'one-page-quick-checkout-for-woocommerce-pro'))
+        : __('Update', 'one-page-quick-checkout-for-woocommerce-pro');
+    $cancel_button_text = function_exists('onepaqucpro_get_floating_cart_text')
+        ? onepaqucpro_get_floating_cart_text('rmenu_floating_cart_variation_cancel_text', __('Cancel', 'one-page-quick-checkout-for-woocommerce-pro'))
+        : __('Cancel', 'one-page-quick-checkout-for-woocommerce-pro');
 
     ob_start();
     ?>
@@ -531,10 +537,10 @@ function onepaqucpro_get_cart_item_variation_editor_html($cart_item, $cart_item_
             </div>
             <div class="onepaqucpro-cart-variation-editor__actions">
                 <button type="button" class="onepaqucpro-cart-variation-editor__apply" disabled>
-                    <?php esc_html_e('Update', 'one-page-quick-checkout-for-woocommerce-pro'); ?>
+                    <?php echo esc_html($update_button_text); ?>
                 </button>
                 <button type="button" class="onepaqucpro-cart-variation-editor__cancel">
-                    <?php esc_html_e('Cancel', 'one-page-quick-checkout-for-woocommerce-pro'); ?>
+                    <?php echo esc_html($cancel_button_text); ?>
                 </button>
             </div>
             <p class="onepaqucpro-cart-variation-editor__feedback" aria-live="polite"></p>

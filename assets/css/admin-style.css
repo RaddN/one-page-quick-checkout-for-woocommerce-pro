@@ -1030,6 +1030,25 @@ table.form-table .plugincy_grid,
   box-shadow: 0 10px 18px rgba(15, 23, 42, 0.2);
 }
 
+.onepaqucpro-floating-preview-stage.is-sticky-disabled .onepaqucpro-floating-preview-button {
+  opacity: 0.32;
+  filter: grayscale(1);
+}
+
+.onepaqucpro-floating-preview-stage.is-sticky-disabled::after {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #111827;
+  color: #fff;
+  content: "Sticky cart disabled";
+  font-size: 11px;
+  font-weight: 700;
+  z-index: 3;
+}
+
 .onepaqucpro-floating-preview-button:hover {
   background: var(--onepaqucpro-floating-primary-hover);
   color: var(--onepaqucpro-floating-primary-hover-text);
@@ -1053,7 +1072,7 @@ table.form-table .plugincy_grid,
 
 .onepaqucpro-floating-preview-drawer {
   width: 100%;
-  max-width: 380px;
+  max-width: 340px;
   min-height: 680px;
   margin-left: auto;
   background: #fff;
@@ -1253,10 +1272,22 @@ table.form-table .plugincy_grid,
 }
 
 .onepaqucpro-floating-preview-coupon {
+  display: grid;
+  gap: 10px;
+}
+
+.onepaqucpro-floating-preview-coupon h4 {
+  margin: 0;
+  color: #334155;
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.onepaqucpro-floating-preview-coupon-form {
   display: flex;
 }
 
-.onepaqucpro-floating-preview-coupon span {
+.onepaqucpro-floating-preview-coupon-form span {
   flex: 1;
   padding: 12px;
   color: #94a3b8;
@@ -1420,17 +1451,129 @@ table.form-table .plugincy_grid,
 .onepaqucpro-floating-visual-actionbar {
   position: absolute;
   z-index: 20;
-  width: 28px;
+  display: flex;
+  gap: 4px;
+  width: auto;
   height: 28px;
   pointer-events: auto;
 }
 
-.onepaqucpro-floating-visual-actionbar .onepaqucpro-floating-preview-toggle {
+.onepaqucpro-floating-visual-actionbar[hidden] {
+  display: none !important;
+}
+
+.onepaqucpro-floating-visual-actionbar .onepaqucpro-floating-preview-toggle,
+.onepaqucpro-floating-visual-actionbar .onepaqucpro-floating-preview-edit {
   position: static;
   width: 28px;
   height: 28px;
   min-width: 28px;
   min-height: 28px;
+}
+
+.onepaqucpro-floating-preview-edit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  background: #fff;
+  color: #16a34a;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.14);
+  cursor: pointer;
+}
+
+.onepaqucpro-floating-preview-toggle[hidden],
+.onepaqucpro-floating-preview-edit[hidden] {
+  display: none !important;
+}
+
+.onepaqucpro-floating-preview-edit::before {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.onepaqucpro-floating-edit-modal[hidden] {
+  display: none;
+}
+
+.onepaqucpro-floating-edit-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100100;
+}
+
+.onepaqucpro-floating-edit-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.38);
+}
+
+.onepaqucpro-floating-edit-modal__panel {
+  position: absolute;
+  top: 96px;
+  right: 36px;
+  width: min(360px, calc(100vw - 40px));
+  overflow: hidden;
+  border: 1px solid #d7dee8;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
+}
+
+.onepaqucpro-floating-edit-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.onepaqucpro-floating-edit-modal__header button {
+  border: 0;
+  background: transparent;
+  color: #475569;
+  cursor: pointer;
+}
+
+.onepaqucpro-floating-edit-modal__body {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.onepaqucpro-floating-edit-section-title {
+  margin: 4px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid #e5e7eb;
+  color: #111827;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.onepaqucpro-floating-edit-field {
+  display: grid;
+  gap: 6px;
+  color: #334155;
+  font-weight: 600;
+}
+
+.onepaqucpro-floating-edit-field input,
+.onepaqucpro-floating-edit-field select {
+  width: 100%;
+  min-height: 34px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.onepaqucpro-floating-edit-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #334155;
+  font-weight: 600;
 }
 
 .is-visual-text-editor {
