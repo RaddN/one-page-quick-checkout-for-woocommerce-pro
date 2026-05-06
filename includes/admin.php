@@ -79,6 +79,8 @@ function onepaqucpro_cart_recovery_menu_badge_styles()
 function onepaqucpro_cart_text_change_form($textvariable)
 {
     $onepaquc_helper = new onepaqucpro_helper();
+    $floating_cart_text_fields = array('your_cart', 'txt_subtotal', 'txt_checkout');
+    $textvariable = array_diff_key($textvariable, array_flip($floating_cart_text_fields));
 
     echo '<div class="plugincy_card">';
     $onepaquc_helper->sec_head('h3', 'plugincy_sec_head', '<svg fill="#fff" width="18" height="18" viewBox="0 0 0.27 0.27" xmlns="http://www.w3.org/2000/svg"><path d="M.27.022v.045a.022.022 0 0 1-.045 0V.045H.158v.18H.18a.022.022 0 0 1 0 .045H.09a.022.022 0 0 1 0-.045h.022v-.18H.045v.022a.022.022 0 1 1-.045 0V.022A.02.02 0 0 1 .022 0h.225a.02.02 0 0 1 .022.022"/></svg>', esc_html__('Cart Text Changes', 'one-page-quick-checkout-for-woocommerce'));
@@ -98,6 +100,41 @@ function onepaqucpro_cart_text_change_form($textvariable)
     }
 
     echo '</div> </div>';
+}
+
+function onepaqucpro_render_floating_cart_pro_switch($name, $label, $default = '1')
+{
+    $premium_enabled = function_exists('onepaqucpro_can_use_floating_cart_premium_settings') && onepaqucpro_can_use_floating_cart_premium_settings();
+    $field_name = $premium_enabled ? $name : 'pro_' . $name;
+    $value = $premium_enabled ? get_option($name, $default) : '0';
+    ?>
+    <div class="rmenupro-settings-field plugincy_row items_center <?php echo !$premium_enabled ? 'pro-only' : ''; ?>">
+        <label class="rmenupro-settings-label"><?php echo esc_html($label); ?></label>
+        <div class="rmenupro-settings-control">
+            <label class="switch">
+                <input type="checkbox" name="<?php echo esc_attr($field_name); ?>" value="1" <?php echo !$premium_enabled ? 'disabled' : ''; ?> <?php checked('1', $value, true); ?> />
+                <span class="slider round"></span>
+            </label>
+            <span class="<?php echo !$premium_enabled ? 'dashicons dashicons-lock plugincy_lock-icon' : ''; ?>"></span>
+        </div>
+    </div>
+    <?php
+}
+
+function onepaqucpro_render_floating_cart_pro_text_field($name, $label, $placeholder = '')
+{
+    $premium_enabled = function_exists('onepaqucpro_can_use_floating_cart_premium_settings') && onepaqucpro_can_use_floating_cart_premium_settings();
+    $field_name = $premium_enabled ? $name : 'pro_' . $name;
+    $value = $premium_enabled ? get_option($name, '') : '';
+    ?>
+    <label class="rmenupro-settings-field <?php echo !$premium_enabled ? 'pro-only' : ''; ?>">
+        <span class="rmenupro-settings-label"><?php echo esc_html($label); ?></span>
+        <span class="rmenupro-settings-control">
+            <input type="text" name="<?php echo esc_attr($field_name); ?>" value="<?php echo esc_attr($value); ?>" placeholder="<?php echo esc_attr($placeholder); ?>" <?php echo !$premium_enabled ? 'disabled' : ''; ?> />
+            <span class="<?php echo !$premium_enabled ? 'dashicons dashicons-lock plugincy_lock-icon' : ''; ?>"></span>
+        </span>
+    </label>
+    <?php
 }
 
 // Dashboard page
@@ -689,9 +726,10 @@ function onepaqucpro_cart_dashboard()
                             <tr>
                                 <?php $onepaquc_helper->sec_head('th', '', '', 'Cart Checkout Behavior', 'Choose the behavior of the cart checkout process.'); ?>
                                 <td class="<?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+                                    <?php $floating_cart_checkout_behavior = function_exists('onepaqucpro_get_floating_cart_checkout_behavior') ? onepaqucpro_get_floating_cart_checkout_behavior() : get_option('rmenu_cart_checkout_behavior', 'direct_checkout'); ?>
                                     <select name="rmenu_cart_checkout_behavior" class="rmenu-select">
-                                        <option value="direct_checkout" <?php selected(get_option('rmenu_cart_checkout_behavior', 'direct_checkout'), 'direct_checkout'); ?>>Direct Checkout</option>
-                                        <option <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> value="popup_checkout" <?php selected(get_option('rmenu_cart_checkout_behavior', 'direct_checkout'), 'popup_checkout'); ?>>Popup Checkout</option>
+                                        <option value="direct_checkout" <?php selected($floating_cart_checkout_behavior, 'direct_checkout'); ?>>Direct Checkout</option>
+                                        <option <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?> value="popup_checkout" <?php selected($floating_cart_checkout_behavior, 'popup_checkout'); ?>>Popup Checkout</option>
                                     </select>
                                     <span class="<?php echo !onepaqucpro_premium_feature() ? 'dashicons dashicons-lock plugincy_lock-icon' : ''; ?>"></span>
                                 </td>
@@ -721,7 +759,7 @@ function onepaqucpro_cart_dashboard()
                     </div>
                 </div>
 
-                <div class="rmenu-settings-section plugincy_card">
+                <div class="rmenu-settings-section plugincy_card mb-4">
                     <?php $onepaquc_helper->sec_head('h2', 'plugincy_sec_head', '<span class="dashicons dashicons-admin-appearance"></span>', 'Button Style Settings', 'Configure the style of the floating cart button.'); ?>
 
 
@@ -772,6 +810,70 @@ function onepaqucpro_cart_dashboard()
                                 <input type="text" name="rmenu_cart_border_radius" value="<?php echo esc_attr(get_option('rmenu_cart_border_radius', '5px 0 0 5px')); ?>" placeholder="0px 0px 0px 0px" />
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <div class="rmenu-settings-section plugincy_card <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?> mb-4">
+                    <?php $onepaquc_helper->sec_head('h2', 'plugincy_sec_head', '<span class="dashicons dashicons-screenoptions"></span>', 'Drawer Elements', 'Manage which elements appear inside the floating cart drawer.'); ?>
+                    <?php
+                    $floating_cart_element_defaults = function_exists('onepaqucpro_get_floating_cart_element_defaults') ? onepaqucpro_get_floating_cart_element_defaults() : array();
+                    $floating_cart_element_settings = array(
+                        'rmenu_floating_cart_show_cart_icon' => 'Cart Button Icon',
+                        'rmenu_floating_cart_show_cart_count' => 'Cart Button Count',
+                        'rmenu_floating_cart_show_select_bar' => 'Select Bar',
+                        'rmenu_floating_cart_show_item_select' => 'Item Checkbox',
+                        'rmenu_floating_cart_show_remove_item' => 'Remove Item',
+                        'rmenu_floating_cart_show_product_image' => 'Product Image',
+                        'rmenu_floating_cart_show_product_title' => 'Product Title',
+                        'rmenu_floating_cart_show_product_price' => 'Product Price',
+                        'rmenu_floating_cart_show_quantity' => 'Quantity Controls',
+                        'rmenu_floating_cart_show_variation_editor' => 'Variation Selector',
+                        'rmenu_floating_cart_show_coupon' => 'Coupon Form',
+                        'rmenu_floating_cart_show_recommendations' => 'Related Products',
+                        'rmenu_floating_cart_show_summary' => 'Cart Summary',
+                        'rmenu_floating_cart_show_subtotal' => 'Subtotal Row',
+                        'rmenu_floating_cart_show_discount' => 'Discount Row',
+                        'rmenu_floating_cart_show_total' => 'Total Row',
+                        'rmenu_floating_cart_show_checkout' => 'Checkout Button',
+                        'rmenu_floating_cart_show_empty_icon' => 'Empty Cart Icon',
+                        'rmenu_floating_cart_show_shop_button' => 'Shop Button',
+                    );
+                    ?>
+                    <div class="rmenupro-settings-row rmenupro-settings-row-columns">
+                        <?php foreach ($floating_cart_element_settings as $field_name => $field_label) : ?>
+                            <div class="rmenu-settings-column">
+                                <?php onepaqucpro_render_floating_cart_pro_switch($field_name, $field_label, isset($floating_cart_element_defaults[$field_name]) ? $floating_cart_element_defaults[$field_name] : '1'); ?>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+
+                <div class="rmenu-settings-section plugincy_card <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+                    <?php $onepaquc_helper->sec_head('h2', 'plugincy_sec_head', '<span class="dashicons dashicons-edit"></span>', 'Drawer Text', 'Manage text used inside the floating cart drawer.'); ?>
+                    <?php
+                    $floating_cart_text_defaults = function_exists('onepaqucpro_get_floating_cart_text_defaults') ? onepaqucpro_get_floating_cart_text_defaults() : array();
+                    $floating_cart_text_settings = array(
+                        'your_cart' => 'Drawer Title',
+                        'txt_Select_All' => 'Select All Label',
+                        'txt_Selected' => 'Selected Count Suffix',
+                        'rmenu_floating_cart_empty_title' => 'Empty Cart Title',
+                        'rmenu_floating_cart_shop_button_text' => 'Shop Button',
+                        'rmenu_floating_cart_coupon_placeholder' => 'Coupon Placeholder',
+                        'rmenu_floating_cart_coupon_button_text' => 'Coupon Button',
+                        'rmenu_floating_cart_applied_coupons_heading' => 'Applied Coupons Heading',
+                        'rmenu_floating_cart_remove_coupon_text' => 'Remove Coupon',
+                        'txt_you_may_like' => 'Related Products Heading',
+                        'rmenu_floating_cart_related_add_to_cart_text' => 'Related Product Button',
+                        'txt_subtotal' => 'Subtotal Label',
+                        'rmenu_floating_cart_discount_label' => 'Discount Label',
+                        'txt_total' => 'Total Label',
+                        'txt_checkout' => 'Checkout Button',
+                    );
+                    ?>
+                    <div class="plugincy_grid" style="row-gap:12px">
+                        <?php foreach ($floating_cart_text_settings as $field_name => $field_label) : ?>
+                            <?php onepaqucpro_render_floating_cart_pro_text_field($field_name, $field_label, isset($floating_cart_text_defaults[$field_name]) ? $floating_cart_text_defaults[$field_name] : ''); ?>
+                        <?php endforeach; ?>
                     </div>
                 </div>
 
@@ -3726,7 +3828,7 @@ add_action('admin_init', 'onepaqucpro_cart_settings');
 
 function onepaqucpro_cart_settings()
 {
-    global $onepaqucpro_string_settings_fields;
+    global $onepaqucpro_string_settings_fields, $onepaqucpro_floating_cart_premium_checkbox_fields, $onepaqucpro_floating_cart_premium_text_fields;
     foreach (onepaqucpro_rmenupro_fields() as $key => $field) {
         register_setting('onepaqucpro_cart_settings', $key, 'sanitize_text_field');
     }
@@ -3735,7 +3837,20 @@ function onepaqucpro_cart_settings()
     }
 
     foreach ($onepaqucpro_string_settings_fields as $field) {
-        $sanitize_callback = $field === 'rmenu_hide_empty_cart_button' ? 'onepaqucpro_sanitize_premium_checkbox' : 'sanitize_text_field';
+        $legacy_floating_text_fields = array('your_cart', 'txt_Select_All', 'txt_Selected', 'txt_subtotal', 'txt_total', 'txt_checkout', 'txt_you_may_like');
+        if ($field === 'rmenu_cart_checkout_behavior') {
+            $sanitize_callback = 'onepaqucpro_sanitize_floating_cart_checkout_behavior';
+        } elseif (is_array($onepaqucpro_floating_cart_premium_checkbox_fields) && array_key_exists($field, $onepaqucpro_floating_cart_premium_checkbox_fields)) {
+            $sanitize_callback = 'onepaqucpro_sanitize_premium_checkbox';
+        } elseif (
+            is_array($onepaqucpro_floating_cart_premium_text_fields)
+            && array_key_exists($field, $onepaqucpro_floating_cart_premium_text_fields)
+            && !in_array($field, $legacy_floating_text_fields, true)
+        ) {
+            $sanitize_callback = 'onepaqucpro_sanitize_premium_text_field';
+        } else {
+            $sanitize_callback = 'sanitize_text_field';
+        }
         register_setting('onepaqucpro_cart_settings', $field, $sanitize_callback);
     }
 
@@ -3780,6 +3895,26 @@ function onepaqucpro_sanitize_premium_checkbox($value)
     }
 
     return $value === '1' ? '1' : '0';
+}
+
+function onepaqucpro_sanitize_floating_cart_checkout_behavior($value)
+{
+    $value = sanitize_text_field($value);
+
+    if ($value !== 'popup_checkout') {
+        return 'direct_checkout';
+    }
+
+    return function_exists('onepaqucpro_premium_feature') && onepaqucpro_premium_feature() ? 'popup_checkout' : 'direct_checkout';
+}
+
+function onepaqucpro_sanitize_premium_text_field($value)
+{
+    if (!function_exists('onepaqucpro_premium_feature') || !onepaqucpro_premium_feature()) {
+        return '';
+    }
+
+    return sanitize_text_field($value);
 }
 
 function onepaqucpro_handle_reset_settings()

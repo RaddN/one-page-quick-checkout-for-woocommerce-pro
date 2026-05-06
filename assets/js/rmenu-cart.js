@@ -260,15 +260,20 @@ jQuery(document).ready(function ($) {
                     }
                     const couponElement = document.createElement('div');
                     couponElement.className = 'applied-coupon';
-                    couponElement.innerHTML = `
-                        <span>${couponCode}</span>
-                        <button class="remove-coupon" data-coupon="${couponCode}">${fcStr('remove', 'Remove')}</button>
-                    `;
+                    const couponLabel = document.createElement('span');
+                    const removeButton = document.createElement('button');
+                    couponLabel.textContent = couponCode;
+                    removeButton.type = 'button';
+                    removeButton.className = 'remove-coupon';
+                    removeButton.dataset.coupon = couponCode;
+                    removeButton.textContent = fcStr('remove', 'Remove');
+                    couponElement.appendChild(couponLabel);
+                    couponElement.appendChild(removeButton);
                     appliedCoupons.appendChild(couponElement);
                 }
 
                 // Clear input
-                couponInput.value = '';
+                couponInput.val('');
             } else {
                 showMessage(response.data.message || fcStr('invalid_coupon', 'Invalid coupon code.'), 'error');
             }
@@ -328,6 +333,10 @@ jQuery(document).ready(function ($) {
 
     // Helper function to set loading state on buttons
     function setLoadingState(button, isLoading, text) {
+        if (!button) {
+            return;
+        }
+
         if (isLoading) {
             button.disabled = true;
             button.classList.add('loading');

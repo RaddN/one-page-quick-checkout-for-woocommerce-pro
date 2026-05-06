@@ -141,6 +141,24 @@ html {
   align-items: flex-start;
   gap: 10px;
 }
+
+.cart-drawer .cart-item--no-media .item-details {
+  width: 100%;
+}
+
+.cart-drawer .thumbnail.thumbnail--button-only {
+  width: auto !important;
+  height: auto !important;
+  border: 0 !important;
+  display: flex;
+  align-items: flex-start;
+}
+
+.cart-drawer .thumbnail.thumbnail--button-only .remove-item {
+  position: static !important;
+  box-shadow: none;
+}
+
 .cart-drawer {
   width: 450px;
 }

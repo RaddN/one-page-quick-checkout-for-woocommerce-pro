@@ -33,7 +33,11 @@ jQuery(document).ready(function ($) {
         let resolvedCount = count;
 
         if (resolvedCount === undefined || resolvedCount === null || resolvedCount === '') {
-            resolvedCount = $button && $button.length ? $button.find('.cart-count').first().text() : 0;
+            resolvedCount = $button && $button.length ? $button.attr('data-cart-count') : 0;
+        }
+
+        if ((resolvedCount === undefined || resolvedCount === null || resolvedCount === '') && $button && $button.length) {
+            resolvedCount = $button.find('.cart-count').first().text();
         }
 
         resolvedCount = parseInt(resolvedCount, 10);
@@ -160,7 +164,7 @@ jQuery(document).ready(function ($) {
             cartCountElement.textContent = currentCount;
             syncFloatingCartButtonVisibility(currentCount);
         } else {
-            console.error('Cart count element not found.');
+            syncFloatingCartButtonVisibility();
         }
     };
 
@@ -209,9 +213,12 @@ jQuery(document).ready(function ($) {
     // Handle quantity change
     $('.rmenupro-cart').on('change', '.item-quantity', function () {
         const $input = $(this);
-        const cartItemKey = $(this).closest('.cart-item').find('.remove-item').data('cart-item-key');
+        const cartItemKey = $input.data('cart-item-key') || $input.closest('.cart-item').data('cart-item-key') || $input.closest('.cart-item').find('.remove-item').data('cart-item-key');
         const quantity = $(this).val();
-        const cartCountElement = document.querySelector('span.cart-count');
+
+        if (!cartItemKey) {
+            return;
+        }
 
         // Add loading class (spinner)
         $input.prop('disabled', true).parent().addClass('loading-spinner');
@@ -271,13 +278,18 @@ jQuery(document).ready(function ($) {
                     window.updateCartTotals(response.data);
 
                     removingItems.forEach(item => {
-                        let currentCount = parseInt(cart_count.textContent, 10) || 0;
-                        currentCount -= 1;
+                        let currentCount = cart_count ? parseInt(cart_count.textContent, 10) || 0 : normalizeCartCount(undefined, $('.rwc_cart-button'));
+                        currentCount = Math.max(0, currentCount - 1);
                         // Update the element with the new count
-                        cart_count.textContent = currentCount;
+                        if (cart_count) {
+                            cart_count.textContent = currentCount;
+                        }
+                        syncFloatingCartButtonVisibility(currentCount);
                         if (currentCount === 0) {
                             window.closeCheckoutPopup();
-                            cart_count.textContent = "0";
+                            if (cart_count) {
+                                cart_count.textContent = "0";
+                            }
                         }
                         item.classList.add('fade-out'); // Start fade-out animation
                         setTimeout(() => {
@@ -2034,6 +2046,7 @@ jQuery(document).ready(function ($) {
                     if (cartCount) {
                         cartCount.textContent = response.cart_count;
                     }
+                    syncFloatingCartButtonVisibility(response.cart_count);
 
                     // Show success message
                     if (couponMessage) {
