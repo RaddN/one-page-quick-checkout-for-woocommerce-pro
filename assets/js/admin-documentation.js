@@ -202,6 +202,7 @@ document.addEventListener("DOMContentLoaded", function () {
         package: '<svg class="onepaqucpro-empty-cart-icon-svg" xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 2.8 20 7v10l-8 4.2L4 17V7l8-4.2Z"></path><path d="M4.5 7.3 12 11.4l7.5-4.1"></path><path d="M12 21V11.4"></path><path d="m8 4.8 8 4.3"></path></svg>',
         receipt: '<svg class="onepaqucpro-empty-cart-icon-svg" xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 3h12v18l-2-1.2-2 1.2-2-1.2-2 1.2-2-1.2L6 21V3Z"></path><path d="M9 8h6"></path><path d="M9 12h6"></path><path d="M9 16h4"></path></svg>'
     };
+    const variationMetaKey = "onepaqucpro_variations";
     let activeVisualField = "";
     let activeVisualNode = null;
     let actionHideTimer = null;
@@ -279,7 +280,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const control = getControl(field);
         const textNodes = collectTextNodes(targetNode);
         const hasToggleSetting = !!control && control.type === "checkbox";
-        const fieldPanelSettings = ["rmenu_floating_cart_show_item_meta", "rmenu_floating_cart_group_items", "rmenu_floating_cart_show_summary", "rmenu_floating_cart_show_total", "rmenu_floating_cart_show_empty_icon"].indexOf(field) !== -1;
+        const fieldPanelSettings = ["rmenu_floating_cart_show_product_title", "rmenu_floating_cart_show_item_meta", "rmenu_floating_cart_group_items", "rmenu_floating_cart_show_summary", "rmenu_floating_cart_show_total", "rmenu_floating_cart_show_empty_icon"].indexOf(field) !== -1;
         const hasPanelSettings = fieldPanelSettings || textNodes.length > 0 || targetNode.querySelector("[data-preview-icon], [data-preview-group-icon], [data-preview-empty-icon]") || targetNode.matches("[data-preview-icon], [data-preview-group-icon], [data-preview-empty-icon]");
         const hasEditableSettings = hasToggleSetting || hasPanelSettings;
 
@@ -732,13 +733,35 @@ document.addEventListener("DOMContentLoaded", function () {
                 row = { key: row, title: "" };
             }
 
+            const key = String(row && row.key ? row.key : "").trim();
+            const mode = row && row.mode === "combine" ? "combine" : "separate";
+
             return {
-                key: String(row && row.key ? row.key : "").trim(),
+                key: key,
+                mode: key === variationMetaKey ? mode : "separate",
                 title: String(row && row.title ? row.title : "").trim()
             };
         }).filter(function (row) {
             return row.key && row.key !== "mulopimfwc_location";
         });
+    }
+
+    function isVariationMetaRow(rowOrKey) {
+        const key = typeof rowOrKey === "string"
+            ? rowOrKey
+            : (rowOrKey && rowOrKey.querySelector("[data-meta-builder-key]")
+                ? rowOrKey.querySelector("[data-meta-builder-key]").value
+                : "");
+
+        return key === variationMetaKey;
+    }
+
+    function getDefaultVariationMetaRule() {
+        return {
+            key: variationMetaKey,
+            mode: "separate",
+            title: "Variations"
+        };
     }
 
     function getMetaBuilderOptionLabel(options, value) {
@@ -778,7 +801,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         if (normalized.indexOf("size") !== -1) {
-            return "Standard";
+            return "S";
         }
 
         if (normalized.indexOf("brand") !== -1) {
@@ -816,6 +839,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const drag = document.createElement("button");
         const dragIcon = document.createElement("span");
         const select = document.createElement("select");
+        const mode = document.createElement("select");
         const title = document.createElement("input");
         const remove = document.createElement("button");
         const removeIcon = document.createElement("span");
@@ -837,6 +861,18 @@ document.addEventListener("DOMContentLoaded", function () {
         select.setAttribute("data-meta-builder-key", "1");
         fillMetaBuilderSelect(select, options, key);
 
+        mode.setAttribute("data-meta-builder-mode", "1");
+        [
+            { value: "separate", label: "Separate" },
+            { value: "combine", label: "Combine" }
+        ].forEach(function (modeData) {
+            const option = document.createElement("option");
+            option.value = modeData.value;
+            option.textContent = modeData.label;
+            option.selected = (rowData && rowData.mode === "combine" ? "combine" : "separate") === modeData.value;
+            mode.appendChild(option);
+        });
+
         title.type = "text";
         title.setAttribute("data-meta-builder-title", "1");
         title.placeholder = "Display title";
@@ -851,6 +887,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         row.appendChild(drag);
         row.appendChild(select);
+        row.appendChild(mode);
         row.appendChild(title);
         row.appendChild(remove);
         bindMetaBuilderRow(builder, row);
@@ -858,16 +895,51 @@ document.addEventListener("DOMContentLoaded", function () {
         return row;
     }
 
+    function updateMetaBuilderRowState(row) {
+        const select = row.querySelector("[data-meta-builder-key]");
+        const mode = row.querySelector("[data-meta-builder-mode]");
+        const title = row.querySelector("[data-meta-builder-title]");
+        const remove = row.querySelector("[data-meta-builder-remove]");
+        const isVariationRow = select && select.value === variationMetaKey;
+        const forcedVariationRow = isVariationRow && getControlValue("rmenu_floating_cart_show_variation_in_title") !== "1";
+        const combinedVariationRow = isVariationRow && mode && mode.value === "combine";
+
+        row.classList.toggle("is-variation-meta-row", !!isVariationRow);
+
+        if (mode) {
+            mode.disabled = !isVariationRow;
+            mode.title = isVariationRow ? "Choose how variation attributes are displayed" : "Mode is only available for variations";
+        }
+
+        if (title) {
+            title.hidden = isVariationRow && !combinedVariationRow;
+            title.disabled = isVariationRow && !combinedVariationRow;
+            if (combinedVariationRow && !title.value.trim()) {
+                title.value = "Variations";
+            }
+        }
+
+        if (remove) {
+            remove.disabled = forcedVariationRow;
+            remove.title = forcedVariationRow ? "Variations are required while variation titles are disabled" : "";
+        }
+    }
+
     function syncMetaBuilder(builder) {
         const hidden = builder.querySelector("[data-floating-cart-control]");
         const rows = Array.prototype.slice.call(builder.querySelectorAll("[data-meta-builder-row]"));
+        rows.forEach(updateMetaBuilderRowState);
         const data = rows.map(function (row) {
             const select = row.querySelector("[data-meta-builder-key]");
+            const mode = row.querySelector("[data-meta-builder-mode]");
             const title = row.querySelector("[data-meta-builder-title]");
+            const key = select ? select.value : "";
+            const isVariationRow = key === variationMetaKey;
 
             return {
-                key: select ? select.value : "",
-                title: title ? title.value.trim() : ""
+                key: key,
+                mode: isVariationRow && mode && mode.value === "combine" ? "combine" : "separate",
+                title: title && (!isVariationRow || (mode && mode.value === "combine")) ? title.value.trim() : ""
             };
         }).filter(function (row) {
             return row.key && row.key !== "mulopimfwc_location";
@@ -888,6 +960,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function bindMetaBuilderRow(builder, row) {
         const select = row.querySelector("[data-meta-builder-key]");
+        const mode = row.querySelector("[data-meta-builder-mode]");
         const title = row.querySelector("[data-meta-builder-title]");
         const remove = row.querySelector("[data-meta-builder-remove]");
         const options = parseMetaBuilderOptions(builder);
@@ -897,12 +970,23 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         row.setAttribute("data-meta-builder-row-ready", "1");
+        updateMetaBuilderRowState(row);
 
         if (select) {
             select.addEventListener("change", function () {
-                if (title && !title.value.trim()) {
+                if (title && select.value === variationMetaKey) {
+                    title.value = "Variations";
+                } else if (title && !title.value.trim()) {
                     title.value = normalizeMetaBuilderTitle(getMetaBuilderOptionLabel(options, select.value));
                 }
+                updateMetaBuilderRowState(row);
+                syncMetaBuilder(builder);
+            });
+        }
+
+        if (mode) {
+            mode.addEventListener("change", function () {
+                updateMetaBuilderRowState(row);
                 syncMetaBuilder(builder);
             });
         }
@@ -962,6 +1046,31 @@ document.addEventListener("DOMContentLoaded", function () {
         syncMetaBuilder(builder);
     }
 
+    function syncVariationMetaIncludeRequirement() {
+        const control = getControl("rmenu_floating_cart_show_variation_in_title");
+        const builder = editor.querySelector('[data-meta-builder="rmenu_floating_cart_meta_include"]');
+        const container = builder ? builder.querySelector("[data-meta-builder-rows]") : null;
+
+        if (!control || !builder || !container || getControlValue("rmenu_floating_cart_show_variation_in_title") === "1") {
+            if (container) {
+                Array.prototype.slice.call(container.querySelectorAll("[data-meta-builder-row]")).forEach(updateMetaBuilderRowState);
+            }
+            return;
+        }
+
+        const existing = Array.prototype.slice.call(container.querySelectorAll("[data-meta-builder-row]")).some(function (row) {
+            return isVariationMetaRow(row);
+        });
+
+        if (!existing) {
+            container.appendChild(createMetaBuilderRow(builder, getDefaultVariationMetaRule()));
+            syncMetaBuilder(builder);
+            return;
+        }
+
+        Array.prototype.slice.call(container.querySelectorAll("[data-meta-builder-row]")).forEach(updateMetaBuilderRowState);
+    }
+
     function initMetaBuilders(root) {
         root.querySelectorAll("[data-meta-builder]").forEach(function (builder) {
             const container = builder.querySelector("[data-meta-builder-rows]");
@@ -980,6 +1089,8 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!container.querySelector("[data-meta-builder-row]") && hidden && hidden.value) {
                 rebuildMetaBuilderRows(builder, parseMetaBuilderValue(hidden.value));
             }
+
+            syncVariationMetaIncludeRequirement();
 
             container.addEventListener("dragover", function (event) {
                 const dragging = container.querySelector(".is-dragging");
@@ -1149,6 +1260,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const textNodes = collectTextNodes(activeVisualNode);
         const isCartLauncher = activeVisualNode.classList.contains("onepaqucpro-floating-preview-button") || activeVisualNode.matches("[data-preview-icon]") || activeVisualNode.querySelector("[data-preview-icon]");
         const isCheckoutButton = activeVisualNode.classList.contains("onepaqucpro-floating-preview-checkout");
+        const isProductTitle = activeVisualField === "rmenu_floating_cart_show_product_title";
         const isItemMeta = activeVisualField === "rmenu_floating_cart_show_item_meta";
         const isEmptyIcon = activeVisualField === "rmenu_floating_cart_show_empty_icon";
         const isSummary = activeVisualField === "rmenu_floating_cart_show_summary";
@@ -1170,6 +1282,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (isCheckoutButton) {
             buildControlSetting(body, "rmenu_cart_checkout_behavior");
+        }
+
+        if (isProductTitle) {
+            buildControlSetting(body, "rmenu_floating_cart_show_variation_in_title");
         }
 
         if (isItemMeta) {
@@ -1297,10 +1413,35 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    function variationInTitleEnabled() {
+        const control = getControl("rmenu_floating_cart_show_variation_in_title");
+
+        return !control || getControlValue("rmenu_floating_cart_show_variation_in_title") === "1";
+    }
+
+    function updateVariationPlacementPreview() {
+        const showVariationInTitle = variationInTitleEnabled();
+
+        editor.querySelectorAll("[data-preview-variation-title]").forEach(function (node) {
+            const baseTitle = node.getAttribute("data-preview-title-base") || "B100 Pro Wireless Gaming Headset";
+            const variationTitle = node.getAttribute("data-preview-title-variation") || "Black";
+
+            node.textContent = showVariationInTitle && variationTitle ? baseTitle + " - " + variationTitle : baseTitle;
+        });
+    }
+
     function updateMetaPreview() {
         const metaLists = editor.querySelectorAll("[data-preview-meta-list]");
         const rules = parseMetaBuilderValue(getControlValue("rmenu_floating_cart_meta_include"));
         const itemMetaEnabled = getControlValue("rmenu_floating_cart_show_item_meta") === "1";
+        const showVariationInTitle = variationInTitleEnabled();
+        let previewRules = rules.filter(function (rule) {
+            return !(showVariationInTitle && rule.key === variationMetaKey);
+        });
+
+        if (!showVariationInTitle && !previewRules.some(function (rule) { return rule.key === variationMetaKey; })) {
+            previewRules.push(getDefaultVariationMetaRule());
+        }
 
         metaLists.forEach(function (list) {
             list.innerHTML = "";
@@ -1310,7 +1451,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            if (!rules.length) {
+            if (!previewRules.length) {
+                if (!showVariationInTitle) {
+                    return;
+                }
+
                 const placeholder = document.createElement("div");
                 placeholder.className = "onepaqucpro-floating-preview-meta-placeholder";
                 placeholder.textContent = "No meta data selected.";
@@ -1318,7 +1463,44 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            rules.forEach(function (rule) {
+            previewRules.forEach(function (rule) {
+                if (rule.key === variationMetaKey) {
+                    if (showVariationInTitle) {
+                        return;
+                    }
+
+                    if (rule.mode === "combine") {
+                        const row = document.createElement("div");
+                        const dt = document.createElement("dt");
+                        const dd = document.createElement("dd");
+
+                        row.setAttribute("data-preview-variation-meta", "");
+                        dt.textContent = rule.title || "Variations";
+                        dd.textContent = "Black, S";
+                        row.appendChild(dt);
+                        row.appendChild(dd);
+                        list.appendChild(row);
+                        return;
+                    }
+
+                    [
+                        { key: "Color", value: "Black" },
+                        { key: "Size", value: "S" }
+                    ].forEach(function (variationRule) {
+                        const row = document.createElement("div");
+                        const dt = document.createElement("dt");
+                        const dd = document.createElement("dd");
+
+                        row.setAttribute("data-preview-variation-meta", "");
+                        dt.textContent = variationRule.key;
+                        dd.textContent = variationRule.value;
+                        row.appendChild(dt);
+                        row.appendChild(dd);
+                        list.appendChild(row);
+                    });
+                    return;
+                }
+
                 const row = document.createElement("div");
                 const dt = document.createElement("dt");
                 const dd = document.createElement("dd");
@@ -1470,6 +1652,8 @@ document.addEventListener("DOMContentLoaded", function () {
         syncSummaryPreviewState();
         updateGroupIcon();
         updateGroupTitle();
+        updateVariationPlacementPreview();
+        syncVariationMetaIncludeRequirement();
         updateMetaPreview();
         updateLauncherPosition();
         updateDependencyVisibility();

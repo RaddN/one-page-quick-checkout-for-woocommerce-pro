@@ -279,6 +279,7 @@ $onepaqucpro_floating_cart_premium_checkbox_fields = [
     'rmenu_floating_cart_show_remove_item' => '1',
     'rmenu_floating_cart_show_product_image' => '1',
     'rmenu_floating_cart_show_product_title' => '1',
+    'rmenu_floating_cart_show_variation_in_title' => '1',
     'rmenu_floating_cart_show_product_price' => '1',
     'rmenu_floating_cart_show_quantity' => '1',
     'rmenu_floating_cart_show_variation_editor' => '1',

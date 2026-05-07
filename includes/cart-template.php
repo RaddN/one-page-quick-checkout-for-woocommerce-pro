@@ -2,6 +2,131 @@
 if (! defined('ABSPATH')) exit; // Exit if accessed directly
 // cart-template.php
 
+function onepaqucpro_cart_drawer_variation_in_title_enabled()
+{
+    return onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_variation_in_title', '1');
+}
+
+function onepaqucpro_get_cart_drawer_item_title($cart_item, $product, $show_variation_in_title)
+{
+    if ($show_variation_in_title || empty($cart_item['variation_id'])) {
+        return $product ? $product->get_name() : '';
+    }
+
+    $parent_product_id = !empty($cart_item['product_id']) ? absint($cart_item['product_id']) : 0;
+    $parent_product = $parent_product_id > 0 && function_exists('wc_get_product') ? wc_get_product($parent_product_id) : false;
+
+    return $parent_product ? $parent_product->get_name() : ($product ? $product->get_name() : '');
+}
+
+function onepaqucpro_get_cart_drawer_variation_meta_rows($cart_item)
+{
+    $cart_item = is_array($cart_item) ? $cart_item : array();
+    $variation_id = !empty($cart_item['variation_id']) ? absint($cart_item['variation_id']) : 0;
+
+    if ($variation_id <= 0) {
+        return array();
+    }
+
+    $parent_product_id = !empty($cart_item['product_id']) ? absint($cart_item['product_id']) : 0;
+    $parent_product = $parent_product_id > 0 && function_exists('wc_get_product') ? wc_get_product($parent_product_id) : null;
+    $variation_attributes = !empty($cart_item['variation']) && is_array($cart_item['variation']) ? $cart_item['variation'] : array();
+
+    if (empty($variation_attributes) && function_exists('wc_get_product')) {
+        $variation_product = wc_get_product($variation_id);
+        if ($variation_product && method_exists($variation_product, 'get_variation_attributes')) {
+            $variation_attributes = (array) $variation_product->get_variation_attributes();
+        }
+    }
+
+    $rows = array();
+    foreach ($variation_attributes as $attribute_key => $attribute_value) {
+        if ($attribute_value === '' || $attribute_value === null) {
+            continue;
+        }
+
+        $attribute_key = function_exists('onepaqucpro_normalize_attr_key')
+            ? onepaqucpro_normalize_attr_key((string) $attribute_key)
+            : (string) $attribute_key;
+
+        $label = function_exists('onepaqucpro_get_variation_attribute_taxonomy_label')
+            ? onepaqucpro_get_variation_attribute_taxonomy_label($attribute_key, $parent_product)
+            : (function_exists('wc_attribute_label') ? wc_attribute_label(str_replace('attribute_', '', $attribute_key), $parent_product) : onepaqucpro_format_floating_cart_meta_label($attribute_key));
+        $display = function_exists('onepaqucpro_get_variation_attribute_label')
+            ? onepaqucpro_get_variation_attribute_label($attribute_key, $attribute_value, $parent_product)
+            : onepaqucpro_get_floating_cart_meta_display_value($attribute_value);
+
+        if ($label === '' || trim(wp_strip_all_tags((string) $display)) === '') {
+            continue;
+        }
+
+        $rows[] = array(
+            'key'     => $label,
+            'display' => $display,
+        );
+    }
+
+    return $rows;
+}
+
+function onepaqucpro_get_cart_drawer_variation_meta_output_rows($cart_item, $rule)
+{
+    $variation_rows = onepaqucpro_get_cart_drawer_variation_meta_rows($cart_item);
+    if (empty($variation_rows)) {
+        return array();
+    }
+
+    $mode = isset($rule['mode']) ? onepaqucpro_sanitize_floating_cart_meta_mode($rule['mode']) : 'separate';
+    if ($mode !== 'combine') {
+        return $variation_rows;
+    }
+
+    $parts = array();
+    foreach ($variation_rows as $variation_row) {
+        if (empty($variation_row['key']) || !isset($variation_row['display'])) {
+            continue;
+        }
+
+        $display = trim(wp_strip_all_tags((string) $variation_row['display']));
+        if ($display !== '') {
+            $parts[] = $display;
+        }
+    }
+
+    if (empty($parts)) {
+        return array();
+    }
+
+    return array(
+        array(
+            'key'     => !empty($rule['title']) ? wp_strip_all_tags((string) $rule['title']) : __('Variations', 'one-page-quick-checkout-for-woocommerce-pro'),
+            'display' => implode(', ', $parts),
+        ),
+    );
+}
+
+function onepaqucpro_merge_cart_drawer_meta_rows($leading_rows, $trailing_rows)
+{
+    $merged = array();
+    $seen = array();
+
+    foreach (array_merge((array) $leading_rows, (array) $trailing_rows) as $row) {
+        if (empty($row['key']) || !isset($row['display'])) {
+            continue;
+        }
+
+        $signature = sanitize_title((string) $row['key']) . '|' . md5(trim(wp_strip_all_tags((string) $row['display'])));
+        if (isset($seen[$signature])) {
+            continue;
+        }
+
+        $seen[$signature] = true;
+        $merged[] = $row;
+    }
+
+    return $merged;
+}
+
 function onepaqucpro_render_cart_drawer_item($cart_item_key, $cart_item, $product_title_tag = 'p')
 {
     $_product = $cart_item['data'];
@@ -13,12 +138,14 @@ function onepaqucpro_render_cart_drawer_item($cart_item_key, $cart_item, $produc
     $show_remove_item = onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_remove_item');
     $show_product_image = onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_product_image');
     $show_product_title = onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_product_title');
+    $show_variation_in_title = onepaqucpro_cart_drawer_variation_in_title_enabled();
     $show_product_price = onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_product_price');
     $show_quantity = onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_quantity');
     $show_variation_editor = onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_variation_editor');
     $show_item_meta = onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_item_meta');
     $thumbnail = $_product->get_image();
     $product_price = wc_price($_product->get_price());
+    $product_title = onepaqucpro_get_cart_drawer_item_title($cart_item, $_product, $show_variation_in_title);
     $product_quantity = isset($cart_item['quantity']) ? absint($cart_item['quantity']) : 1;
     $variation_editor = $show_variation_editor ? onepaqucpro_get_cart_item_variation_editor_html($cart_item, $cart_item_key, 'drawer') : '';
     $item_meta = $show_item_meta ? onepaqucpro_get_filtered_cart_item_meta($cart_item) : array();
@@ -52,7 +179,7 @@ function onepaqucpro_render_cart_drawer_item($cart_item_key, $cart_item, $produc
             <?php if ($show_product_title || $show_product_price) : ?>
                 <div class="cart-item__summary">
                     <?php if ($show_product_title) : ?>
-                        <<?php echo esc_attr($product_title_tag); ?> class="item-title"><?php echo esc_html($_product->get_name()); ?></<?php echo esc_attr($product_title_tag); ?>>
+                        <<?php echo esc_attr($product_title_tag); ?> class="item-title"><?php echo esc_html($product_title); ?></<?php echo esc_attr($product_title_tag); ?>>
                     <?php endif; ?>
                     <?php if ($show_product_price) : ?>
                         <p class="item-price"><?php echo wp_kses_post($product_price); ?></p>
@@ -196,11 +323,6 @@ function onepaqucpro_get_filtered_cart_item_meta($cart_item)
         return array();
     }
 
-    $rows = onepaqucpro_get_floating_cart_cart_item_meta_rows($cart_item);
-    if (!is_array($rows) || empty($rows)) {
-        return array();
-    }
-
     $include = onepaqucpro_get_floating_cart_meta_rules_option('rmenu_floating_cart_meta_include');
     $filtered = array();
 
@@ -208,8 +330,21 @@ function onepaqucpro_get_filtered_cart_item_meta($cart_item)
         return array();
     }
 
+    $rows = onepaqucpro_get_floating_cart_cart_item_meta_rows($cart_item);
+    $rows = is_array($rows) ? $rows : array();
     $used_rows = array();
     foreach ($include as $rule) {
+        if (function_exists('onepaqucpro_is_floating_cart_variations_meta_key') && onepaqucpro_is_floating_cart_variations_meta_key($rule['key'])) {
+            if (!onepaqucpro_cart_drawer_variation_in_title_enabled()) {
+                $filtered = onepaqucpro_merge_cart_drawer_meta_rows(
+                    $filtered,
+                    onepaqucpro_get_cart_drawer_variation_meta_output_rows($cart_item, $rule)
+                );
+            }
+
+            continue;
+        }
+
         foreach ($rows as $row_index => $row) {
             if (isset($used_rows[$row_index])) {
                 continue;
@@ -229,7 +364,7 @@ function onepaqucpro_get_filtered_cart_item_meta($cart_item)
         }
     }
 
-    return $filtered;
+    return onepaqucpro_merge_cart_drawer_meta_rows(array(), $filtered);
 }
 
 function onepaqucpro_get_cart_item_group_label($cart_item)

@@ -97,6 +97,55 @@ function onepaqucpro_format_floating_cart_meta_label($meta_key)
     return ucwords(trim($label));
 }
 
+function onepaqucpro_get_floating_cart_variations_meta_key()
+{
+    return 'onepaqucpro_variations';
+}
+
+function onepaqucpro_is_floating_cart_variations_meta_key($key)
+{
+    return onepaqucpro_normalize_floating_cart_meta_identifier($key) === onepaqucpro_get_floating_cart_variations_meta_key();
+}
+
+function onepaqucpro_sanitize_floating_cart_meta_mode($mode)
+{
+    $mode = sanitize_key($mode);
+
+    return in_array($mode, array('separate', 'combine'), true) ? $mode : 'separate';
+}
+
+function onepaqucpro_should_force_floating_cart_variations_meta_rule()
+{
+    if (function_exists('onepaqucpro_can_use_floating_cart_premium_settings') && !onepaqucpro_can_use_floating_cart_premium_settings()) {
+        return false;
+    }
+
+    return get_option('rmenu_floating_cart_show_variation_in_title', '1') !== '1';
+}
+
+function onepaqucpro_ensure_floating_cart_variations_meta_rule($rules)
+{
+    $rules = is_array($rules) ? $rules : array();
+
+    if (!onepaqucpro_should_force_floating_cart_variations_meta_rule()) {
+        return $rules;
+    }
+
+    foreach ($rules as $rule) {
+        if (is_array($rule) && !empty($rule['key']) && onepaqucpro_is_floating_cart_variations_meta_key($rule['key'])) {
+            return $rules;
+        }
+    }
+
+    $rules[] = array(
+        'key'   => onepaqucpro_get_floating_cart_variations_meta_key(),
+        'mode'  => 'separate',
+        'title' => __('Variations', 'one-page-quick-checkout-for-woocommerce-pro'),
+    );
+
+    return $rules;
+}
+
 function onepaqucpro_decode_floating_cart_meta_rules($value, $available_options = array())
 {
     $decoded = null;
@@ -131,6 +180,7 @@ function onepaqucpro_decode_floating_cart_meta_rules($value, $available_options 
     foreach ((array) $decoded as $item) {
         if (is_string($item) || is_numeric($item)) {
             $key = (string) $item;
+            $mode = 'separate';
             $title = '';
         } elseif (is_array($item)) {
             $key = isset($item['key']) ? (string) $item['key'] : '';
@@ -140,6 +190,7 @@ function onepaqucpro_decode_floating_cart_meta_rules($value, $available_options 
             if ($key === '' && isset($item['meta'])) {
                 $key = (string) $item['meta'];
             }
+            $mode = isset($item['mode']) ? onepaqucpro_sanitize_floating_cart_meta_mode($item['mode']) : 'separate';
             $title = isset($item['title']) ? (string) $item['title'] : '';
         } else {
             continue;
@@ -151,16 +202,25 @@ function onepaqucpro_decode_floating_cart_meta_rules($value, $available_options 
         }
 
         $title = sanitize_text_field($title);
+        $is_variations_rule = onepaqucpro_is_floating_cart_variations_meta_key($key);
         if ($title === '') {
-            $title = isset($available_options[$key])
+            $title = $is_variations_rule
+                ? __('Variations', 'one-page-quick-checkout-for-woocommerce-pro')
+                : (isset($available_options[$key])
                 ? preg_replace('/\s+\([^)]+\)$/', '', wp_strip_all_tags((string) $available_options[$key]))
-                : onepaqucpro_format_floating_cart_meta_label($key);
+                : onepaqucpro_format_floating_cart_meta_label($key));
         }
 
-        $rules[] = array(
+        $rule = array(
             'key'   => $key,
             'title' => $title,
         );
+
+        if ($is_variations_rule) {
+            $rule['mode'] = $mode;
+        }
+
+        $rules[] = $rule;
     }
 
     return $rules;
@@ -175,7 +235,7 @@ function onepaqucpro_encode_floating_cart_meta_rules($rules)
 
 function onepaqucpro_get_floating_cart_meta_rules_option($option_name)
 {
-    return onepaqucpro_decode_floating_cart_meta_rules(get_option($option_name, ''));
+    return onepaqucpro_ensure_floating_cart_variations_meta_rule(onepaqucpro_decode_floating_cart_meta_rules(get_option($option_name, '')));
 }
 
 function onepaqucpro_get_floating_cart_meta_display_value($value)

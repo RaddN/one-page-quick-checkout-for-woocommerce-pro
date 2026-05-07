@@ -1827,7 +1827,7 @@ table.form-table .plugincy_grid,
 .onepaqucpro-meta-builder__head,
 .onepaqucpro-meta-builder__row {
   display: grid;
-  grid-template-columns: 32px minmax(130px, 1fr) minmax(120px, 1fr) 32px;
+  grid-template-columns: 32px minmax(130px, 1fr) minmax(100px, 0.55fr) minmax(120px, 1fr) 32px;
   gap: 8px;
   align-items: center;
 }
@@ -1891,13 +1891,22 @@ table.form-table .plugincy_grid,
   background: #fff;
 }
 
+.onepaqucpro-meta-builder__row [data-meta-builder-mode][disabled] {
+  color: #94a3b8;
+  background: #f8fafc;
+}
+
+.onepaqucpro-meta-builder__row [data-meta-builder-title][hidden] {
+  display: none;
+}
+
 .onepaqucpro-meta-builder__add {
   justify-self: start;
 }
 
 .onepaqucpro-floating-edit-modal .onepaqucpro-meta-builder__head,
 .onepaqucpro-floating-edit-modal .onepaqucpro-meta-builder__row {
-  grid-template-columns: 30px minmax(0, 1fr) minmax(0, 1fr) 30px;
+  grid-template-columns: 30px minmax(0, 1fr) minmax(90px, 0.7fr) minmax(0, 1fr) 30px;
 }
 
 @media (max-width: 1100px) {
