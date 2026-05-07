@@ -1172,33 +1172,71 @@ function onepaqucpro_cart_dashboard()
                     <?php $onepaquc_helper->sec_head('h2', 'plugincy_sec_head', '<span class="dashicons dashicons-edit"></span>', 'Drawer Text', 'Manage text used inside the floating cart drawer.'); ?>
                     <?php
                     $floating_cart_text_defaults = function_exists('onepaqucpro_get_floating_cart_text_defaults') ? onepaqucpro_get_floating_cart_text_defaults() : array();
-                    $floating_cart_text_settings = array(
-                        'your_cart' => 'Drawer Title',
-                        'txt_Select_All' => 'Select All Label',
-                        'txt_Selected' => 'Selected Count Suffix',
-                        'rmenu_floating_cart_empty_title' => 'Empty Cart Title',
-                        'rmenu_floating_cart_shop_button_text' => 'Shop Button',
-                        'rmenu_floating_cart_coupon_title' => 'Coupon Title',
-                        'rmenu_floating_cart_coupon_placeholder' => 'Coupon Placeholder',
-                        'rmenu_floating_cart_coupon_button_text' => 'Coupon Button',
-                        'rmenu_floating_cart_variation_update_text' => 'Variation Update Button',
-                        'rmenu_floating_cart_variation_cancel_text' => 'Variation Cancel Button',
-                        'rmenu_floating_cart_applied_coupons_heading' => 'Applied Coupons Heading',
-                        'rmenu_floating_cart_remove_coupon_text' => 'Remove Coupon',
-                        'txt_you_may_like' => 'Related Products Heading',
-                        'rmenu_floating_cart_related_add_to_cart_text' => 'Add to Cart Button',
-                        'txt_subtotal' => 'Subtotal Label',
-                        'rmenu_floating_cart_discount_label' => 'Discount Label',
-                        'rmenu_floating_cart_shipping_options_label' => 'Shipping Options Heading',
-                        'rmenu_floating_cart_shipping_label' => 'Shipping Label',
-                        'rmenu_floating_cart_tax_label' => 'Tax Label',
-                        'txt_total' => 'Total Label',
-                        'txt_checkout' => 'Checkout Button',
+                    $floating_cart_text_groups = array(
+                        'Drawer Header & Selection' => array(
+                            'description' => 'Labels shown in the drawer header and selection bar.',
+                            'settings' => array(
+                                'your_cart' => 'Drawer Title',
+                                'txt_Select_All' => 'Select All Label',
+                                'txt_Selected' => 'Selected Count Suffix',
+                            ),
+                        ),
+                        'Empty Cart' => array(
+                            'description' => 'Text shown when the floating cart drawer has no products.',
+                            'settings' => array(
+                                'rmenu_floating_cart_empty_title' => 'Empty Cart Title',
+                                'rmenu_floating_cart_shop_button_text' => 'Shop Button',
+                            ),
+                        ),
+                        'Coupon' => array(
+                            'description' => 'Coupon section labels and applied-coupon controls.',
+                            'settings' => array(
+                                'rmenu_floating_cart_coupon_title' => 'Coupon Title',
+                                'rmenu_floating_cart_coupon_placeholder' => 'Coupon Placeholder',
+                                'rmenu_floating_cart_coupon_button_text' => 'Coupon Button',
+                                'rmenu_floating_cart_applied_coupons_heading' => 'Applied Coupons Heading',
+                                'rmenu_floating_cart_remove_coupon_text' => 'Remove Coupon',
+                            ),
+                        ),
+                        'Variation Editor' => array(
+                            'description' => 'Button text used when changing a variable product inside the drawer.',
+                            'settings' => array(
+                                'rmenu_floating_cart_variation_update_text' => 'Variation Update Button',
+                                'rmenu_floating_cart_variation_cancel_text' => 'Variation Cancel Button',
+                            ),
+                        ),
+                        'Recommendations' => array(
+                            'description' => 'Text used for related products in the floating cart drawer.',
+                            'settings' => array(
+                                'txt_you_may_like' => 'Related Products Heading',
+                                'rmenu_floating_cart_related_add_to_cart_text' => 'Add to Cart Button',
+                            ),
+                        ),
+                        'Summary & Checkout' => array(
+                            'description' => 'Labels used for totals, shipping, tax, and the checkout action.',
+                            'settings' => array(
+                                'txt_subtotal' => 'Subtotal Label',
+                                'rmenu_floating_cart_discount_label' => 'Discount Label',
+                                'rmenu_floating_cart_shipping_options_label' => 'Shipping Options Heading',
+                                'rmenu_floating_cart_shipping_label' => 'Shipping Label',
+                                'rmenu_floating_cart_tax_label' => 'Tax Label',
+                                'txt_total' => 'Total Label',
+                                'txt_checkout' => 'Checkout Button',
+                            ),
+                        ),
                     );
                     ?>
-                    <div class="plugincy_grid" style="row-gap:12px">
-                        <?php foreach ($floating_cart_text_settings as $field_name => $field_label) : ?>
-                            <?php onepaqucpro_render_floating_cart_pro_text_field($field_name, $field_label, isset($floating_cart_text_defaults[$field_name]) ? $floating_cart_text_defaults[$field_name] : ''); ?>
+                    <div class="onepaqucpro-floating-text-groups">
+                        <?php foreach ($floating_cart_text_groups as $group_title => $group_data) : ?>
+                            <fieldset class="onepaqucpro-floating-text-group">
+                                <legend class="onepaqucpro-floating-text-group__title"><?php echo esc_html($group_title); ?></legend>
+                                <p class="onepaqucpro-floating-text-group__description"><?php echo esc_html($group_data['description']); ?></p>
+                                <div class="plugincy_grid onepaqucpro-floating-text-group__fields">
+                                    <?php foreach ($group_data['settings'] as $field_name => $field_label) : ?>
+                                        <?php onepaqucpro_render_floating_cart_pro_text_field($field_name, $field_label, isset($floating_cart_text_defaults[$field_name]) ? $floating_cart_text_defaults[$field_name] : ''); ?>
+                                    <?php endforeach; ?>
+                                </div>
+                            </fieldset>
                         <?php endforeach; ?>
                     </div>
                 </div>
@@ -1206,38 +1244,71 @@ function onepaqucpro_cart_dashboard()
                 <div class="rmenu-settings-section plugincy_card <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
                     <?php $onepaquc_helper->sec_head('h2', 'plugincy_sec_head', '<span class="dashicons dashicons-megaphone"></span>', 'Drawer Notices & Feedback Text', 'Customize coupon, cart item, quantity, and drawer variation messages used by the floating cart.'); ?>
                     <?php
-                    $floating_cart_feedback_text_settings = array(
-                        'rmenu_floating_cart_applying_text' => 'Generic Loading Text',
-                        'rmenu_floating_cart_applying_coupon_text' => 'Applying Coupon Message',
-                        'rmenu_floating_cart_coupon_applied_message' => 'Coupon Applied Message',
-                        'rmenu_floating_cart_invalid_coupon_message' => 'Invalid Coupon Message',
-                        'rmenu_floating_cart_error_try_again_message' => 'Generic Error Message',
-                        'rmenu_floating_cart_removing_text' => 'Generic Removing Text',
-                        'rmenu_floating_cart_removing_coupon_text' => 'Removing Coupon Message',
-                        'rmenu_floating_cart_coupon_removed_message' => 'Coupon Removed Message',
-                        'rmenu_floating_cart_failed_remove_coupon_message' => 'Coupon Remove Error Message',
-                        'rmenu_floating_cart_select_variation_error_message' => 'Variation Selection Error',
-                        'rmenu_floating_cart_update_variation_error_message' => 'Variation Update Error',
-                        'rmenu_floating_cart_variation_disabled_message' => 'Variation Disabled Message',
-                        'rmenu_floating_cart_item_not_found_message' => 'Cart Item Missing Message',
-                        'rmenu_floating_cart_item_not_variable_message' => 'Not Variable Item Message',
-                        'rmenu_floating_cart_invalid_variation_message' => 'Invalid Variation Message',
-                        'rmenu_floating_cart_same_variation_message' => 'Same Variation Message',
-                        'rmenu_floating_cart_unavailable_variation_message' => 'Unavailable Variation Message',
-                        'rmenu_floating_cart_original_item_update_error_message' => 'Original Item Update Error',
-                        'rmenu_floating_cart_variation_updated_message' => 'Variation Updated Message',
-                        'rmenu_floating_cart_cart_unavailable_message' => 'Cart Unavailable Message',
-                        'rmenu_floating_cart_quantity_update_error_message' => 'Quantity Update Error',
-                        'rmenu_floating_cart_no_cart_item_key_message' => 'Missing Cart Item Key Message',
-                        'rmenu_floating_cart_remove_items_error_message' => 'Remove Items Error',
-                        'rmenu_floating_cart_remove_item_aria_label' => 'Remove Item Accessibility Label',
-                        'rmenu_floating_cart_decrease_quantity_label' => 'Decrease Quantity Accessibility Label',
-                        'rmenu_floating_cart_increase_quantity_label' => 'Increase Quantity Accessibility Label',
+                    $floating_cart_feedback_text_groups = array(
+                        'General Status' => array(
+                            'description' => 'Shared loading, removing, and error messages used by drawer actions.',
+                            'settings' => array(
+                                'rmenu_floating_cart_applying_text' => 'Generic Loading Text',
+                                'rmenu_floating_cart_error_try_again_message' => 'Generic Error Message',
+                                'rmenu_floating_cart_removing_text' => 'Generic Removing Text',
+                                'rmenu_floating_cart_cart_unavailable_message' => 'Cart Unavailable Message',
+                            ),
+                        ),
+                        'Coupon Feedback' => array(
+                            'description' => 'Messages shown while applying or removing coupons in the drawer.',
+                            'settings' => array(
+                                'rmenu_floating_cart_applying_coupon_text' => 'Applying Coupon Message',
+                                'rmenu_floating_cart_coupon_applied_message' => 'Coupon Applied Message',
+                                'rmenu_floating_cart_invalid_coupon_message' => 'Invalid Coupon Message',
+                                'rmenu_floating_cart_removing_coupon_text' => 'Removing Coupon Message',
+                                'rmenu_floating_cart_coupon_removed_message' => 'Coupon Removed Message',
+                                'rmenu_floating_cart_failed_remove_coupon_message' => 'Coupon Remove Error Message',
+                            ),
+                        ),
+                        'Variation Feedback' => array(
+                            'description' => 'Messages for drawer variation selection and update flows.',
+                            'settings' => array(
+                                'rmenu_floating_cart_select_variation_error_message' => 'Variation Selection Error',
+                                'rmenu_floating_cart_update_variation_error_message' => 'Variation Update Error',
+                                'rmenu_floating_cart_variation_disabled_message' => 'Variation Disabled Message',
+                                'rmenu_floating_cart_item_not_variable_message' => 'Not Variable Item Message',
+                                'rmenu_floating_cart_invalid_variation_message' => 'Invalid Variation Message',
+                                'rmenu_floating_cart_same_variation_message' => 'Same Variation Message',
+                                'rmenu_floating_cart_unavailable_variation_message' => 'Unavailable Variation Message',
+                                'rmenu_floating_cart_original_item_update_error_message' => 'Original Item Update Error',
+                                'rmenu_floating_cart_variation_updated_message' => 'Variation Updated Message',
+                            ),
+                        ),
+                        'Cart Item & Quantity Feedback' => array(
+                            'description' => 'Messages for cart item lookup, quantity changes, and item removal.',
+                            'settings' => array(
+                                'rmenu_floating_cart_item_not_found_message' => 'Cart Item Missing Message',
+                                'rmenu_floating_cart_quantity_update_error_message' => 'Quantity Update Error',
+                                'rmenu_floating_cart_no_cart_item_key_message' => 'Missing Cart Item Key Message',
+                                'rmenu_floating_cart_remove_items_error_message' => 'Remove Items Error',
+                            ),
+                        ),
+                        'Accessibility Labels' => array(
+                            'description' => 'Labels used by screen readers for item and quantity controls.',
+                            'settings' => array(
+                                'rmenu_floating_cart_remove_item_aria_label' => 'Remove Item Accessibility Label',
+                                'rmenu_floating_cart_decrease_quantity_label' => 'Decrease Quantity Accessibility Label',
+                                'rmenu_floating_cart_increase_quantity_label' => 'Increase Quantity Accessibility Label',
+                            ),
+                        ),
                     );
                     ?>
-                    <div class="plugincy_grid" style="row-gap:12px">
-                        <?php foreach ($floating_cart_feedback_text_settings as $field_name => $field_label) : ?>
-                            <?php onepaqucpro_render_floating_cart_pro_text_field($field_name, $field_label, isset($floating_cart_text_defaults[$field_name]) ? $floating_cart_text_defaults[$field_name] : ''); ?>
+                    <div class="onepaqucpro-floating-text-groups">
+                        <?php foreach ($floating_cart_feedback_text_groups as $group_title => $group_data) : ?>
+                            <fieldset class="onepaqucpro-floating-text-group">
+                                <legend class="onepaqucpro-floating-text-group__title"><?php echo esc_html($group_title); ?></legend>
+                                <p class="onepaqucpro-floating-text-group__description"><?php echo esc_html($group_data['description']); ?></p>
+                                <div class="plugincy_grid onepaqucpro-floating-text-group__fields">
+                                    <?php foreach ($group_data['settings'] as $field_name => $field_label) : ?>
+                                        <?php onepaqucpro_render_floating_cart_pro_text_field($field_name, $field_label, isset($floating_cart_text_defaults[$field_name]) ? $floating_cart_text_defaults[$field_name] : ''); ?>
+                                    <?php endforeach; ?>
+                                </div>
+                            </fieldset>
                         <?php endforeach; ?>
                     </div>
                 </div>
