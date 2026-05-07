@@ -279,8 +279,8 @@ document.addEventListener("DOMContentLoaded", function () {
         const control = getControl(field);
         const textNodes = collectTextNodes(targetNode);
         const hasToggleSetting = !!control && control.type === "checkbox";
-        const fieldPanelSettings = ["rmenu_floating_cart_show_item_meta", "rmenu_floating_cart_group_items", "rmenu_floating_cart_show_summary", "rmenu_floating_cart_show_total"].indexOf(field) !== -1;
-        const hasPanelSettings = fieldPanelSettings || textNodes.length > 0 || targetNode.querySelector("[data-preview-icon], [data-preview-group-icon]") || targetNode.matches("[data-preview-icon], [data-preview-group-icon]");
+        const fieldPanelSettings = ["rmenu_floating_cart_show_item_meta", "rmenu_floating_cart_group_items", "rmenu_floating_cart_show_summary", "rmenu_floating_cart_show_total", "rmenu_floating_cart_show_empty_icon"].indexOf(field) !== -1;
+        const hasPanelSettings = fieldPanelSettings || textNodes.length > 0 || targetNode.querySelector("[data-preview-icon], [data-preview-group-icon], [data-preview-empty-icon]") || targetNode.matches("[data-preview-icon], [data-preview-group-icon], [data-preview-empty-icon]");
         const hasEditableSettings = hasToggleSetting || hasPanelSettings;
 
         if (!hasEditableSettings) {

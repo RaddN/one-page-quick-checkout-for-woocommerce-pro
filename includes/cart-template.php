@@ -1160,7 +1160,7 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
             }
 
             .cart-drawer .floating-cart-shipping-options {
-                margin: 0 0 16px;
+                margin: auto 0 16px;
                 padding: 15px;
                 background-color: var(--secondary-color);
                 border-radius: 8px;
@@ -1194,6 +1194,10 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
                 background-color: var(--secondary-color);
                 border-radius: 8px;
                 margin-top: auto;
+            }
+
+            .cart-drawer .floating-cart-shipping-options + .cart-summary {
+                margin-top: 0;
             }
 
             .cart-drawer .cart-summary--collapsible {
@@ -1244,7 +1248,7 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
             .cart-drawer .cart-summary--collapsible .cart-summary__content {
                 max-height: 360px;
                 overflow: hidden;
-                padding: 15px 15px 0;
+                padding: 15px 15px;
                 opacity: 1;
                 transform: translateY(0);
                 transition: max-height 0.28s ease, padding 0.28s ease, opacity 0.2s ease, transform 0.28s ease;
