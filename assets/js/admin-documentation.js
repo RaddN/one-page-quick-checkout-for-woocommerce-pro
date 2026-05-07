@@ -181,6 +181,7 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
     }
 
+    const visualEditorEnabled = editor.getAttribute("data-floating-cart-visual-editor-enabled") === "1";
     const controls = editor.querySelectorAll("[data-floating-cart-control]");
     const panels = editor.querySelectorAll("[data-floating-preview-panel]");
     const modeButtons = editor.querySelectorAll("[data-floating-preview-mode]");
@@ -277,6 +278,11 @@ document.addEventListener("DOMContentLoaded", function () {
     editor.appendChild(editModal);
 
     function positionActionBar(targetNode, field) {
+        if (!visualEditorEnabled) {
+            hideActionBar();
+            return;
+        }
+
         const control = getControl(field);
         const textNodes = collectTextNodes(targetNode);
         const hasToggleSetting = !!control && control.type === "checkbox";
@@ -1292,7 +1298,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function openEditModal() {
-        if (!activeVisualNode) {
+        if (!visualEditorEnabled || !activeVisualNode) {
             return;
         }
 
@@ -1776,6 +1782,10 @@ document.addEventListener("DOMContentLoaded", function () {
             textFallbacks[field] = fallback;
         }
 
+        if (!visualEditorEnabled) {
+            return;
+        }
+
         node.setAttribute("contenteditable", "true");
         node.setAttribute("spellcheck", "false");
         node.classList.add("is-visual-text-editor");
@@ -1813,6 +1823,11 @@ document.addEventListener("DOMContentLoaded", function () {
         event.preventDefault();
         event.stopPropagation();
 
+        if (!visualEditorEnabled) {
+            hideActionBar();
+            return;
+        }
+
         if (!control || control.type !== "checkbox") {
             return;
         }
@@ -1829,6 +1844,12 @@ document.addEventListener("DOMContentLoaded", function () {
     actionEdit.addEventListener("click", function (event) {
         event.preventDefault();
         event.stopPropagation();
+
+        if (!visualEditorEnabled) {
+            hideActionBar();
+            return;
+        }
+
         openEditModal();
     });
 
@@ -1847,6 +1868,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     editor.querySelectorAll("[data-preview-target], [data-preview-part]").forEach(function (node) {
         node.addEventListener("mouseenter", function () {
+            if (!visualEditorEnabled) {
+                return;
+            }
+
             const field = node.getAttribute("data-preview-part") || node.getAttribute("data-preview-target");
             positionActionBar(node, field);
         });
@@ -1854,6 +1879,10 @@ document.addEventListener("DOMContentLoaded", function () {
         node.addEventListener("mouseleave", scheduleActionBarHide);
 
         node.addEventListener("focus", function () {
+            if (!visualEditorEnabled) {
+                return;
+            }
+
             const field = node.getAttribute("data-preview-part") || node.getAttribute("data-preview-target");
             positionActionBar(node, field);
         }, true);
@@ -1861,6 +1890,10 @@ document.addEventListener("DOMContentLoaded", function () {
         node.addEventListener("focusout", scheduleActionBarHide, true);
 
         node.addEventListener("click", function (event) {
+            if (!visualEditorEnabled) {
+                return;
+            }
+
             if (event.target.closest(".onepaqucpro-floating-preview-toggle") || event.target.closest(".onepaqucpro-floating-preview-edit") || event.target.closest("[contenteditable]")) {
                 return;
             }

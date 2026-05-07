@@ -887,7 +887,8 @@ function onepaqucpro_cart_dashboard()
                 ?>
             </div>
             <div class="tab-content" id="tab-9">
-                <div id="onepaqucpro-floating-cart-editor" class="onepaqucpro-floating-editor">
+                <?php $floating_cart_visual_editor_enabled = function_exists('onepaqucpro_can_use_floating_cart_premium_settings') && onepaqucpro_can_use_floating_cart_premium_settings(); ?>
+                <div id="onepaqucpro-floating-cart-editor" class="onepaqucpro-floating-editor <?php echo !$floating_cart_visual_editor_enabled ? 'is-pro-locked' : ''; ?>" data-floating-cart-visual-editor-enabled="<?php echo $floating_cart_visual_editor_enabled ? '1' : '0'; ?>">
                 <div class="onepaqucpro-floating-editor-left">
                 <div class="mb-4 onepaqucpro-floating-editor-intro">
                     <?php $onepaquc_helper->sec_head('h2', '', '<span class="dashicons dashicons-cart"></span>', 'Floating Cart Settings', ''); ?>
