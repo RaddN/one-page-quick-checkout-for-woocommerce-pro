@@ -1054,6 +1054,9 @@ function onepaqucpro_cart_dashboard()
                         'rmenu_floating_cart_show_quantity' => 'Quantity Controls',
                         'rmenu_floating_cart_show_variation_editor' => 'Variation Selector',
                         'rmenu_floating_cart_show_coupon' => 'Coupon Form',
+                        'rmenu_floating_cart_show_coupon_title' => 'Coupon Title',
+                        'rmenu_floating_cart_coupon_collapsible' => 'Collapsible Coupon',
+                        'rmenu_floating_cart_coupon_initially_collapsed' => 'Coupon Initially Collapsed',
                         'rmenu_floating_cart_show_recommendations' => 'Related Products',
                         'rmenu_floating_cart_show_summary' => 'Cart Summary',
                         'rmenu_floating_cart_summary_collapsible' => 'Collapsible Summary',
@@ -1231,6 +1234,16 @@ function onepaqucpro_cart_dashboard()
                     $floating_preview_variation_in_title = get_option('rmenu_floating_cart_show_variation_in_title', isset($floating_cart_element_defaults['rmenu_floating_cart_show_variation_in_title']) ? $floating_cart_element_defaults['rmenu_floating_cart_show_variation_in_title'] : '1') === '1';
                     $floating_preview_product_title = 'B100 Pro Wireless Gaming Headset';
                     $floating_preview_variation_title = 'Black';
+                    $floating_preview_show_coupon_title = get_option('rmenu_floating_cart_show_coupon_title', isset($floating_cart_element_defaults['rmenu_floating_cart_show_coupon_title']) ? $floating_cart_element_defaults['rmenu_floating_cart_show_coupon_title'] : '1') === '1';
+                    $floating_preview_coupon_collapsible = get_option('rmenu_floating_cart_coupon_collapsible', isset($floating_cart_element_defaults['rmenu_floating_cart_coupon_collapsible']) ? $floating_cart_element_defaults['rmenu_floating_cart_coupon_collapsible'] : '0') === '1';
+                    $floating_preview_coupon_initially_collapsed = $floating_preview_coupon_collapsible && get_option('rmenu_floating_cart_coupon_initially_collapsed', isset($floating_cart_element_defaults['rmenu_floating_cart_coupon_initially_collapsed']) ? $floating_cart_element_defaults['rmenu_floating_cart_coupon_initially_collapsed'] : '0') === '1';
+                    $floating_preview_coupon_classes = array('onepaqucpro-floating-preview-coupon');
+                    if ($floating_preview_coupon_collapsible) {
+                        $floating_preview_coupon_classes[] = 'is-coupon-collapsible';
+                        if ($floating_preview_coupon_initially_collapsed) {
+                            $floating_preview_coupon_classes[] = 'is-coupon-collapsed';
+                        }
+                    }
                     $floating_preview_bg = get_option('rmenu_cart_bg_color', '#96588a');
                     $floating_preview_text_color = get_option('rmenu_cart_text_color', '#ffffff');
                     $floating_preview_radius = get_option('rmenu_cart_border_radius', '5px 0 0 5px');
@@ -1346,11 +1359,16 @@ function onepaqucpro_cart_dashboard()
                                 </div>
                                 <strong data-preview-part="rmenu_floating_cart_show_product_price" data-preview-target="rmenu_floating_cart_show_product_price">500.00&#2547;</strong>
                             </div>
-                            <div class="onepaqucpro-floating-preview-coupon" data-preview-part="rmenu_floating_cart_show_coupon" data-preview-target="rmenu_floating_cart_show_coupon">
-                                <h4 data-preview-text="rmenu_floating_cart_coupon_title"><?php echo esc_html($floating_preview_text['rmenu_floating_cart_coupon_title']); ?></h4>
-                                <div class="onepaqucpro-floating-preview-coupon-form">
-                                    <span data-preview-text="rmenu_floating_cart_coupon_placeholder"><?php echo esc_html($floating_preview_text['rmenu_floating_cart_coupon_placeholder']); ?></span>
-                                    <button type="button" data-preview-text="rmenu_floating_cart_coupon_button_text"><?php echo esc_html($floating_preview_text['rmenu_floating_cart_coupon_button_text']); ?></button>
+                            <div class="<?php echo esc_attr(implode(' ', $floating_preview_coupon_classes)); ?>" data-preview-part="rmenu_floating_cart_show_coupon" data-preview-target="rmenu_floating_cart_show_coupon" data-preview-coupon>
+                                <button type="button" class="onepaqucpro-floating-preview-coupon-toggle" data-preview-coupon-toggle aria-expanded="<?php echo $floating_preview_coupon_initially_collapsed ? 'false' : 'true'; ?>" <?php echo (!$floating_preview_coupon_collapsible && !$floating_preview_show_coupon_title) ? 'hidden' : ''; ?>>
+                                    <span data-preview-part="rmenu_floating_cart_show_coupon_title" data-preview-target="rmenu_floating_cart_show_coupon_title" data-preview-text="rmenu_floating_cart_coupon_title" <?php echo !$floating_preview_show_coupon_title ? 'hidden' : ''; ?>><?php echo esc_html($floating_preview_text['rmenu_floating_cart_coupon_title']); ?></span>
+                                    <span class="onepaqucpro-floating-preview-coupon-toggle__icon" aria-hidden="true"></span>
+                                </button>
+                                <div class="onepaqucpro-floating-preview-coupon-content" data-preview-coupon-content aria-hidden="<?php echo $floating_preview_coupon_initially_collapsed ? 'true' : 'false'; ?>">
+                                    <div class="onepaqucpro-floating-preview-coupon-form">
+                                        <span data-preview-text="rmenu_floating_cart_coupon_placeholder"><?php echo esc_html($floating_preview_text['rmenu_floating_cart_coupon_placeholder']); ?></span>
+                                        <button type="button" data-preview-text="rmenu_floating_cart_coupon_button_text"><?php echo esc_html($floating_preview_text['rmenu_floating_cart_coupon_button_text']); ?></button>
+                                    </div>
                                 </div>
                             </div>
                             <div class="onepaqucpro-floating-preview-related" data-preview-part="rmenu_floating_cart_show_recommendations" data-preview-target="rmenu_floating_cart_show_recommendations">

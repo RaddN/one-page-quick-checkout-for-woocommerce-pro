@@ -537,6 +537,9 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
     $show_item_select = onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_item_select');
     $show_select_bar = onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_select_bar') && $show_item_select;
     $show_coupon = onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_coupon');
+    $show_coupon_title = $show_coupon && onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_coupon_title');
+    $coupon_collapsible = $show_coupon && onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_coupon_collapsible', '0');
+    $coupon_initially_collapsed = $coupon_collapsible && onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_coupon_initially_collapsed', '0');
     $show_recommendations = onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_recommendations');
     $show_summary = onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_summary');
     $summary_collapsible = $show_summary && onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_summary_collapsible', '0');
@@ -668,27 +671,52 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
                     </div>
                     <!-- Coupon Section -->
                     <?php if ($show_coupon) : ?>
-                        <div class="coupon-section">
-                            <?php if ($coupon_title !== '') : ?>
-                                <h4 class="coupon-section-title"><?php echo esc_html($coupon_title); ?></h4>
+                        <?php
+                        $coupon_classes = array('coupon-section');
+                        if ($coupon_collapsible) {
+                            $coupon_classes[] = 'coupon-section--collapsible';
+                            if ($coupon_initially_collapsed) {
+                                $coupon_classes[] = 'is-collapsed';
+                            }
+                        }
+                        $coupon_content_id = function_exists('wp_unique_id') ? wp_unique_id('onepaqucpro-coupon-section-') : 'onepaqucpro-coupon-section-' . wp_rand();
+                        ?>
+                        <div class="<?php echo esc_attr(implode(' ', $coupon_classes)); ?>">
+                            <?php if ($coupon_collapsible || ($show_coupon_title && $coupon_title !== '')) : ?>
+                                <div class="coupon-section-header">
+                                    <?php if ($coupon_collapsible) : ?>
+                                        <button type="button" class="coupon-section-toggle" aria-expanded="<?php echo $coupon_initially_collapsed ? 'false' : 'true'; ?>" aria-controls="<?php echo esc_attr($coupon_content_id); ?>" aria-label="<?php esc_attr_e('Toggle coupon form', 'one-page-quick-checkout-for-woocommerce-pro'); ?>">
+                                            <?php if ($show_coupon_title && $coupon_title !== '') : ?>
+                                                <span class="coupon-section-title"><?php echo esc_html($coupon_title); ?></span>
+                                            <?php else : ?>
+                                                <span class="screen-reader-text"><?php esc_html_e('Coupon form', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                                            <?php endif; ?>
+                                            <span class="coupon-section-toggle__icon" aria-hidden="true"></span>
+                                        </button>
+                                    <?php elseif ($show_coupon_title && $coupon_title !== '') : ?>
+                                        <h4 class="coupon-section-title"><?php echo esc_html($coupon_title); ?></h4>
+                                    <?php endif; ?>
+                                </div>
                             <?php endif; ?>
-                            <div class="coupon-form">
-                                <input type="text" id="coupon-code" placeholder="<?php echo esc_attr($coupon_placeholder); ?>" class="coupon-input">
-                                <button id="apply-coupon" class="apply-coupon-button"><?php echo esc_html($coupon_button_text); ?></button>
-                            </div>
-                            <div id="coupon-message" class="coupon-message" style="display: none;"></div>
-                            <div id="applied-coupons" class="applied-coupons" style="display: <?php echo WC()->cart->get_applied_coupons() ? "block" : "none"; ?>;">
-                                <?php
-                                if (WC()->cart->get_applied_coupons()) {
-                                    echo '<h4>' . esc_html($applied_coupons_heading) . '</h4>';
-                                    foreach (WC()->cart->get_applied_coupons() as $code) {
-                                        echo '<div class="applied-coupon">';
-                                        echo '<span>' . esc_html($code) . '</span>';
-                                        echo '<button class="remove-coupon" data-coupon="' . esc_attr($code) . '">' . esc_html($remove_coupon_text) . '</button>';
-                                        echo '</div>';
+                            <div id="<?php echo esc_attr($coupon_content_id); ?>" class="coupon-section__content" aria-hidden="<?php echo $coupon_initially_collapsed ? 'true' : 'false'; ?>">
+                                <div class="coupon-form">
+                                    <input type="text" id="coupon-code" placeholder="<?php echo esc_attr($coupon_placeholder); ?>" class="coupon-input">
+                                    <button id="apply-coupon" class="apply-coupon-button"><?php echo esc_html($coupon_button_text); ?></button>
+                                </div>
+                                <div id="coupon-message" class="coupon-message" style="display: none;"></div>
+                                <div id="applied-coupons" class="applied-coupons" style="display: <?php echo WC()->cart->get_applied_coupons() ? "block" : "none"; ?>;">
+                                    <?php
+                                    if (WC()->cart->get_applied_coupons()) {
+                                        echo '<h4>' . esc_html($applied_coupons_heading) . '</h4>';
+                                        foreach (WC()->cart->get_applied_coupons() as $code) {
+                                            echo '<div class="applied-coupon">';
+                                            echo '<span>' . esc_html($code) . '</span>';
+                                            echo '<button class="remove-coupon" data-coupon="' . esc_attr($code) . '">' . esc_html($remove_coupon_text) . '</button>';
+                                            echo '</div>';
+                                        }
                                     }
-                                }
-                                ?>
+                                    ?>
+                                </div>
                             </div>
                         </div>
                     <?php endif; ?>
@@ -1217,11 +1245,68 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
                 border-radius: 8px;
             }
 
-            .cart-drawer .coupon-section-title {
+            .cart-drawer .coupon-section--collapsible {
+                overflow: hidden;
+            }
+
+            .cart-drawer .coupon-section-header {
                 margin: 0 0 10px;
+            }
+
+            .cart-drawer .coupon-section-title {
+                margin: 0;
                 color: var(--text-color);
                 font-size: 15px;
                 font-weight: 700;
+            }
+
+            .cart-drawer .coupon-section-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 10px;
+                width: 100%;
+                padding: 0;
+                border: 0;
+                background: transparent;
+                color: var(--text-color);
+                cursor: pointer;
+                font: inherit;
+                text-align: left;
+                box-shadow: none;
+            }
+
+            .coupon-section--collapsible.is-collapsed .coupon-section-header {
+                margin-bottom: 0;
+            }
+
+            .cart-drawer .coupon-section-toggle__icon {
+                width: 8px;
+                height: 8px;
+                margin-left: auto;
+                border-right: 2px solid currentColor;
+                border-bottom: 2px solid currentColor;
+                transform: rotate(-135deg);
+                transition: transform 0.2s ease;
+            }
+
+            .cart-drawer .coupon-section.is-collapsed .coupon-section-toggle__icon {
+                transform: rotate(45deg);
+            }
+
+            .cart-drawer .coupon-section__content {
+                max-height: 520px;
+                opacity: 1;
+                overflow: hidden;
+                transform: translateY(0);
+                transition: max-height 0.28s ease, opacity 0.2s ease, transform 0.28s ease;
+            }
+
+            .cart-drawer .coupon-section.is-collapsed .coupon-section__content {
+                max-height: 0;
+                opacity: 0;
+                pointer-events: none;
+                transform: translateY(-8px);
             }
 
             .cart-drawer .coupon-form {

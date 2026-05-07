@@ -36,6 +36,33 @@ jQuery(document).ready(function ($) {
         }
     };
 
+    window.onepaqucproSetFloatingCartCouponCollapsed = function (coupon, collapsed) {
+        if (!coupon) {
+            return;
+        }
+
+        var toggle = coupon.querySelector('.coupon-section-toggle');
+        var content = null;
+
+        if (toggle && toggle.getAttribute('aria-controls')) {
+            content = document.getElementById(toggle.getAttribute('aria-controls'));
+        }
+
+        if (!content) {
+            content = coupon.querySelector('.coupon-section__content');
+        }
+
+        coupon.classList.toggle('is-collapsed', !!collapsed);
+
+        if (toggle) {
+            toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        }
+
+        if (content) {
+            content.setAttribute('aria-hidden', collapsed ? 'true' : 'false');
+        }
+    };
+
     function formatSelectedCountLabel(count) {
         var p = typeof onepaqucpro_wc_cart_params !== 'undefined' ? onepaqucpro_wc_cart_params : {};
         var suffix = (p.txt_selected) ? p.txt_selected : 'selected';
@@ -260,6 +287,15 @@ jQuery(document).ready(function ($) {
         const nextCollapsed = !(summary && summary.classList.contains('is-collapsed'));
 
         window.onepaqucproSetFloatingCartSummaryCollapsed(summary, nextCollapsed);
+    });
+
+    $(document).on('click', '.coupon-section-toggle', function (event) {
+        event.preventDefault();
+
+        const coupon = this.closest('.coupon-section--collapsible');
+        const nextCollapsed = !(coupon && coupon.classList.contains('is-collapsed'));
+
+        window.onepaqucproSetFloatingCartCouponCollapsed(coupon, nextCollapsed);
     });
 
     // Apply coupon

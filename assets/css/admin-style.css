@@ -1342,11 +1342,63 @@ table.form-table .plugincy_grid,
   gap: 10px;
 }
 
-.onepaqucpro-floating-preview-coupon h4 {
+.onepaqucpro-floating-preview-coupon-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #334155;
+  cursor: default;
+  font: inherit;
+  text-align: left;
+}
+
+.onepaqucpro-floating-preview-coupon-toggle span:first-child {
   margin: 0;
   color: #334155;
   font-size: 14px;
+  font-weight: 700;
   line-height: 1.3;
+}
+
+.onepaqucpro-floating-preview-coupon-toggle__icon {
+  display: none;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid #000;
+  border-bottom: 2px solid #000;
+  transform: rotate(-135deg);
+  transition: transform 0.2s ease;
+}
+
+.onepaqucpro-floating-preview-coupon.is-coupon-collapsible .onepaqucpro-floating-preview-coupon-toggle {
+  cursor: pointer;
+}
+
+.onepaqucpro-floating-preview-coupon.is-coupon-collapsible .onepaqucpro-floating-preview-coupon-toggle__icon {
+  display: inline-block;
+}
+
+.onepaqucpro-floating-preview-coupon.is-coupon-collapsed .onepaqucpro-floating-preview-coupon-toggle__icon {
+  transform: rotate(45deg);
+}
+
+.onepaqucpro-floating-preview-coupon-content {
+  max-height: 90px;
+  opacity: 1;
+  overflow: hidden;
+  transform: translateY(0);
+  transition: max-height 0.28s ease, opacity 0.2s ease, transform 0.28s ease;
+}
+
+.onepaqucpro-floating-preview-coupon.is-coupon-collapsed .onepaqucpro-floating-preview-coupon-content {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-8px);
 }
 
 .onepaqucpro-floating-preview-coupon-form {
@@ -1372,7 +1424,6 @@ table.form-table .plugincy_grid,
   cursor: pointer;
 }
 
-.onepaqucpro-floating-preview-coupon button:hover,
 .onepaqucpro-floating-preview-checkout:hover,
 .onepaqucpro-floating-preview-products button:hover {
   background: var(--onepaqucpro-floating-primary-hover);
@@ -1380,8 +1431,9 @@ table.form-table .plugincy_grid,
 }
 
 .onepaqucpro-floating-preview-coupon button {
-  padding: 0 16px;
-  border-radius: 0 8px 8px 0;
+  padding: 0;
+  border-radius: 0;
+  background: none;
 }
 
 .onepaqucpro-floating-preview-related {
@@ -1784,7 +1836,6 @@ table.form-table .plugincy_grid,
   min-height: 74px;
   border: 1px solid #cbd5e1;
   border-radius: 4px;
-  background: #fff;
 }
 
 .onepaqucpro-meta-picker .select2-container {
@@ -1888,7 +1939,6 @@ table.form-table .plugincy_grid,
   min-height: 32px;
   border: 1px solid #cbd5e1;
   border-radius: 4px;
-  background: #fff;
 }
 
 .onepaqucpro-meta-builder__row [data-meta-builder-mode][disabled] {

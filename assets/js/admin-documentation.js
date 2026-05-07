@@ -280,7 +280,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const control = getControl(field);
         const textNodes = collectTextNodes(targetNode);
         const hasToggleSetting = !!control && control.type === "checkbox";
-        const fieldPanelSettings = ["rmenu_floating_cart_show_product_title", "rmenu_floating_cart_show_item_meta", "rmenu_floating_cart_group_items", "rmenu_floating_cart_show_summary", "rmenu_floating_cart_show_total", "rmenu_floating_cart_show_empty_icon"].indexOf(field) !== -1;
+        const fieldPanelSettings = ["rmenu_floating_cart_show_product_title", "rmenu_floating_cart_show_coupon", "rmenu_floating_cart_show_coupon_title", "rmenu_floating_cart_show_item_meta", "rmenu_floating_cart_group_items", "rmenu_floating_cart_show_summary", "rmenu_floating_cart_show_total", "rmenu_floating_cart_show_empty_icon"].indexOf(field) !== -1;
         const hasPanelSettings = fieldPanelSettings || textNodes.length > 0 || targetNode.querySelector("[data-preview-icon], [data-preview-group-icon], [data-preview-empty-icon]") || targetNode.matches("[data-preview-icon], [data-preview-group-icon], [data-preview-empty-icon]");
         const hasEditableSettings = hasToggleSetting || hasPanelSettings;
 
@@ -1157,6 +1157,19 @@ document.addEventListener("DOMContentLoaded", function () {
             setModalWrapVisible(body, "rmenu_floating_cart_empty_icon", selectedEnabled);
         }
 
+        if (activeVisualField === "rmenu_floating_cart_show_coupon") {
+            const couponTitleEnabled = getModalControlValue(body, "rmenu_floating_cart_show_coupon_title") === "1";
+            const couponCollapsible = getModalControlValue(body, "rmenu_floating_cart_coupon_collapsible") === "1";
+            setModalWrapVisible(body, "rmenu_floating_cart_show_coupon_title", selectedEnabled);
+            setModalWrapVisible(body, "rmenu_floating_cart_coupon_title", selectedEnabled && couponTitleEnabled);
+            setModalWrapVisible(body, "rmenu_floating_cart_coupon_collapsible", selectedEnabled);
+            setModalWrapVisible(body, "rmenu_floating_cart_coupon_initially_collapsed", selectedEnabled && couponCollapsible);
+        }
+
+        if (activeVisualField === "rmenu_floating_cart_show_coupon_title") {
+            setModalWrapVisible(body, "rmenu_floating_cart_coupon_title", selectedEnabled);
+        }
+
         if (activeVisualField === "rmenu_floating_cart_show_summary" || activeVisualField === "rmenu_floating_cart_show_total") {
             const summaryCollapsible = getModalControlValue(body, "rmenu_floating_cart_summary_collapsible") === "1";
             setModalWrapVisible(body, "rmenu_floating_cart_summary_collapsible", selectedEnabled);
@@ -1260,6 +1273,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const textNodes = collectTextNodes(activeVisualNode);
         const isCartLauncher = activeVisualNode.classList.contains("onepaqucpro-floating-preview-button") || activeVisualNode.matches("[data-preview-icon]") || activeVisualNode.querySelector("[data-preview-icon]");
         const isCheckoutButton = activeVisualNode.classList.contains("onepaqucpro-floating-preview-checkout");
+        const isCoupon = activeVisualField === "rmenu_floating_cart_show_coupon";
         const isProductTitle = activeVisualField === "rmenu_floating_cart_show_product_title";
         const isItemMeta = activeVisualField === "rmenu_floating_cart_show_item_meta";
         const isEmptyIcon = activeVisualField === "rmenu_floating_cart_show_empty_icon";
@@ -1282,6 +1296,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (isCheckoutButton) {
             buildControlSetting(body, "rmenu_cart_checkout_behavior");
+        }
+
+        if (isCoupon) {
+            buildControlSetting(body, "rmenu_floating_cart_show_coupon_title");
+            buildControlSetting(body, "rmenu_floating_cart_coupon_collapsible");
+            buildControlSetting(body, "rmenu_floating_cart_coupon_initially_collapsed");
         }
 
         if (isProductTitle) {
@@ -1372,6 +1392,36 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         summary.querySelectorAll("[data-preview-summary-content]").forEach(function (content) {
+            content.setAttribute("aria-hidden", collapsed ? "true" : "false");
+        });
+    }
+
+    function syncCouponPreviewState() {
+        const coupon = editor.querySelector("[data-preview-coupon]");
+
+        if (!coupon) {
+            return;
+        }
+
+        const couponEnabled = getControlValue("rmenu_floating_cart_show_coupon") === "1";
+        const titleEnabled = couponEnabled && getControlValue("rmenu_floating_cart_show_coupon_title") === "1";
+        const collapsible = couponEnabled && getControlValue("rmenu_floating_cart_coupon_collapsible") === "1";
+        const collapsed = collapsible && getControlValue("rmenu_floating_cart_coupon_initially_collapsed") === "1";
+
+        coupon.classList.toggle("is-coupon-collapsible", collapsible);
+        coupon.classList.toggle("is-coupon-collapsed", collapsed);
+
+        coupon.querySelectorAll("[data-preview-coupon-toggle]").forEach(function (toggle) {
+            toggle.hidden = !couponEnabled || (!collapsible && !titleEnabled);
+            toggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+        });
+
+        coupon.querySelectorAll('[data-preview-part="rmenu_floating_cart_show_coupon_title"]').forEach(function (title) {
+            title.hidden = !titleEnabled;
+            title.classList.toggle("is-preview-hidden", !titleEnabled);
+        });
+
+        coupon.querySelectorAll("[data-preview-coupon-content]").forEach(function (content) {
             content.setAttribute("aria-hidden", collapsed ? "true" : "false");
         });
     }
@@ -1602,6 +1652,16 @@ document.addEventListener("DOMContentLoaded", function () {
             part.classList.toggle("is-preview-hidden", !itemSelectEnabled || !selectBarEnabled);
         });
 
+        const couponEnabled = getControlValue("rmenu_floating_cart_show_coupon") === "1";
+        const couponTitleEnabled = couponEnabled && getControlValue("rmenu_floating_cart_show_coupon_title") === "1";
+        const couponCollapsible = couponEnabled && getControlValue("rmenu_floating_cart_coupon_collapsible") === "1";
+        setControlWrapVisible("rmenu_floating_cart_show_coupon_title", couponEnabled);
+        setControlWrapVisible("rmenu_floating_cart_coupon_title", couponTitleEnabled);
+        setControlWrapVisible("rmenu_floating_cart_coupon_collapsible", couponEnabled);
+        setControlWrapVisible("rmenu_floating_cart_coupon_initially_collapsed", couponCollapsible);
+        setControlWrapVisible("rmenu_floating_cart_coupon_placeholder", couponEnabled);
+        setControlWrapVisible("rmenu_floating_cart_coupon_button_text", couponEnabled);
+
         const summaryEnabled = getControlValue("rmenu_floating_cart_show_summary") === "1";
         const summaryCollapsible = getControlValue("rmenu_floating_cart_summary_collapsible") === "1";
         setControlWrapVisible("rmenu_floating_cart_summary_collapsible", summaryEnabled);
@@ -1649,6 +1709,7 @@ document.addEventListener("DOMContentLoaded", function () {
         updateButtonStyle();
         updateCartIcon();
         updateEmptyIcon();
+        syncCouponPreviewState();
         syncSummaryPreviewState();
         updateGroupIcon();
         updateGroupTitle();
