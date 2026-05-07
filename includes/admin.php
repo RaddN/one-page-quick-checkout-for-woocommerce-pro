@@ -1042,43 +1042,81 @@ function onepaqucpro_cart_dashboard()
                     <?php $onepaquc_helper->sec_head('h2', 'plugincy_sec_head', '<span class="dashicons dashicons-screenoptions"></span>', 'Drawer Elements', 'Manage which elements appear inside the floating cart drawer.'); ?>
                     <?php
                     $floating_cart_element_defaults = function_exists('onepaqucpro_get_floating_cart_element_defaults') ? onepaqucpro_get_floating_cart_element_defaults() : array();
-                    $floating_cart_element_settings = array(
-                        'rmenu_floating_cart_show_cart_icon' => 'Cart Button Icon',
-                        'rmenu_floating_cart_show_cart_count' => 'Cart Button Count',
-                        'rmenu_floating_cart_show_select_bar' => 'Select Bar',
-                        'rmenu_floating_cart_show_item_select' => 'Item Checkbox',
-                        'rmenu_floating_cart_show_remove_item' => 'Remove Item',
-                        'rmenu_floating_cart_show_product_image' => 'Product Image',
-                        'rmenu_floating_cart_show_product_title' => 'Product Title',
-                        'rmenu_floating_cart_show_product_price' => 'Product Price',
-                        'rmenu_floating_cart_show_quantity' => 'Quantity Controls',
-                        'rmenu_floating_cart_show_variation_editor' => 'Variation Selector',
-                        'rmenu_floating_cart_show_coupon' => 'Coupon Form',
-                        'rmenu_floating_cart_show_coupon_title' => 'Coupon Title',
-                        'rmenu_floating_cart_coupon_collapsible' => 'Collapsible Coupon',
-                        'rmenu_floating_cart_coupon_initially_collapsed' => 'Coupon Initially Collapsed',
-                        'rmenu_floating_cart_show_recommendations' => 'Related Products',
-                        'rmenu_floating_cart_show_summary' => 'Cart Summary',
-                        'rmenu_floating_cart_summary_collapsible' => 'Collapsible Summary',
-                        'rmenu_floating_cart_summary_initially_collapsed' => 'Summary Initially Collapsed',
-                        'rmenu_floating_cart_show_subtotal' => 'Subtotal Row',
-                        'rmenu_floating_cart_show_discount' => 'Discount Row',
-                        'rmenu_floating_cart_show_shipping_options' => 'Shipping Options',
-                        'rmenu_floating_cart_show_shipping_total' => 'Shipping Row',
-                        'rmenu_floating_cart_show_tax_total' => 'Tax Row',
-                        'rmenu_floating_cart_show_total' => 'Total Row',
-                        'rmenu_floating_cart_show_checkout' => 'Checkout Button',
-                        'rmenu_floating_cart_show_empty_icon' => 'Empty Cart Icon',
-                        'rmenu_floating_cart_show_shop_button' => 'Shop Button',
-                        'rmenu_floating_cart_show_item_meta' => 'Cart Item Meta',
-                        'rmenu_floating_cart_group_items' => 'Group Cart Items',
+                    $floating_cart_element_groups = array(
+                        'Floating Button' => array(
+                            'description' => 'Controls for the sticky cart button shown outside the drawer.',
+                            'settings' => array(
+                                'rmenu_floating_cart_show_cart_icon' => 'Cart Button Icon',
+                                'rmenu_floating_cart_show_cart_count' => 'Cart Button Count',
+                            ),
+                        ),
+                        'Cart Items' => array(
+                            'description' => 'Controls for product rows, item actions, and product details.',
+                            'settings' => array(
+                                'rmenu_floating_cart_show_select_bar' => 'Select Bar',
+                                'rmenu_floating_cart_show_item_select' => 'Item Checkbox',
+                                'rmenu_floating_cart_show_remove_item' => 'Remove Item',
+                                'rmenu_floating_cart_show_product_image' => 'Product Image',
+                                'rmenu_floating_cart_show_product_title' => 'Product Title',
+                                'rmenu_floating_cart_show_product_price' => 'Product Price',
+                                'rmenu_floating_cart_show_quantity' => 'Quantity Controls',
+                                'rmenu_floating_cart_show_variation_editor' => 'Variation Selector',
+                                'rmenu_floating_cart_show_item_meta' => 'Cart Item Meta',
+                                'rmenu_floating_cart_group_items' => 'Group Cart Items',
+                            ),
+                        ),
+                        'Coupon' => array(
+                            'description' => 'Controls for the coupon form and coupon collapse behavior.',
+                            'settings' => array(
+                                'rmenu_floating_cart_show_coupon' => 'Coupon Form',
+                                'rmenu_floating_cart_show_coupon_title' => 'Coupon Title',
+                                'rmenu_floating_cart_coupon_collapsible' => 'Collapsible Coupon',
+                                'rmenu_floating_cart_coupon_initially_collapsed' => 'Coupon Initially Collapsed',
+                            ),
+                        ),
+                        'Recommendations' => array(
+                            'description' => 'Controls for suggested products shown inside the drawer.',
+                            'settings' => array(
+                                'rmenu_floating_cart_show_recommendations' => 'Related Products',
+                            ),
+                        ),
+                        'Summary & Shipping' => array(
+                            'description' => 'Controls for totals, shipping options, and summary collapse behavior.',
+                            'settings' => array(
+                                'rmenu_floating_cart_show_summary' => 'Cart Summary',
+                                'rmenu_floating_cart_summary_collapsible' => 'Collapsible Summary',
+                                'rmenu_floating_cart_summary_initially_collapsed' => 'Summary Initially Collapsed',
+                                'rmenu_floating_cart_show_subtotal' => 'Subtotal Row',
+                                'rmenu_floating_cart_show_discount' => 'Discount Row',
+                                'rmenu_floating_cart_show_shipping_options' => 'Shipping Options',
+                                'rmenu_floating_cart_show_shipping_total' => 'Shipping Row',
+                                'rmenu_floating_cart_show_tax_total' => 'Tax Row',
+                                'rmenu_floating_cart_show_total' => 'Total Row',
+                            ),
+                        ),
+                        'Checkout & Empty Cart' => array(
+                            'description' => 'Controls for the checkout action and empty-cart drawer state.',
+                            'settings' => array(
+                                'rmenu_floating_cart_show_checkout' => 'Checkout Button',
+                                'rmenu_floating_cart_show_empty_icon' => 'Empty Cart Icon',
+                                'rmenu_floating_cart_show_shop_button' => 'Shop Button',
+                            ),
+                        ),
                     );
                     ?>
-                    <div class="rmenupro-settings-row rmenupro-settings-row-columns">
-                        <?php foreach ($floating_cart_element_settings as $field_name => $field_label) : ?>
-                            <div class="rmenu-settings-column">
-                                <?php onepaqucpro_render_floating_cart_pro_switch($field_name, $field_label, isset($floating_cart_element_defaults[$field_name]) ? $floating_cart_element_defaults[$field_name] : '1'); ?>
-                            </div>
+                    <div class="onepaqucpro-floating-elements-groups">
+                        <?php foreach ($floating_cart_element_groups as $group_title => $group_data) : ?>
+                            <fieldset class="onepaqucpro-floating-elements-group">
+                                <legend class="onepaqucpro-floating-elements-group__title"><?php echo esc_html($group_title); ?></legend>
+                                <p class="onepaqucpro-floating-elements-group__description"><?php echo esc_html($group_data['description']); ?></p>
+                                <div class="rmenupro-settings-row rmenupro-settings-row-columns onepaqucpro-floating-elements-group__controls">
+                                    <?php foreach ($group_data['settings'] as $field_name => $field_label) : ?>
+                                        <div class="rmenu-settings-column">
+                                            <?php onepaqucpro_render_floating_cart_pro_switch($field_name, $field_label, isset($floating_cart_element_defaults[$field_name]) ? $floating_cart_element_defaults[$field_name] : '1'); ?>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </fieldset>
                         <?php endforeach; ?>
                     </div>
                 </div>
@@ -1130,7 +1168,7 @@ function onepaqucpro_cart_dashboard()
                     </div>
                 </div>
 
-                <div class="rmenu-settings-section plugincy_card <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?>">
+                <div class="rmenu-settings-section plugincy_card <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?> mb-4">
                     <?php $onepaquc_helper->sec_head('h2', 'plugincy_sec_head', '<span class="dashicons dashicons-edit"></span>', 'Drawer Text', 'Manage text used inside the floating cart drawer.'); ?>
                     <?php
                     $floating_cart_text_defaults = function_exists('onepaqucpro_get_floating_cart_text_defaults') ? onepaqucpro_get_floating_cart_text_defaults() : array();

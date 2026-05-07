@@ -1146,11 +1146,39 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    function syncModalVariationMetaIncludeRequirement(body) {
+        const builder = body.querySelector('[data-meta-builder="rmenu_floating_cart_meta_include"]');
+        const container = builder ? builder.querySelector("[data-meta-builder-rows]") : null;
+        const showVariationInTitle = getModalControlValue(body, "rmenu_floating_cart_show_variation_in_title") === "1";
+
+        if (!builder || !container) {
+            return;
+        }
+
+        if (showVariationInTitle) {
+            Array.prototype.slice.call(container.querySelectorAll("[data-meta-builder-row]")).forEach(updateMetaBuilderRowState);
+            return;
+        }
+
+        const existing = Array.prototype.slice.call(container.querySelectorAll("[data-meta-builder-row]")).some(function (row) {
+            return isVariationMetaRow(row);
+        });
+
+        if (!existing) {
+            container.appendChild(createMetaBuilderRow(builder, getDefaultVariationMetaRule()));
+            syncMetaBuilder(builder);
+            return;
+        }
+
+        Array.prototype.slice.call(container.querySelectorAll("[data-meta-builder-row]")).forEach(updateMetaBuilderRowState);
+    }
+
     function updateEditModalDependencies(body) {
         const selectedEnabled = activeVisualField ? getModalControlValue(body, activeVisualField) === "1" : true;
 
         if (activeVisualField === "rmenu_floating_cart_show_item_meta") {
             setModalWrapVisible(body, "rmenu_floating_cart_meta_include", selectedEnabled);
+            syncModalVariationMetaIncludeRequirement(body);
         }
 
         if (activeVisualField === "rmenu_floating_cart_show_empty_icon") {
@@ -1309,6 +1337,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         if (isItemMeta) {
+            buildControlSetting(body, "rmenu_floating_cart_show_variation_in_title");
             buildControlSetting(body, "rmenu_floating_cart_meta_include");
         }
 
