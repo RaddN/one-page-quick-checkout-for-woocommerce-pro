@@ -9,6 +9,33 @@ jQuery(document).ready(function ($) {
         return fallback;
     }
 
+    window.onepaqucproSetFloatingCartSummaryCollapsed = function (summary, collapsed) {
+        if (!summary) {
+            return;
+        }
+
+        var toggle = summary.querySelector('.cart-summary-toggle');
+        var content = null;
+
+        if (toggle && toggle.getAttribute('aria-controls')) {
+            content = document.getElementById(toggle.getAttribute('aria-controls'));
+        }
+
+        if (!content) {
+            content = summary.querySelector('.cart-summary__content');
+        }
+
+        summary.classList.toggle('is-collapsed', !!collapsed);
+
+        if (toggle) {
+            toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        }
+
+        if (content) {
+            content.setAttribute('aria-hidden', collapsed ? 'true' : 'false');
+        }
+    };
+
     function formatSelectedCountLabel(count) {
         var p = typeof onepaqucpro_wc_cart_params !== 'undefined' ? onepaqucpro_wc_cart_params : {};
         var suffix = (p.txt_selected) ? p.txt_selected : 'selected';
@@ -226,6 +253,15 @@ jQuery(document).ready(function ($) {
         window.removecartitem(cartItemKeys);
     });
 
+    $(document).on('click', '.cart-summary-toggle', function (event) {
+        event.preventDefault();
+
+        const summary = this.closest('.cart-summary--collapsible');
+        const nextCollapsed = !(summary && summary.classList.contains('is-collapsed'));
+
+        window.onepaqucproSetFloatingCartSummaryCollapsed(summary, nextCollapsed);
+    });
+
     // Apply coupon
 
 
@@ -388,7 +424,7 @@ jQuery(document).ready(function ($) {
         }
 
         // Update total
-        const totalElement = document.querySelector('.summary-row.total span:last-child');
+        const totalElement = document.querySelector('.cart-summary-toggle__amount, .summary-row.total span:last-child');
         if (totalElement) {
             totalElement.innerHTML = data.total; // Use innerHTML
         }

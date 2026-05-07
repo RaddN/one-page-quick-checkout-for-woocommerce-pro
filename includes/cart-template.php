@@ -397,12 +397,15 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
     $show_cart_icon = onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_cart_icon');
     $show_cart_count = onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_cart_count');
     $show_empty_icon = onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_empty_icon');
+    $empty_cart_icon = function_exists('onepaqucpro_get_floating_cart_empty_icon') ? onepaqucpro_get_floating_cart_empty_icon() : 'cart';
     $show_shop_button = onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_shop_button');
     $show_item_select = onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_item_select');
     $show_select_bar = onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_select_bar') && $show_item_select;
     $show_coupon = onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_coupon');
     $show_recommendations = onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_recommendations');
     $show_summary = onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_summary');
+    $summary_collapsible = $show_summary && onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_summary_collapsible', '0');
+    $summary_initially_collapsed = $summary_collapsible && onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_summary_initially_collapsed', '0');
     $show_subtotal = onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_subtotal');
     $show_discount = onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_discount');
     $show_shipping_options = onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_shipping_options', '0');
@@ -437,26 +440,10 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
         $cart_button_classes[] = 'onepaqucpro-cart-button-hidden';
     }
 
-    $allowed_svg = array(
-        'svg' => array(
-            'xmlns' => array(),
-            'viewBox' => array(),
-            'viewbox' => array(),  // Add lowercase version just in case
-            'width' => array(),
-            'height' => array(),
-            'role' => array(),
-            'aria-hidden' => array(),
-            'aria-label' => array(),
-            'style' => array(),
-            'class' => array(),
-            'fill' => array(),
-        ),
-        'path' => array(
-            'd' => array(),
-            'fill' => array(),
-            'stroke' => array(),
-            'stroke-width' => array(),
-        ),
+    $allowed_svg = function_exists('onepaqucpro_get_floating_cart_svg_allowed_html') ? onepaqucpro_get_floating_cart_svg_allowed_html() : array(
+        'svg' => array('xmlns' => array(), 'viewBox' => array(), 'viewbox' => array(), 'width' => array(), 'height' => array(), 'role' => array(), 'aria-hidden' => array(), 'aria-label' => array(), 'style' => array(), 'class' => array(), 'fill' => array(), 'stroke' => array(), 'stroke-width' => array(), 'stroke-linecap' => array(), 'stroke-linejoin' => array()),
+        'path' => array('d' => array(), 'fill' => array(), 'stroke' => array(), 'stroke-width' => array(), 'stroke-linecap' => array(), 'stroke-linejoin' => array()),
+        'circle' => array('cx' => array(), 'cy' => array(), 'r' => array(), 'fill' => array(), 'stroke' => array(), 'stroke-width' => array()),
     );
 ?>
 
@@ -485,9 +472,9 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
                     <div class="cart-items empty-cart-items">
                         <div class="empty-cart">
                             <?php if ($show_empty_icon) : ?>
-                            <svg data-icon="icon-checkout" width="56" height="56" viewBox="0 0 24 24" class="plugincy-icon-checkout" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M2 2.71411C2 2.31972 2.31972 2 2.71411 2H3.34019C4.37842 2 4.97454 2.67566 5.31984 3.34917C5.55645 3.8107 5.72685 4.37375 5.86764 4.86133H20.5709C21.5186 4.86133 22.2035 5.7674 21.945 6.67914L19.809 14.2123C19.4606 15.4413 18.3384 16.2896 17.0609 16.2896H9.80665C8.51866 16.2896 7.39 15.4276 7.05095 14.185L6.13344 10.8225C6.12779 10.8073 6.12262 10.7917 6.11795 10.7758L4.64782 5.78023C4.59738 5.61449 4.55096 5.45386 4.50614 5.29878C4.36354 4.80529 4.23716 4.36794 4.04891 4.00075C3.82131 3.55681 3.61232 3.42822 3.34019 3.42822H2.71411C2.31972 3.42822 2 3.1085 2 2.71411ZM7.49529 10.3874L8.4288 13.8091C8.59832 14.4304 9.16266 14.8613 9.80665 14.8613H17.0609C17.6997 14.8613 18.2608 14.4372 18.435 13.8227L20.5709 6.28955H6.28975L7.49529 10.3874ZM12.0017 19.8577C12.0017 21.0408 11.0426 22 9.85941 22C8.67623 22 7.71708 21.0408 7.71708 19.8577C7.71708 18.6745 8.67623 17.7153 9.85941 17.7153C11.0426 17.7153 12.0017 18.6745 12.0017 19.8577ZM10.5735 19.8577C10.5735 19.4633 10.2538 19.1436 9.85941 19.1436C9.46502 19.1436 9.1453 19.4633 9.1453 19.8577C9.1453 20.2521 9.46502 20.5718 9.85941 20.5718C10.2538 20.5718 10.5735 20.2521 10.5735 19.8577ZM19.1429 19.8577C19.1429 21.0408 18.1837 22 17.0005 22C15.8173 22 14.8582 21.0408 14.8582 19.8577C14.8582 18.6745 15.8173 17.7153 17.0005 17.7153C18.1837 17.7153 19.1429 18.6745 19.1429 19.8577ZM17.7146 19.8577C17.7146 19.4633 17.3949 19.1436 17.0005 19.1436C16.6061 19.1436 16.2864 19.4633 16.2864 19.8577C16.2864 20.2521 16.6061 20.5718 17.0005 20.5718C17.3949 20.5718 17.7146 20.2521 17.7146 19.8577Z" fill="currentColor"></path>
-                            </svg>
+                                <span class="plugincy-empty-cart-icon">
+                                    <?php echo wp_kses(onepaqucpro_get_floating_cart_empty_icon_svg($empty_cart_icon), $allowed_svg); ?>
+                                </span>
                             <?php endif; ?>
                             <div class="plugincy-zero-state-title"><?php echo esc_html($empty_cart_title); ?></div>
                             <?php
@@ -593,18 +580,39 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
                     <?php endif; ?>
 
                     <!-- Cart Summary -->
-                    <?php if ($show_shipping_options) : ?>
-                        <?php $shipping_options_html = onepaqucpro_render_floating_cart_shipping_options(); ?>
-                        <?php if ($shipping_options_html !== '') : ?>
+                    <?php $shipping_options_html = $show_shipping_options ? onepaqucpro_render_floating_cart_shipping_options() : ''; ?>
+                    <?php if ($shipping_options_html !== '') : ?>
                             <div class="floating-cart-shipping-options">
                                 <h4><?php echo esc_html($shipping_options_label); ?></h4>
                                 <?php echo $shipping_options_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                             </div>
-                        <?php endif; ?>
                     <?php endif; ?>
 
                     <?php if ($show_summary && ($show_subtotal || $show_discount || $show_shipping_total || $show_tax_total || $show_total)) : ?>
-                        <div class="cart-summary">
+                        <?php
+                        $summary_has_discount_row = $show_discount && WC()->cart->get_discount_total() > 0;
+                        $summary_has_shipping_row = $show_shipping_total && WC()->cart->needs_shipping();
+                        $summary_has_tax_row = $show_tax_total && WC()->cart->get_total_tax() > 0;
+                        $summary_has_detail_rows = $show_subtotal || $summary_has_discount_row || $summary_has_shipping_row || $summary_has_tax_row;
+                        $summary_collapsible = $summary_collapsible && $show_total && $summary_has_detail_rows;
+                        $summary_dropup = $summary_collapsible && (int) $cart_count === 1 && $onepaqucpro_ymal_inner !== '' && $shipping_options_html !== '';
+                        $summary_classes = array('cart-summary');
+                        if ($summary_collapsible) {
+                            $summary_classes[] = 'cart-summary--collapsible';
+                            if ($summary_dropup) {
+                                $summary_classes[] = 'cart-summary--dropup';
+                            }
+                            if ($summary_initially_collapsed) {
+                                $summary_classes[] = 'is-collapsed';
+                            }
+                        }
+                        $summary_content_id = function_exists('wp_unique_id') ? wp_unique_id('onepaqucpro-cart-summary-') : 'onepaqucpro-cart-summary-' . wp_rand();
+                        $summary_total_html = wc_price(WC()->cart->get_total('raw'));
+                        ?>
+                        <div class="<?php echo esc_attr(implode(' ', $summary_classes)); ?>">
+                            <?php if ($summary_collapsible) : ?>
+                                <div id="<?php echo esc_attr($summary_content_id); ?>" class="cart-summary__content" aria-hidden="<?php echo $summary_initially_collapsed ? 'true' : 'false'; ?>">
+                            <?php endif; ?>
                             <?php if ($show_subtotal) : ?>
                                 <div class="summary-row">
                                     <span><?php echo esc_html($subtotal_label); ?></span>
@@ -612,31 +620,37 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
                                 </div>
                             <?php endif; ?>
 
-                            <?php if ($show_discount && WC()->cart->get_discount_total() > 0) : ?>
+                            <?php if ($summary_has_discount_row) : ?>
                                 <div class="summary-row discount">
                                     <span><?php echo esc_html($discount_label); ?></span>
                                     <span>- <?php echo wp_kses_post(wc_price(WC()->cart->get_discount_total())); ?></span>
                                 </div>
                             <?php endif; ?>
 
-                            <?php if ($show_shipping_total && WC()->cart->needs_shipping()) : ?>
+                            <?php if ($summary_has_shipping_row) : ?>
                                 <div class="summary-row shipping">
                                     <span><?php echo esc_html($shipping_label); ?></span>
                                     <span><?php echo wp_kses_post(WC()->cart->get_cart_shipping_total()); ?></span>
                                 </div>
                             <?php endif; ?>
 
-                            <?php if ($show_tax_total && WC()->cart->get_total_tax() > 0) : ?>
+                            <?php if ($summary_has_tax_row) : ?>
                                 <div class="summary-row tax">
                                     <span><?php echo esc_html($tax_label); ?></span>
                                     <span><?php echo wp_kses_post(wc_price(WC()->cart->get_total_tax())); ?></span>
                                 </div>
                             <?php endif; ?>
-
-                            <?php if ($show_total) : ?>
+                            <?php if ($summary_collapsible) : ?>
+                                </div>
+                                <button type="button" class="cart-summary-toggle summary-row total" aria-expanded="<?php echo $summary_initially_collapsed ? 'false' : 'true'; ?>" aria-controls="<?php echo esc_attr($summary_content_id); ?>" aria-label="<?php esc_attr_e('Toggle cart summary', 'one-page-quick-checkout-for-woocommerce-pro'); ?>">
+                                    <span><?php echo esc_html($total_label); ?></span>
+                                    <span class="cart-summary-toggle__amount"><?php echo wp_kses_post($summary_total_html); ?></span>
+                                    <span class="cart-summary-toggle__icon" aria-hidden="true"></span>
+                                </button>
+                            <?php elseif ($show_total) : ?>
                                 <div class="summary-row total">
                                     <span><?php echo esc_html($total_label); ?></span>
-                                    <span><?php echo wp_kses_post(wc_price(WC()->cart->get_total('raw'))); ?></span>
+                                    <span><?php echo wp_kses_post($summary_total_html); ?></span>
                                 </div>
                             <?php endif; ?>
                         </div>
@@ -1180,6 +1194,85 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
                 background-color: var(--secondary-color);
                 border-radius: 8px;
                 margin-top: auto;
+            }
+
+            .cart-drawer .cart-summary--collapsible {
+                padding: 0;
+                overflow: visible;
+                position: relative;
+                z-index: 5;
+            }
+
+            .cart-drawer .cart-summary-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: flex-start;
+                gap: 10px;
+                width: 100%;
+                padding: 15px;
+                border: 0;
+                background: transparent;
+                color: var(--text-color);
+                cursor: pointer;
+                font: inherit;
+                text-align: left;
+            }
+
+            .cart-drawer .cart-summary-toggle:focus {
+                outline: 2px solid var(--primary-color);
+                outline-offset: -2px;
+            }
+
+            .cart-drawer .cart-summary-toggle__amount {
+                font-weight: 600;
+                margin-left: auto;
+            }
+
+            .cart-drawer .cart-summary-toggle__icon {
+                width: 8px;
+                height: 8px;
+                border-right: 2px solid currentColor;
+                border-bottom: 2px solid currentColor;
+                transform: rotate(-135deg);
+                transition: transform 0.2s ease;
+            }
+
+            .cart-drawer .cart-summary.is-collapsed .cart-summary-toggle__icon {
+                transform: rotate(45deg);
+            }
+
+            .cart-drawer .cart-summary--collapsible .cart-summary__content {
+                max-height: 360px;
+                overflow: hidden;
+                padding: 15px 15px 0;
+                opacity: 1;
+                transform: translateY(0);
+                transition: max-height 0.28s ease, padding 0.28s ease, opacity 0.2s ease, transform 0.28s ease;
+            }
+
+            .cart-drawer .cart-summary--dropup .cart-summary__content {
+                position: absolute;
+                right: 0;
+                bottom: 100%;
+                left: 0;
+                margin-bottom: 8px;
+                padding: 15px;
+                background-color: var(--secondary-color);
+                border-radius: 8px;
+                box-shadow: 0 -10px 24px rgba(15, 23, 42, 0.12);
+            }
+
+            .cart-drawer .cart-summary.is-collapsed .cart-summary__content {
+                max-height: 0;
+                padding-top: 0;
+                padding-bottom: 0;
+                opacity: 0;
+                pointer-events: none;
+                transform: translateY(14px);
+            }
+
+            .cart-drawer .cart-summary--dropup.is-collapsed .cart-summary__content {
+                margin-bottom: 0;
             }
 
             .cart-drawer .summary-row {

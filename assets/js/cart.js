@@ -19,6 +19,27 @@ jQuery(document).ready(function ($) {
     let isUpdatingCart = false;
     $isonepagewidget = ($('.checkout-popup,#checkout-popup').length) ? $('.checkout-popup,#checkout-popup').data('isonepagewidget') : false;
 
+    function cartParamText(key, fallback) {
+        const params = typeof onepaqucpro_wc_cart_params !== 'undefined' ? onepaqucpro_wc_cart_params : {};
+
+        if (params[key] !== undefined && params[key] !== '') {
+            return params[key];
+        }
+
+        return fallback;
+    }
+
+    function addToCartNoticeText(key, fallback) {
+        const object = typeof rmenupro_ajax_object !== 'undefined' ? rmenupro_ajax_object : {};
+        const i18n = object.i18n || {};
+
+        if (i18n[key] !== undefined && i18n[key] !== '') {
+            return i18n[key];
+        }
+
+        return fallback;
+    }
+
     function isHideEmptyFloatingCartButtonEnabled($button) {
         const params = typeof onepaqucpro_wc_cart_params !== 'undefined' ? onepaqucpro_wc_cart_params : {};
 
@@ -226,6 +247,14 @@ jQuery(document).ready(function ($) {
         updateCartContent(isdrawer);
     }
 
+    function removeCartItemGroupIfEmpty(group) {
+        if (!group || group.querySelector('.cart-item')) {
+            return;
+        }
+
+        group.remove();
+    }
+
     // Handle quantity change
     $('.rmenupro-cart').on('change', '.item-quantity', function () {
         const $input = $(this);
@@ -309,7 +338,9 @@ jQuery(document).ready(function ($) {
                         }
                         item.classList.add('fade-out'); // Start fade-out animation
                         setTimeout(() => {
+                            const itemGroup = item.closest('.cart-item-group');
                             item.remove(); // Remove item after animation
+                            removeCartItemGroupIfEmpty(itemGroup);
                         }, 500); // Match timeout with CSS transition duration
                     });
 
@@ -1351,7 +1382,7 @@ jQuery(document).ready(function ($) {
         if (selection.variationId === 0) {
             return {
                 valid: false,
-                message: 'Please select all product options before adding this product to your cart.'
+                message: addToCartNoticeText('all_options_required', 'Please select all product options before adding this product to your cart.')
             };
         }
 
@@ -1359,9 +1390,12 @@ jQuery(document).ready(function ($) {
         var requiredCount = selection.requiredAttributes.length;
 
         if (requiredCount > 0 && selectedCount < requiredCount) {
+            var partialOptionsMessage = addToCartNoticeText('partial_options_required', 'Please select all product options. You have selected {selected} out of {required} required options.');
             return {
                 valid: false,
-                message: 'Please select all product options. You have selected ' + selectedCount + ' out of ' + requiredCount + ' required options.'
+                message: partialOptionsMessage
+                    .replace('{selected}', selectedCount)
+                    .replace('{required}', requiredCount)
             };
         }
 
@@ -1376,7 +1410,7 @@ jQuery(document).ready(function ($) {
         if (hasEmptyVariation) {
             return {
                 valid: false,
-                message: 'Please complete all product option selections.'
+                message: addToCartNoticeText('complete_options', 'Please complete all product option selections.')
             };
         }
 
@@ -1689,12 +1723,12 @@ jQuery(document).ready(function ($) {
                         callbacks.success(response, shouldOpenSideCart);
                     }
                 } else if (callbacks.error) {
-                    callbacks.error(response.message || 'Could not add the product to cart.');
+                    callbacks.error(response.message || cartParamText('i18n_add_to_cart_error', 'Could not add product to cart.'));
                 }
             },
             error: function () {
                 if (callbacks.error) {
-                    callbacks.error('Failed to add product to cart. Please try again later.');
+                    callbacks.error(cartParamText('i18n_add_to_cart_failed', 'Failed to add product to cart. Please try again.'));
                 }
             },
             complete: function () {
@@ -1830,12 +1864,12 @@ jQuery(document).ready(function ($) {
                             window.openCheckoutPopup();
                         }
                     } else {
-                        alert(response.message || 'Could not add the product to cart.');
+                        alert(response.message || cartParamText('i18n_add_to_cart_error', 'Could not add product to cart.'));
                     }
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                     console.error('AJAX error:', textStatus, errorThrown);
-                    alert('Failed to add product to cart. Please try again later.');
+                    alert(cartParamText('i18n_add_to_cart_failed', 'Failed to add product to cart. Please try again.'));
                 },
                 complete: function () {
                     $('#checkout-button-drawer-link').prop('disabled', false);
@@ -1878,7 +1912,7 @@ jQuery(document).ready(function ($) {
                     }
                 },
                 error: function () {
-                    alert('Could not clear cart. Please try again.');
+                    alert(addToCartNoticeText('clear_cart_error', 'Could not clear cart. Please try again.'));
                     $('#checkout-button-drawer-link').prop('disabled', false);
                     $button.removeClass('loading').prop('disabled', false);
                 }
@@ -2007,7 +2041,7 @@ jQuery(document).ready(function ($) {
             $button
                 .addClass("loading")
                 .prop('disabled', true)
-                .text('Adding...');
+                .text(cartParamText('i18n_add_to_cart_loading', 'Adding...'));
         } else {
             var originalText = $button.data('original-text') || 'Add to Cart';
             $button
@@ -2027,7 +2061,7 @@ jQuery(document).ready(function ($) {
 
         if (!productId) {
             if (couponMessage) {
-                couponMessage.textContent = 'Unable to add product. Invalid product ID.';
+                couponMessage.textContent = cartParamText('i18n_invalid_product', 'Unable to add product. Invalid product ID.');
                 couponMessage.className = 'coupon-message error';
                 couponMessage.style.display = "block";
             }
@@ -2047,7 +2081,7 @@ jQuery(document).ready(function ($) {
                     try {
                         response = JSON.parse(response);
                     } catch (error) {
-                        response = { success: false, message: 'Unexpected server response.' };
+                        response = { success: false, message: cartParamText('i18n_unexpected_response', 'Unexpected server response.') };
                     }
                 }
 
@@ -2066,7 +2100,7 @@ jQuery(document).ready(function ($) {
 
                     // Show success message
                     if (couponMessage) {
-                        couponMessage.textContent = 'Product added to cart!';
+                        couponMessage.textContent = cartParamText('i18n_product_added', 'Product added to cart!');
                         couponMessage.className = 'coupon-message success';
                         couponMessage.style.display = "block";
                     }
@@ -2085,7 +2119,7 @@ jQuery(document).ready(function ($) {
                         }
                     }, 3000);
                 } else {
-                    const errorMessage = (response && response.message) ? response.message : 'Could not add product to cart.';
+                    const errorMessage = (response && response.message) ? response.message : cartParamText('i18n_add_to_cart_error', 'Could not add product to cart.');
                     if (couponMessage) {
                         couponMessage.textContent = errorMessage;
                         couponMessage.className = 'coupon-message error';
@@ -2096,7 +2130,7 @@ jQuery(document).ready(function ($) {
                 }
             })
             .fail(function () {
-                const errorMessage = 'Failed to add product to cart. Please try again.';
+                const errorMessage = cartParamText('i18n_add_to_cart_failed', 'Failed to add product to cart. Please try again.');
                 if (couponMessage) {
                     couponMessage.textContent = errorMessage;
                     couponMessage.className = 'coupon-message error';

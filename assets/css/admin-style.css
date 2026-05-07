@@ -1107,7 +1107,7 @@ table.form-table .plugincy_grid,
 }
 
 .onepaqucpro-floating-preview-select,
-.onepaqucpro-floating-preview-summary div {
+.onepaqucpro-floating-preview-summary-content > div {
   display: flex;
   justify-content: space-between;
   gap: 10px;
@@ -1469,6 +1469,58 @@ table.form-table .plugincy_grid,
   color: #334155;
 }
 
+.onepaqucpro-floating-preview-summary-toggle {
+  align-items: center;
+  display: flex;
+  justify-content: flex-start;
+  gap: 8px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: #334155;
+  cursor: default;
+  font: inherit;
+  padding: 0;
+  text-align: left;
+}
+
+.onepaqucpro-floating-preview-summary-toggle strong {
+  font-weight: 700;
+  margin-left: auto;
+}
+
+.onepaqucpro-floating-preview-summary-toggle span[aria-hidden="true"] {
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-135deg);
+}
+
+.onepaqucpro-floating-preview-summary.is-summary-collapsed .onepaqucpro-floating-preview-summary-toggle span[aria-hidden="true"] {
+  transform: rotate(45deg);
+}
+
+.onepaqucpro-floating-preview-summary.is-summary-collapsed {
+  gap: 0;
+}
+
+.onepaqucpro-floating-preview-summary-content {
+  display: grid;
+  gap: 14px;
+  max-height: 360px;
+  overflow: hidden;
+  opacity: 1;
+  transform: translateY(0);
+  transition: max-height 0.28s ease, opacity 0.2s ease, transform 0.28s ease;
+}
+
+.onepaqucpro-floating-preview-summary.is-summary-collapsed .onepaqucpro-floating-preview-summary-content {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(12px);
+}
+
 .onepaqucpro-floating-preview-summary .total {
   padding-top: 12px;
   border-top: 1px solid #e5e7eb;
@@ -1490,10 +1542,19 @@ table.form-table .plugincy_grid,
   color: #334155;
 }
 
-.onepaqucpro-floating-preview-empty-body .dashicons-cart {
+.onepaqucpro-floating-preview-empty-icon {
+  align-items: center;
+  display: inline-flex;
+  justify-content: center;
   width: 48px;
   height: 48px;
-  font-size: 48px;
+}
+
+.onepaqucpro-floating-preview-empty-icon svg,
+.onepaqucpro-floating-preview-empty-icon .onepaqucpro-empty-cart-icon-svg {
+  display: block;
+  width: 48px;
+  height: 48px;
 }
 
 .onepaqucpro-floating-preview-empty-body p {

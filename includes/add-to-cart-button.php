@@ -951,6 +951,16 @@ class ONEPAQUCPRO_Add_To_Cart_Handler
             $toast_size = 'comfy';
         }
 
+        $view_cart_text = get_option('rmenupro_add_to_cart_view_cart_text', esc_html__('View Cart', 'one-page-quick-checkout-for-woocommerce-pro'));
+        $checkout_text = get_option('rmenupro_add_to_cart_checkout_text', esc_html__('Checkout', 'one-page-quick-checkout-for-woocommerce-pro'));
+        $variation_required_message = get_option('rmenupro_add_to_cart_variation_required_message', esc_html__('Please select some product options before adding this product to your cart.', 'one-page-quick-checkout-for-woocommerce-pro'));
+        $all_options_required_message = get_option('rmenupro_add_to_cart_all_options_required_message', esc_html__('Please select all product options before adding this product to your cart.', 'one-page-quick-checkout-for-woocommerce-pro'));
+        $partial_options_required_message = get_option('rmenupro_add_to_cart_partial_options_required_message', esc_html__('Please select all product options. You have selected {selected} out of {required} required options.', 'one-page-quick-checkout-for-woocommerce-pro'));
+        $complete_options_message = get_option('rmenupro_add_to_cart_complete_options_message', esc_html__('Please complete all product option selections.', 'one-page-quick-checkout-for-woocommerce-pro'));
+        $error_message = get_option('rmenupro_add_to_cart_error_message', esc_html__('Error adding to cart', 'one-page-quick-checkout-for-woocommerce-pro'));
+        $server_error_message = get_option('rmenupro_add_to_cart_server_error_message', esc_html__('Server error. Please try again.', 'one-page-quick-checkout-for-woocommerce-pro'));
+        $clear_cart_error_message = get_option('rmenupro_clear_cart_error_message', esc_html__('Could not clear cart. Please try again.', 'one-page-quick-checkout-for-woocommerce-pro'));
+
         wp_localize_script('rmenupro-ajax-add-to-cart', 'rmenupro_ajax_object', array(
             'ajax_url' => esc_url(admin_url('admin-ajax.php')),
             'nonce' => esc_js(wp_create_nonce('rmenupro-ajax-nonce')),
@@ -963,8 +973,15 @@ class ONEPAQUCPRO_Add_To_Cart_Handler
             'redirect_url' => $redirect_url,
             'i18n' => array(
                 'success' => $this->get_success_message_template(),
-                'view_cart' => get_option('rmenupro_show_view_cart_link', 1) ? esc_html__('View Cart', 'one-page-quick-checkout-for-woocommerce-pro') : '',
-                'checkout' => get_option('rmenupro_show_checkout_link', 0) ? esc_html__('Checkout', 'one-page-quick-checkout-for-woocommerce-pro') : '',
+                'view_cart' => get_option('rmenupro_show_view_cart_link', 1) ? (trim((string) $view_cart_text) !== '' ? $view_cart_text : esc_html__('View Cart', 'one-page-quick-checkout-for-woocommerce-pro')) : '',
+                'checkout' => get_option('rmenupro_show_checkout_link', 0) ? (trim((string) $checkout_text) !== '' ? $checkout_text : esc_html__('Checkout', 'one-page-quick-checkout-for-woocommerce-pro')) : '',
+                'variation_required' => trim((string) $variation_required_message) !== '' ? $variation_required_message : esc_html__('Please select some product options before adding this product to your cart.', 'one-page-quick-checkout-for-woocommerce-pro'),
+                'all_options_required' => trim((string) $all_options_required_message) !== '' ? $all_options_required_message : esc_html__('Please select all product options before adding this product to your cart.', 'one-page-quick-checkout-for-woocommerce-pro'),
+                'partial_options_required' => trim((string) $partial_options_required_message) !== '' ? $partial_options_required_message : esc_html__('Please select all product options. You have selected {selected} out of {required} required options.', 'one-page-quick-checkout-for-woocommerce-pro'),
+                'complete_options' => trim((string) $complete_options_message) !== '' ? $complete_options_message : esc_html__('Please complete all product option selections.', 'one-page-quick-checkout-for-woocommerce-pro'),
+                'error' => trim((string) $error_message) !== '' ? $error_message : esc_html__('Error adding to cart', 'one-page-quick-checkout-for-woocommerce-pro'),
+                'server_error' => trim((string) $server_error_message) !== '' ? $server_error_message : esc_html__('Server error. Please try again.', 'one-page-quick-checkout-for-woocommerce-pro'),
+                'clear_cart_error' => trim((string) $clear_cart_error_message) !== '' ? $clear_cart_error_message : esc_html__('Could not clear cart. Please try again.', 'one-page-quick-checkout-for-woocommerce-pro'),
             )
         ));
     }
@@ -1040,6 +1057,10 @@ class ONEPAQUCPRO_Add_To_Cart_Handler
         $custom_message = $this->get_success_message_template();
         $show_view_cart = get_option('rmenupro_show_view_cart_link', 1);
         $show_checkout = get_option('rmenupro_show_checkout_link', 0);
+        $view_cart_text = get_option('rmenupro_add_to_cart_view_cart_text', esc_html__('View cart', 'one-page-quick-checkout-for-woocommerce-pro'));
+        $checkout_text = get_option('rmenupro_add_to_cart_checkout_text', esc_html__('Checkout', 'one-page-quick-checkout-for-woocommerce-pro'));
+        $view_cart_text = trim((string) $view_cart_text) !== '' ? $view_cart_text : esc_html__('View cart', 'one-page-quick-checkout-for-woocommerce-pro');
+        $checkout_text = trim((string) $checkout_text) !== '' ? $checkout_text : esc_html__('Checkout', 'one-page-quick-checkout-for-woocommerce-pro');
 
         $titles = array();
         $count = 0;
@@ -1055,11 +1076,11 @@ class ONEPAQUCPRO_Add_To_Cart_Handler
         $message = '<div>' . esc_html($custom_message);
 
         if ($show_view_cart) {
-            $message .= ' <a href="' . esc_url(wc_get_cart_url()) . '" class="button wc-forward">' . esc_html__('View cart', 'one-page-quick-checkout-for-woocommerce-pro') . '</a>';
+            $message .= ' <a href="' . esc_url(wc_get_cart_url()) . '" class="button wc-forward">' . esc_html($view_cart_text) . '</a>';
         }
 
         if ($show_checkout) {
-            $message .= ' <a href="' . esc_url(wc_get_checkout_url()) . '" class="button checkout wc-forward">' . esc_html__('Checkout', 'one-page-quick-checkout-for-woocommerce-pro') . '</a>';
+            $message .= ' <a href="' . esc_url(wc_get_checkout_url()) . '" class="button checkout wc-forward">' . esc_html($checkout_text) . '</a>';
         }
 
         $message .= '</div>';

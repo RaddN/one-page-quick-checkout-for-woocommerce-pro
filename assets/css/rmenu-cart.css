@@ -2409,6 +2409,20 @@ a.opqvfw-btn.display-text_icon {
 .cart-items.empty-cart-items .empty-cart {
   text-align: center;
 }
+
+.plugincy-empty-cart-icon {
+  align-items: center;
+  display: inline-flex;
+  justify-content: center;
+}
+
+.plugincy-empty-cart-icon svg,
+.plugincy-empty-cart-icon .onepaqucpro-empty-cart-icon-svg {
+  display: block;
+  height: 56px;
+  width: 56px;
+}
+
 .loading-spinner {
   position: relative;
 }

@@ -189,6 +189,15 @@ $onepaqucpro_string_settings_fields = [
     "rmenupro_add_to_cart_animation",
     "rmenupro_add_to_cart_notification_style",
     "rmenupro_add_to_cart_success_message",
+    "rmenupro_add_to_cart_view_cart_text",
+    "rmenupro_add_to_cart_checkout_text",
+    "rmenupro_add_to_cart_variation_required_message",
+    "rmenupro_add_to_cart_all_options_required_message",
+    "rmenupro_add_to_cart_partial_options_required_message",
+    "rmenupro_add_to_cart_complete_options_message",
+    "rmenupro_add_to_cart_error_message",
+    "rmenupro_add_to_cart_server_error_message",
+    "rmenupro_clear_cart_error_message",
     "rmenupro_show_view_cart_link",
     "rmenupro_add_to_cart_notification_duration",
     "rmenupro_show_checkout_link",
@@ -250,6 +259,7 @@ $onepaqucpro_string_settings_fields = [
     "rmenu_cart_hover_text",
     "rmenu_cart_border_radius",
     "rmenu_floating_cart_icon",
+    "rmenu_floating_cart_empty_icon",
     "rmenu_floating_cart_meta_include",
     "rmenu_floating_cart_group_by",
     "rmenu_floating_cart_group_meta_key",
@@ -275,6 +285,8 @@ $onepaqucpro_floating_cart_premium_checkbox_fields = [
     'rmenu_floating_cart_show_coupon' => '1',
     'rmenu_floating_cart_show_recommendations' => '1',
     'rmenu_floating_cart_show_summary' => '1',
+    'rmenu_floating_cart_summary_collapsible' => '0',
+    'rmenu_floating_cart_summary_initially_collapsed' => '0',
     'rmenu_floating_cart_show_subtotal' => '1',
     'rmenu_floating_cart_show_discount' => '1',
     'rmenu_floating_cart_show_shipping_options' => '0',
@@ -310,6 +322,43 @@ $onepaqucpro_floating_cart_premium_text_fields = [
     'rmenu_floating_cart_shipping_label' => 'Shipping',
     'rmenu_floating_cart_tax_label' => 'Tax',
     'rmenu_floating_cart_related_add_to_cart_text' => 'Add to cart',
+    'rmenu_floating_cart_applying_text' => 'Applying...',
+    'rmenu_floating_cart_applying_coupon_text' => 'Applying coupon...',
+    'rmenu_floating_cart_coupon_applied_message' => 'Coupon applied successfully!',
+    'rmenu_floating_cart_invalid_coupon_message' => 'Invalid coupon code.',
+    'rmenu_floating_cart_error_try_again_message' => 'Something went wrong. Please try again.',
+    'rmenu_floating_cart_removing_text' => 'Removing...',
+    'rmenu_floating_cart_removing_coupon_text' => 'Removing coupon...',
+    'rmenu_floating_cart_coupon_removed_message' => 'Coupon removed successfully!',
+    'rmenu_floating_cart_failed_remove_coupon_message' => 'Failed to remove coupon. Please try again.',
+    'rmenu_floating_cart_preloader_message' => 'Bringing you the goods...',
+    'rmenu_floating_cart_preloader_slow_message' => 'This is taking long. Something is wrong.',
+    'rmenu_floating_cart_iframe_error_message' => 'Error loading checkout. Please try again.',
+    'rmenu_floating_cart_select_variation_error_message' => 'Please choose a valid variation before updating.',
+    'rmenu_floating_cart_update_variation_error_message' => 'Could not update the selected variation. Please try again.',
+    'rmenu_floating_cart_variation_disabled_message' => 'Variation switching is not enabled.',
+    'rmenu_floating_cart_item_not_found_message' => 'The selected cart item could not be found.',
+    'rmenu_floating_cart_item_not_variable_message' => 'This cart item does not support variation switching.',
+    'rmenu_floating_cart_invalid_variation_message' => 'The selected variation is invalid.',
+    'rmenu_floating_cart_same_variation_message' => 'The selected variation is already in your cart.',
+    'rmenu_floating_cart_unavailable_variation_message' => 'The selected variation cannot be added to the cart right now.',
+    'rmenu_floating_cart_original_item_update_error_message' => 'The original cart item could not be updated.',
+    'rmenu_floating_cart_variation_updated_message' => 'Variation updated successfully.',
+    'rmenu_floating_cart_cart_unavailable_message' => 'WooCommerce cart is not available.',
+    'rmenu_floating_cart_quantity_update_error_message' => 'Could not update quantity.',
+    'rmenu_floating_cart_no_cart_item_key_message' => 'No cart item key provided.',
+    'rmenu_floating_cart_remove_items_error_message' => 'Could not remove some items.',
+    'rmenu_floating_cart_add_to_cart_loading_text' => 'Adding...',
+    'rmenu_floating_cart_invalid_product_message' => 'Unable to add product. Invalid product ID.',
+    'rmenu_floating_cart_unexpected_response_message' => 'Unexpected server response.',
+    'rmenu_floating_cart_product_added_message' => 'Product added to cart!',
+    'rmenu_floating_cart_add_to_cart_error_message' => 'Could not add product to cart.',
+    'rmenu_floating_cart_add_to_cart_failed_message' => 'Failed to add product to cart. Please try again.',
+    'rmenu_floating_cart_add_to_cart_server_error_message' => 'Error adding product to cart.',
+    'rmenu_floating_cart_private_product_error_message' => 'This private product cannot be added to cart for the current user.',
+    'rmenu_floating_cart_remove_item_aria_label' => 'Remove this item',
+    'rmenu_floating_cart_decrease_quantity_label' => 'Decrease quantity',
+    'rmenu_floating_cart_increase_quantity_label' => 'Increase quantity',
 ];
 
 $onepaqucpro_string_settings_fields = array_values(array_unique(array_merge(
@@ -335,6 +384,100 @@ function onepaqucpro_get_floating_cart_text_defaults()
     global $onepaqucpro_floating_cart_premium_text_fields;
 
     return is_array($onepaqucpro_floating_cart_premium_text_fields) ? $onepaqucpro_floating_cart_premium_text_fields : array();
+}
+
+function onepaqucpro_get_floating_cart_empty_icon_options()
+{
+    return array(
+        'cart' => __('Cart', 'one-page-quick-checkout-for-woocommerce-pro'),
+        'basket' => __('Basket', 'one-page-quick-checkout-for-woocommerce-pro'),
+        'shopping-bag' => __('Shopping Bag', 'one-page-quick-checkout-for-woocommerce-pro'),
+        'package' => __('Package', 'one-page-quick-checkout-for-woocommerce-pro'),
+        'receipt' => __('Receipt', 'one-page-quick-checkout-for-woocommerce-pro'),
+    );
+}
+
+function onepaqucpro_sanitize_floating_cart_empty_icon_key($icon)
+{
+    $icon = sanitize_key($icon);
+    $options = onepaqucpro_get_floating_cart_empty_icon_options();
+
+    return isset($options[$icon]) ? $icon : 'cart';
+}
+
+function onepaqucpro_get_floating_cart_empty_icon()
+{
+    if (!onepaqucpro_can_use_floating_cart_premium_settings()) {
+        return 'cart';
+    }
+
+    return onepaqucpro_sanitize_floating_cart_empty_icon_key(get_option('rmenu_floating_cart_empty_icon', 'cart'));
+}
+
+function onepaqucpro_get_floating_cart_svg_allowed_html()
+{
+    return array(
+        'svg' => array(
+            'class' => true,
+            'xmlns' => true,
+            'width' => true,
+            'height' => true,
+            'viewBox' => true,
+            'viewbox' => true,
+            'fill' => true,
+            'stroke' => true,
+            'stroke-width' => true,
+            'stroke-linecap' => true,
+            'stroke-linejoin' => true,
+            'aria-hidden' => true,
+            'focusable' => true,
+            'role' => true,
+            'aria-label' => true,
+            'style' => true,
+        ),
+        'path' => array(
+            'd' => true,
+            'fill' => true,
+            'stroke' => true,
+            'stroke-width' => true,
+            'stroke-linecap' => true,
+            'stroke-linejoin' => true,
+        ),
+        'circle' => array(
+            'cx' => true,
+            'cy' => true,
+            'r' => true,
+            'fill' => true,
+            'stroke' => true,
+            'stroke-width' => true,
+        ),
+        'rect' => array(
+            'x' => true,
+            'y' => true,
+            'width' => true,
+            'height' => true,
+            'rx' => true,
+            'ry' => true,
+            'fill' => true,
+            'stroke' => true,
+            'stroke-width' => true,
+        ),
+    );
+}
+
+function onepaqucpro_get_floating_cart_empty_icon_svg($icon = '')
+{
+    $icon = onepaqucpro_sanitize_floating_cart_empty_icon_key($icon !== '' ? $icon : onepaqucpro_get_floating_cart_empty_icon());
+    $attrs = 'class="onepaqucpro-empty-cart-icon-svg" xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"';
+    $icons = array(
+        'cart' => '<svg ' . $attrs . '><path d="M3 3h2.2l2.1 11.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.5L21 7H6.1"></path><circle cx="10" cy="20" r="1.4"></circle><circle cx="18" cy="20" r="1.4"></circle></svg>',
+        'basket' => '<svg ' . $attrs . '><path d="M7 10 10 4"></path><path d="m14 4 3 6"></path><path d="M4 10h16l-1.4 9a2 2 0 0 1-2 1.7H7.4a2 2 0 0 1-2-1.7L4 10Z"></path><path d="M9 14v3"></path><path d="M15 14v3"></path></svg>',
+        'shopping-bag' => '<svg ' . $attrs . '><path d="M6.5 7.5h11l1 12a2 2 0 0 1-2 2h-9a2 2 0 0 1-2-2l1-12Z"></path><path d="M9 7.5V6a3 3 0 0 1 6 0v1.5"></path></svg>',
+        'package' => '<svg ' . $attrs . '><path d="M12 2.8 20 7v10l-8 4.2L4 17V7l8-4.2Z"></path><path d="M4.5 7.3 12 11.4l7.5-4.1"></path><path d="M12 21V11.4"></path><path d="m8 4.8 8 4.3"></path></svg>',
+        'receipt' => '<svg ' . $attrs . '><path d="M6 3h12v18l-2-1.2-2 1.2-2-1.2-2 1.2-2-1.2L6 21V3Z"></path><path d="M9 8h6"></path><path d="M9 12h6"></path><path d="M9 16h4"></path></svg>',
+    );
+
+    return isset($icons[$icon]) ? $icons[$icon] : $icons['cart'];
 }
 
 function onepaqucpro_floating_cart_element_enabled($field, $default = '1')
@@ -394,23 +537,23 @@ function onepaqucpro_get_floating_cart_i18n()
     $domain = 'one-page-quick-checkout-for-woocommerce-pro';
 
     return array(
-        'applying'                 => esc_html__('Applying…', $domain),
-        'applying_coupon'          => esc_html__('Applying coupon…', $domain),
+        'applying'                 => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_applying_text', esc_html__('Applying...', $domain)),
+        'applying_coupon'          => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_applying_coupon_text', esc_html__('Applying coupon...', $domain)),
         'apply_coupon'             => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_coupon_button_text', esc_html__('Apply coupon', $domain)),
         'apply'                    => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_coupon_button_text', esc_html__('Apply', $domain)),
-        'coupon_applied'         => esc_html__('Coupon applied successfully!', $domain),
-        'invalid_coupon'          => esc_html__('Invalid coupon code.', $domain),
-        'error_try_again'         => esc_html__('Something went wrong. Please try again.', $domain),
-        'removing'                => esc_html__('Removing…', $domain),
-        'removing_coupon'         => esc_html__('Removing coupon…', $domain),
+        'coupon_applied'           => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_coupon_applied_message', esc_html__('Coupon applied successfully!', $domain)),
+        'invalid_coupon'           => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_invalid_coupon_message', esc_html__('Invalid coupon code.', $domain)),
+        'error_try_again'          => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_error_try_again_message', esc_html__('Something went wrong. Please try again.', $domain)),
+        'removing'                 => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_removing_text', esc_html__('Removing...', $domain)),
+        'removing_coupon'          => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_removing_coupon_text', esc_html__('Removing coupon...', $domain)),
         'remove'                  => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_remove_coupon_text', esc_html__('Remove', $domain)),
-        'coupon_removed'          => esc_html__('Coupon removed successfully!', $domain),
-        'failed_remove_coupon'    => esc_html__('Failed to remove coupon. Please try again.', $domain),
+        'coupon_removed'           => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_coupon_removed_message', esc_html__('Coupon removed successfully!', $domain)),
+        'failed_remove_coupon'     => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_failed_remove_coupon_message', esc_html__('Failed to remove coupon. Please try again.', $domain)),
         'applied_coupons_heading' => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_applied_coupons_heading', esc_html__('Applied Coupons:', $domain)),
         'discount'                => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_discount_label', esc_html__('Discount', $domain)),
-        'preloader_msg'           => esc_html__('Bringing you the goods…', $domain),
-        'preloader_slow'          => esc_html__('This is taking long. Something\'s wrong.', $domain),
-        'iframe_error'            => esc_html__('Error loading checkout. Please try again.', $domain),
+        'preloader_msg'           => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_preloader_message', esc_html__('Bringing you the goods...', $domain)),
+        'preloader_slow'          => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_preloader_slow_message', esc_html__('This is taking long. Something is wrong.', $domain)),
+        'iframe_error'            => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_iframe_error_message', esc_html__('Error loading checkout. Please try again.', $domain)),
     );
 }
 
@@ -478,11 +621,17 @@ function onepaqucpro_cart_enqueue_scripts()
         'blocks_link_product' => get_option("rmenupro_link_product", "0"),
         'variation_switch_enabled' => function_exists('onepaqucpro_cart_item_variation_switch_enabled') && onepaqucpro_cart_item_variation_switch_enabled(),
         'hide_empty_floating_cart_button' => function_exists('onepaqucpro_hide_empty_cart_button_enabled') && onepaqucpro_hide_empty_cart_button_enabled() ? '1' : '0',
-        'i18n_remove_item' => esc_html__('Remove this item', 'one-page-quick-checkout-for-woocommerce-pro'),
-        'i18n_decrease_quantity' => esc_html__('Decrease quantity', 'one-page-quick-checkout-for-woocommerce-pro'),
-        'i18n_increase_quantity' => esc_html__('Increase quantity', 'one-page-quick-checkout-for-woocommerce-pro'),
-        'i18n_select_variation_error' => esc_html__('Please choose a valid variation before updating.', 'one-page-quick-checkout-for-woocommerce-pro'),
-        'i18n_update_variation_error' => esc_html__('Could not update the selected variation. Please try again.', 'one-page-quick-checkout-for-woocommerce-pro'),
+        'i18n_remove_item' => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_remove_item_aria_label', esc_html__('Remove this item', 'one-page-quick-checkout-for-woocommerce-pro')),
+        'i18n_decrease_quantity' => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_decrease_quantity_label', esc_html__('Decrease quantity', 'one-page-quick-checkout-for-woocommerce-pro')),
+        'i18n_increase_quantity' => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_increase_quantity_label', esc_html__('Increase quantity', 'one-page-quick-checkout-for-woocommerce-pro')),
+        'i18n_select_variation_error' => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_select_variation_error_message', esc_html__('Please choose a valid variation before updating.', 'one-page-quick-checkout-for-woocommerce-pro')),
+        'i18n_update_variation_error' => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_update_variation_error_message', esc_html__('Could not update the selected variation. Please try again.', 'one-page-quick-checkout-for-woocommerce-pro')),
+        'i18n_add_to_cart_loading' => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_add_to_cart_loading_text', esc_html__('Adding...', 'one-page-quick-checkout-for-woocommerce-pro')),
+        'i18n_invalid_product' => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_invalid_product_message', esc_html__('Unable to add product. Invalid product ID.', 'one-page-quick-checkout-for-woocommerce-pro')),
+        'i18n_unexpected_response' => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_unexpected_response_message', esc_html__('Unexpected server response.', 'one-page-quick-checkout-for-woocommerce-pro')),
+        'i18n_product_added' => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_product_added_message', esc_html__('Product added to cart!', 'one-page-quick-checkout-for-woocommerce-pro')),
+        'i18n_add_to_cart_error' => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_add_to_cart_error_message', esc_html__('Could not add product to cart.', 'one-page-quick-checkout-for-woocommerce-pro')),
+        'i18n_add_to_cart_failed' => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_add_to_cart_failed_message', esc_html__('Failed to add product to cart. Please try again.', 'one-page-quick-checkout-for-woocommerce-pro')),
         'txt_selected'               => onepaqucpro_get_floating_cart_selected_suffix(),
         'direct_checkout_behave' => $direct_checkout_behave,
         'checkout_url' => wc_get_checkout_url(),

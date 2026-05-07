@@ -99,7 +99,7 @@
             if (Object.keys(variations).length && variationId == 0) {
                 $('#checkout-button-drawer-link').prop('disabled', false);
                 $thisButton.removeClass('loading').prop('disabled', false);
-                alert("Please select some product options before adding this product to your cart.");
+                alert(rmenupro_ajax_object.i18n.variation_required || "Please select some product options before adding this product to your cart.");
                 return false; // Explicitly return false
             }
 
@@ -150,13 +150,13 @@
                             $(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash, $thisButton]);
                         } else {
                             // Show error
-                            RMENUPRO_Add_To_Cart.showError(response.message || 'Error adding to cart');
+                            RMENUPRO_Add_To_Cart.showError(response.message || rmenupro_ajax_object.i18n.error || 'Error adding to cart');
                             $thisButton.removeClass('loading').prop('disabled', false);
                         }
                     },
                     error: function () {
                         // Show error
-                        RMENUPRO_Add_To_Cart.showError('Server error. Please try again.');
+                        RMENUPRO_Add_To_Cart.showError(rmenupro_ajax_object.i18n.server_error || 'Server error. Please try again.');
                         $thisButton.removeClass('loading').prop('disabled', false);
                     }
                 });

@@ -34,7 +34,7 @@ function onepaqucpro_update_shipping_method()
     check_ajax_referer('update_shipping_method', 'nonce');
 
     if (!function_exists('WC') || !WC() || !WC()->cart || !WC()->session) {
-        wp_send_json_error(array('message' => esc_html__('WooCommerce cart is not available.', 'one-page-quick-checkout-for-woocommerce-pro')));
+        wp_send_json_error(array('message' => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_cart_unavailable_message', esc_html__('WooCommerce cart is not available.', 'one-page-quick-checkout-for-woocommerce-pro'))));
     }
 
     $chosen_shipping_methods = array();
@@ -76,7 +76,7 @@ function onepaqucpro_update_cart_item_quantity()
             'total' => $total
         ));
     } else {
-        wp_send_json_error('Could not update quantity.');
+        wp_send_json_error(onepaqucpro_get_floating_cart_text('rmenu_floating_cart_quantity_update_error_message', esc_html__('Could not update quantity.', 'one-page-quick-checkout-for-woocommerce-pro')));
     }
 }
 
@@ -88,7 +88,7 @@ function onepaqucpro_update_cart_item_variation()
 
     if (!function_exists('onepaqucpro_cart_item_variation_switch_enabled') || !onepaqucpro_cart_item_variation_switch_enabled()) {
         wp_send_json_error(array(
-            'message' => esc_html__('Variation switching is not enabled.', 'one-page-quick-checkout-for-woocommerce-pro'),
+            'message' => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_variation_disabled_message', esc_html__('Variation switching is not enabled.', 'one-page-quick-checkout-for-woocommerce-pro')),
         ));
     }
 
@@ -97,7 +97,7 @@ function onepaqucpro_update_cart_item_variation()
 
     if ($cart_item_key === '' || empty($cart_items[$cart_item_key])) {
         wp_send_json_error(array(
-            'message' => esc_html__('The selected cart item could not be found.', 'one-page-quick-checkout-for-woocommerce-pro'),
+            'message' => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_item_not_found_message', esc_html__('The selected cart item could not be found.', 'one-page-quick-checkout-for-woocommerce-pro')),
         ));
     }
 
@@ -107,7 +107,7 @@ function onepaqucpro_update_cart_item_variation()
 
     if (!($variable_product instanceof WC_Product_Variable)) {
         wp_send_json_error(array(
-            'message' => esc_html__('This cart item does not support variation switching.', 'one-page-quick-checkout-for-woocommerce-pro'),
+            'message' => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_item_not_variable_message', esc_html__('This cart item does not support variation switching.', 'one-page-quick-checkout-for-woocommerce-pro')),
         ));
     }
 
@@ -127,7 +127,7 @@ function onepaqucpro_update_cart_item_variation()
 
     if (empty($variation)) {
         wp_send_json_error(array(
-            'message' => esc_html__('Please choose a valid variation before updating.', 'one-page-quick-checkout-for-woocommerce-pro'),
+            'message' => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_select_variation_error_message', esc_html__('Please choose a valid variation before updating.', 'one-page-quick-checkout-for-woocommerce-pro')),
         ));
     }
 
@@ -143,7 +143,7 @@ function onepaqucpro_update_cart_item_variation()
     $variation_product = $matched_variation_id > 0 ? wc_get_product($matched_variation_id) : false;
     if (!($variation_product instanceof WC_Product_Variation) || $variation_product->get_parent_id() !== $product_id) {
         wp_send_json_error(array(
-            'message' => esc_html__('The selected variation is invalid.', 'one-page-quick-checkout-for-woocommerce-pro'),
+            'message' => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_invalid_variation_message', esc_html__('The selected variation is invalid.', 'one-page-quick-checkout-for-woocommerce-pro')),
         ));
     }
 
@@ -169,7 +169,7 @@ function onepaqucpro_update_cart_item_variation()
     if ($matched_variation_id === $current_variation_id && $variation === $current_variation) {
         wp_send_json_success(array(
             'cart_item_key' => $cart_item_key,
-            'message' => esc_html__('The selected variation is already in your cart.', 'one-page-quick-checkout-for-woocommerce-pro'),
+            'message' => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_same_variation_message', esc_html__('The selected variation is already in your cart.', 'one-page-quick-checkout-for-woocommerce-pro')),
         ));
     }
 
@@ -185,7 +185,7 @@ function onepaqucpro_update_cart_item_variation()
         $error_notices = wc_get_notices('error');
         $message = !empty($error_notices[0]['notice'])
             ? wp_strip_all_tags($error_notices[0]['notice'])
-            : esc_html__('The selected variation cannot be added to the cart right now.', 'one-page-quick-checkout-for-woocommerce-pro');
+            : onepaqucpro_get_floating_cart_text('rmenu_floating_cart_unavailable_variation_message', esc_html__('The selected variation cannot be added to the cart right now.', 'one-page-quick-checkout-for-woocommerce-pro'));
 
         wc_clear_notices();
 
@@ -202,7 +202,7 @@ function onepaqucpro_update_cart_item_variation()
 
     if (!WC()->cart->remove_cart_item($cart_item_key)) {
         wp_send_json_error(array(
-            'message' => esc_html__('The original cart item could not be updated.', 'one-page-quick-checkout-for-woocommerce-pro'),
+            'message' => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_original_item_update_error_message', esc_html__('The original cart item could not be updated.', 'one-page-quick-checkout-for-woocommerce-pro')),
         ));
     }
 
@@ -212,7 +212,7 @@ function onepaqucpro_update_cart_item_variation()
         WC()->cart->add_to_cart($product_id, $quantity, $current_variation_id, $original_variation, $original_cart_item_data);
 
         wp_send_json_error(array(
-            'message' => esc_html__('Could not update the selected variation. Please try again.', 'one-page-quick-checkout-for-woocommerce-pro'),
+            'message' => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_update_variation_error_message', esc_html__('Could not update the selected variation. Please try again.', 'one-page-quick-checkout-for-woocommerce-pro')),
         ));
     }
 
@@ -220,7 +220,7 @@ function onepaqucpro_update_cart_item_variation()
 
     wp_send_json_success(array(
         'cart_item_key' => $new_cart_item_key,
-        'message' => esc_html__('Variation updated successfully.', 'one-page-quick-checkout-for-woocommerce-pro'),
+        'message' => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_variation_updated_message', esc_html__('Variation updated successfully.', 'one-page-quick-checkout-for-woocommerce-pro')),
     ));
 }
 
@@ -264,7 +264,7 @@ function onepaqucpro_handle_remove_cart_item()
     } elseif (isset($_POST['cart_item_key'])) {
         $cart_item_keys = array(sanitize_text_field(wp_unslash($_POST['cart_item_key'])));
     } else {
-        wp_send_json_error('No cart item key provided.');
+        wp_send_json_error(onepaqucpro_get_floating_cart_text('rmenu_floating_cart_no_cart_item_key_message', esc_html__('No cart item key provided.', 'one-page-quick-checkout-for-woocommerce-pro')));
     }
     $sanitized_keys = array();
     foreach ($cart_item_keys as $key) {
@@ -295,7 +295,7 @@ function onepaqucpro_handle_remove_cart_item()
         ));
     } else {
         wp_send_json_error(array(
-            'message' => 'Could not remove some items.',
+            'message' => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_remove_items_error_message', esc_html__('Could not remove some items.', 'one-page-quick-checkout-for-woocommerce-pro')),
             'failed_keys' => $failed_keys
         ));
     }
@@ -522,9 +522,9 @@ function onepaqucpro_ajax_add_to_cart()
 
         wp_send_json($response);
     } else {
-        $message = esc_html__('Error adding product to cart', 'one-page-quick-checkout-for-woocommerce-pro');
+        $message = onepaqucpro_get_floating_cart_text('rmenu_floating_cart_add_to_cart_server_error_message', esc_html__('Error adding product to cart.', 'one-page-quick-checkout-for-woocommerce-pro'));
         if ('private' === $product_status && ! $can_add_private_product) {
-            $message = esc_html__('This private product cannot be added to cart for the current user.', 'one-page-quick-checkout-for-woocommerce-pro');
+            $message = onepaqucpro_get_floating_cart_text('rmenu_floating_cart_private_product_error_message', esc_html__('This private product cannot be added to cart for the current user.', 'one-page-quick-checkout-for-woocommerce-pro'));
         }
 
         $data = array(
@@ -567,7 +567,7 @@ function onepaqucpro_apply_coupon()
             'total' => $total
         ));
     } else {
-        wp_send_json_error(array('message' => 'Invalid coupon code.'));
+        wp_send_json_error(array('message' => onepaqucpro_get_floating_cart_text('rmenu_floating_cart_invalid_coupon_message', esc_html__('Invalid coupon code.', 'one-page-quick-checkout-for-woocommerce-pro'))));
     }
 }
 

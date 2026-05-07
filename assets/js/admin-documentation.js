@@ -195,6 +195,13 @@ document.addEventListener("DOMContentLoaded", function () {
         "shopping-bag": "dashicons-store",
         basket: "dashicons-products"
     };
+    const emptyIconSvgMap = {
+        cart: '<svg class="onepaqucpro-empty-cart-icon-svg" xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 3h2.2l2.1 11.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.5L21 7H6.1"></path><circle cx="10" cy="20" r="1.4"></circle><circle cx="18" cy="20" r="1.4"></circle></svg>',
+        basket: '<svg class="onepaqucpro-empty-cart-icon-svg" xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 10 10 4"></path><path d="m14 4 3 6"></path><path d="M4 10h16l-1.4 9a2 2 0 0 1-2 1.7H7.4a2 2 0 0 1-2-1.7L4 10Z"></path><path d="M9 14v3"></path><path d="M15 14v3"></path></svg>',
+        "shopping-bag": '<svg class="onepaqucpro-empty-cart-icon-svg" xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6.5 7.5h11l1 12a2 2 0 0 1-2 2h-9a2 2 0 0 1-2-2l1-12Z"></path><path d="M9 7.5V6a3 3 0 0 1 6 0v1.5"></path></svg>',
+        package: '<svg class="onepaqucpro-empty-cart-icon-svg" xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 2.8 20 7v10l-8 4.2L4 17V7l8-4.2Z"></path><path d="M4.5 7.3 12 11.4l7.5-4.1"></path><path d="M12 21V11.4"></path><path d="m8 4.8 8 4.3"></path></svg>',
+        receipt: '<svg class="onepaqucpro-empty-cart-icon-svg" xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 3h12v18l-2-1.2-2 1.2-2-1.2-2 1.2-2-1.2L6 21V3Z"></path><path d="M9 8h6"></path><path d="M9 12h6"></path><path d="M9 16h4"></path></svg>'
+    };
     let activeVisualField = "";
     let activeVisualNode = null;
     let actionHideTimer = null;
@@ -272,7 +279,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const control = getControl(field);
         const textNodes = collectTextNodes(targetNode);
         const hasToggleSetting = !!control && control.type === "checkbox";
-        const fieldPanelSettings = ["rmenu_floating_cart_show_item_meta", "rmenu_floating_cart_group_items"].indexOf(field) !== -1;
+        const fieldPanelSettings = ["rmenu_floating_cart_show_item_meta", "rmenu_floating_cart_group_items", "rmenu_floating_cart_show_summary", "rmenu_floating_cart_show_total"].indexOf(field) !== -1;
         const hasPanelSettings = fieldPanelSettings || textNodes.length > 0 || targetNode.querySelector("[data-preview-icon], [data-preview-group-icon]") || targetNode.matches("[data-preview-icon], [data-preview-group-icon]");
         const hasEditableSettings = hasToggleSetting || hasPanelSettings;
 
@@ -1035,6 +1042,16 @@ document.addEventListener("DOMContentLoaded", function () {
             setModalWrapVisible(body, "rmenu_floating_cart_meta_include", selectedEnabled);
         }
 
+        if (activeVisualField === "rmenu_floating_cart_show_empty_icon") {
+            setModalWrapVisible(body, "rmenu_floating_cart_empty_icon", selectedEnabled);
+        }
+
+        if (activeVisualField === "rmenu_floating_cart_show_summary" || activeVisualField === "rmenu_floating_cart_show_total") {
+            const summaryCollapsible = getModalControlValue(body, "rmenu_floating_cart_summary_collapsible") === "1";
+            setModalWrapVisible(body, "rmenu_floating_cart_summary_collapsible", selectedEnabled);
+            setModalWrapVisible(body, "rmenu_floating_cart_summary_initially_collapsed", selectedEnabled && summaryCollapsible);
+        }
+
         if (activeVisualField === "rmenu_floating_cart_group_items") {
             const groupByControl = body.querySelector('[data-modal-control-field="rmenu_floating_cart_group_by"]');
             const groupBy = groupByControl ? groupByControl.value : getModalControlValue(body, "rmenu_floating_cart_group_by");
@@ -1133,6 +1150,9 @@ document.addEventListener("DOMContentLoaded", function () {
         const isCartLauncher = activeVisualNode.classList.contains("onepaqucpro-floating-preview-button") || activeVisualNode.matches("[data-preview-icon]") || activeVisualNode.querySelector("[data-preview-icon]");
         const isCheckoutButton = activeVisualNode.classList.contains("onepaqucpro-floating-preview-checkout");
         const isItemMeta = activeVisualField === "rmenu_floating_cart_show_item_meta";
+        const isEmptyIcon = activeVisualField === "rmenu_floating_cart_show_empty_icon";
+        const isSummary = activeVisualField === "rmenu_floating_cart_show_summary";
+        const isTotalRow = activeVisualField === "rmenu_floating_cart_show_total";
         const isGroup = activeVisualField === "rmenu_floating_cart_group_items" || activeVisualNode.matches("[data-preview-group-icon]") || activeVisualNode.querySelector("[data-preview-group-icon]");
 
         body.innerHTML = "";
@@ -1156,6 +1176,15 @@ document.addEventListener("DOMContentLoaded", function () {
             buildControlSetting(body, "rmenu_floating_cart_meta_include");
         }
 
+        if (isEmptyIcon) {
+            buildControlSetting(body, "rmenu_floating_cart_empty_icon");
+        }
+
+        if (isSummary) {
+            buildControlSetting(body, "rmenu_floating_cart_summary_collapsible");
+            buildControlSetting(body, "rmenu_floating_cart_summary_initially_collapsed");
+        }
+
         if (isGroup) {
             buildControlSetting(body, "rmenu_floating_cart_group_by");
             buildControlSetting(body, "rmenu_floating_cart_group_meta_key");
@@ -1165,6 +1194,11 @@ document.addEventListener("DOMContentLoaded", function () {
         textNodes.forEach(function (node) {
             buildTextSetting(body, node);
         });
+
+        if (isTotalRow) {
+            buildControlSetting(body, "rmenu_floating_cart_summary_collapsible");
+            buildControlSetting(body, "rmenu_floating_cart_summary_initially_collapsed");
+        }
 
         if (!body.children.length) {
             const empty = document.createElement("p");
@@ -1190,6 +1224,39 @@ document.addEventListener("DOMContentLoaded", function () {
                 icon.classList.remove(iconClassMap[key]);
             });
             icon.classList.add(iconClass);
+        });
+    }
+
+    function updateEmptyIcon() {
+        const value = getControlValue("rmenu_floating_cart_empty_icon") || "cart";
+        const iconSvg = emptyIconSvgMap[value] || emptyIconSvgMap.cart;
+
+        editor.querySelectorAll("[data-preview-empty-icon]").forEach(function (icon) {
+            icon.innerHTML = iconSvg;
+        });
+    }
+
+    function syncSummaryPreviewState() {
+        const summary = editor.querySelector(".onepaqucpro-floating-preview-summary");
+
+        if (!summary) {
+            return;
+        }
+
+        const summaryEnabled = getControlValue("rmenu_floating_cart_show_summary") === "1";
+        const collapsible = summaryEnabled && getControlValue("rmenu_floating_cart_summary_collapsible") === "1";
+        const collapsed = collapsible && getControlValue("rmenu_floating_cart_summary_initially_collapsed") === "1";
+
+        summary.classList.toggle("is-summary-collapsible", collapsible);
+        summary.classList.toggle("is-summary-collapsed", collapsed);
+
+        summary.querySelectorAll("[data-preview-summary-toggle]").forEach(function (toggle) {
+            toggle.hidden = !summaryEnabled || getControlValue("rmenu_floating_cart_show_total") !== "1";
+            toggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+        });
+
+        summary.querySelectorAll("[data-preview-summary-content]").forEach(function (content) {
+            content.setAttribute("aria-hidden", collapsed ? "true" : "false");
         });
     }
 
@@ -1354,6 +1421,10 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         const summaryEnabled = getControlValue("rmenu_floating_cart_show_summary") === "1";
+        const summaryCollapsible = getControlValue("rmenu_floating_cart_summary_collapsible") === "1";
+        setControlWrapVisible("rmenu_floating_cart_summary_collapsible", summaryEnabled);
+        setControlWrapVisible("rmenu_floating_cart_summary_initially_collapsed", summaryEnabled && summaryCollapsible);
+
         ["rmenu_floating_cart_show_subtotal", "rmenu_floating_cart_show_discount", "rmenu_floating_cart_show_shipping_total", "rmenu_floating_cart_show_tax_total", "rmenu_floating_cart_show_total"].forEach(function (field) {
             setControlWrapVisible(field, summaryEnabled);
             editor.querySelectorAll('[data-preview-part="' + field + '"]').forEach(function (part) {
@@ -1363,6 +1434,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const itemMetaEnabled = getControlValue("rmenu_floating_cart_show_item_meta") === "1";
         setControlWrapVisible("rmenu_floating_cart_meta_include", itemMetaEnabled);
+
+        const emptyIconEnabled = getControlValue("rmenu_floating_cart_show_empty_icon") === "1";
+        setControlWrapVisible("rmenu_floating_cart_empty_icon", emptyIconEnabled);
 
         const groupingEnabled = getControlValue("rmenu_floating_cart_group_items") === "1";
         const groupByMeta = getControlValue("rmenu_floating_cart_group_by") === "meta";
@@ -1392,6 +1466,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
         updateButtonStyle();
         updateCartIcon();
+        updateEmptyIcon();
+        syncSummaryPreviewState();
         updateGroupIcon();
         updateGroupTitle();
         updateMetaPreview();
