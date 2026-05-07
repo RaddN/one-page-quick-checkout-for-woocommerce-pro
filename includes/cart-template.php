@@ -502,7 +502,7 @@ function onepaqucpro_render_floating_cart_shipping_options()
             $selected = isset($chosen_method[$package_key]) ? $chosen_method[$package_key] : '';
             echo '<li>';
             echo '<label>';
-            echo '<input type="radio" class="shipping_method" name="shipping_method[' . esc_attr($package_key) . ']" value="' . esc_attr($rate_id) . '" ' . checked($selected, $rate_id, false) . '>';
+            echo '<input type="radio" class="onepaqucpro-floating-shipping-method" name="onepaqucpro_floating_shipping_method[' . esc_attr($package_key) . ']" data-package-key="' . esc_attr($package_key) . '" value="' . esc_attr($rate_id) . '" ' . checked($selected, $rate_id, false) . '>';
             echo wp_kses_post(wc_cart_totals_shipping_method_label($rate));
             echo '</label>';
             echo '</li>';
@@ -1243,10 +1243,6 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
                 padding: 15px;
                 background-color: var(--secondary-color);
                 border-radius: 8px;
-            }
-
-            .cart-drawer .coupon-section--collapsible {
-                overflow: hidden;
             }
 
             .cart-drawer .coupon-section-header {

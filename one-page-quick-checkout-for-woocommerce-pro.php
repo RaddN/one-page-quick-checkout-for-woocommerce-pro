@@ -586,8 +586,10 @@ function onepaqucpro_cart_enqueue_scripts()
     if (get_option('onepaqucpro_checkout_layout', 'two_column') === "two_column") {
         wp_enqueue_style('checkout-form-two-column', plugin_dir_url(__FILE__) . 'assets/css/checkout-form-two-column.css', array(), "1.1.9.35");
     }
+    $onepaqucpro_cart_script_path = plugin_dir_path(__FILE__) . 'assets/js/cart.js';
+    $onepaqucpro_cart_script_version = file_exists($onepaqucpro_cart_script_path) ? (string) filemtime($onepaqucpro_cart_script_path) : '1.1.9.35';
     wp_enqueue_script('rmenupro-cart-script', plugin_dir_url(__FILE__) . 'assets/js/rmenu-cart.js', array('jquery'), "1.1.9.35", true);
-    wp_enqueue_script('cart-script', plugin_dir_url(__FILE__) . 'assets/js/cart.js', array('jquery'), "1.1.9.35", true);
+    wp_enqueue_script('cart-script', plugin_dir_url(__FILE__) . 'assets/js/cart.js', array('jquery'), $onepaqucpro_cart_script_version, true);
     wp_enqueue_script(
         'onepaqucpro-checkout-blocks-script',
         plugin_dir_url(__FILE__) . 'assets/js/checkout-blocks.js',

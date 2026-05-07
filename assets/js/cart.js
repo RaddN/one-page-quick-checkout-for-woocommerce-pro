@@ -17,6 +17,9 @@ jQuery(document).ready(function ($) {
     })();
 
     let isUpdatingCart = false;
+    let pendingCartContentUpdate = false;
+    let pendingCartContentUpdateShouldOpen = false;
+    let checkoutDrivenCartRefreshTimer = null;
     $isonepagewidget = ($('.checkout-popup,#checkout-popup').length) ? $('.checkout-popup,#checkout-popup').data('isonepagewidget') : false;
 
     function cartParamText(key, fallback) {
@@ -111,9 +114,34 @@ jQuery(document).ready(function ($) {
         return $('.checkout-popup:visible').not('.onepagecheckoutwidget').length > 0;
     }
 
+    function refreshCheckoutAfterCartMutation() {
+        if (hasInlineCheckoutFormOnPage()) {
+            $(document.body).trigger('update_checkout');
+            return;
+        }
+
+        if (typeof window.onepaqucproRefreshPopupCheckout === 'function') {
+            window.onepaqucproRefreshPopupCheckout();
+        }
+    }
+
+    function triggerCartBodyEvent(eventName, args) {
+        try {
+            $(document.body).trigger(eventName, args || []);
+        } catch (error) {
+            if (window.console && typeof window.console.warn === 'function') {
+                window.console.warn('Plugincy cart event listener error:', error);
+            }
+        }
+    }
+
     // Function to fetch and update cart contents
     function updateCartContent(isdrawer = true) {
-        if (isUpdatingCart) return;
+        if (isUpdatingCart) {
+            pendingCartContentUpdate = true;
+            pendingCartContentUpdateShouldOpen = pendingCartContentUpdateShouldOpen || !!isdrawer;
+            return;
+        }
         isUpdatingCart = true;
         const drawerWasOpen = $('.cart-drawer.open').length > 0;
         var cartIcon = $('.rwc_cart-button').data('cart-icon');
@@ -153,27 +181,90 @@ jQuery(document).ready(function ($) {
                         $('.overlay').show();
                         document.body.style.overflow = 'hidden';
                     }
-
-                    isUpdatingCart = false;
                 }
             },
             error: function () {
                 isUpdatingCart = false;
+            },
+            complete: function () {
+                isUpdatingCart = false;
+
+                if (pendingCartContentUpdate) {
+                    const pendingShouldOpen = pendingCartContentUpdateShouldOpen;
+                    pendingCartContentUpdate = false;
+                    pendingCartContentUpdateShouldOpen = false;
+                    updateCartContent(pendingShouldOpen);
+                }
             }
         });
     }
 
-    $(document).on('change', '.floating-cart-shipping-methods input.shipping_method', function () {
+    function getFloatingCartSelectedShippingMethods($scope) {
+        const methods = {};
+
+        $scope.find('.floating-cart-shipping-methods input.onepaqucpro-floating-shipping-method:checked').each(function () {
+            const packageKey = this.getAttribute('data-package-key');
+
+            if (packageKey === null || packageKey === '') {
+                return;
+            }
+
+            methods[packageKey] = this.value;
+        });
+
+        return methods;
+    }
+
+    function getFloatingCartShippingMethodRequestData(methods) {
+        const data = {
+            action: 'onepaqucpro_update_shipping_method',
+            nonce: onepaqucpro_wc_cart_params.update_shipping_method || ''
+        };
+
+        Object.keys(methods).forEach(function (packageKey) {
+            data['shipping_method[' + packageKey + ']'] = methods[packageKey];
+        });
+
+        return data;
+    }
+
+    function syncCheckoutShippingControls(methods) {
+        $('form.checkout input[name^="shipping_method["], .woocommerce-checkout input[name^="shipping_method["]').not('.cart-drawer input').each(function () {
+            const match = this.name.match(/^shipping_method\[(.+)\]$/);
+            const packageKey = match ? match[1] : '0';
+
+            if (methods[packageKey] !== undefined) {
+                this.checked = this.value === methods[packageKey];
+            }
+        });
+    }
+
+    $(document).on('change', '.floating-cart-shipping-methods input.onepaqucpro-floating-shipping-method', function (event) {
         if (typeof onepaqucpro_wc_cart_params === 'undefined' || !onepaqucpro_wc_cart_params.ajax_url) {
+            return;
+        }
+
+        event.stopPropagation();
+        const $drawer = $(this).closest('.cart-drawer');
+        const shippingMethods = getFloatingCartSelectedShippingMethods($drawer.length ? $drawer : $(document));
+
+        if (!Object.keys(shippingMethods).length) {
             return;
         }
 
         $.ajax({
             type: 'POST',
             url: onepaqucpro_wc_cart_params.ajax_url,
-            data: $('.floating-cart-shipping-methods input.shipping_method:checked').serialize() + '&action=onepaqucpro_update_shipping_method&nonce=' + encodeURIComponent(onepaqucpro_wc_cart_params.update_shipping_method || ''),
-            success: function () {
+            data: getFloatingCartShippingMethodRequestData(shippingMethods),
+            success: function (response) {
+                if (!response || !response.success) {
+                    updateCartContent(false);
+                    return;
+                }
+
+                syncCheckoutShippingControls(shippingMethods);
                 $(document.body).trigger('updated_shipping_method');
+                refreshCheckoutAfterCartMutation();
                 updateCartContent(false);
             }
         });
@@ -211,23 +302,20 @@ jQuery(document).ready(function ($) {
         const hasInlineCheckout = hasInlineCheckoutFormOnPage();
         const canOpenDrawer = !hasInlineCheckout;
 
-        const refreshCheckout = function () {
-            if (hasInlineCheckout) {
-                $(document.body).trigger('update_checkout');
-                return;
-            }
-
-            if (typeof window.onepaqucproRefreshPopupCheckout === 'function') {
-                window.onepaqucproRefreshPopupCheckout();
-            }
-        };
+        refreshCheckoutAfterCartMutation();
 
         if (cartDrawer && cartDrawer.classList.contains('open')) {
-            refreshCheckout();
+            updateCartContent(false);
         } else {
             debouncedUpdate(canOpenDrawer);
-            refreshCheckout();
         }
+    });
+
+    $(document.body).on('updated_checkout', function () {
+        window.clearTimeout(checkoutDrivenCartRefreshTimer);
+        checkoutDrivenCartRefreshTimer = window.setTimeout(function () {
+            updateCartContent(false);
+        }, 50);
     });
 
     function debouncedUpdate(showdrawer = true) {
@@ -282,7 +370,7 @@ jQuery(document).ready(function ($) {
                 if (response.success) {
                     debouncedUpdate(false);
                     // Trigger WC events
-                    $(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash]);
+                    triggerCartBodyEvent('added_to_cart', [response.fragments || {}, response.cart_hash || '', $input]);
                 }
             },
             complete: function () {
@@ -355,7 +443,7 @@ jQuery(document).ready(function ($) {
                     }
 
                     // Trigger WooCommerce hook
-                    $(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash]);
+                    triggerCartBodyEvent('removed_from_cart', [response.fragments || {}, response.cart_hash || '']);
                 }
             }
         });
@@ -391,7 +479,7 @@ jQuery(document).ready(function ($) {
             },
             success: function (response) {
                 // Trigger WC events
-                $(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash, $thisButton]);
+                triggerCartBodyEvent('added_to_cart', [response.fragments || {}, response.cart_hash || '', $thisButton]);
                 $(document.body).trigger('update_checkout');
                 debouncedUpdate(false);
             },
@@ -466,7 +554,7 @@ jQuery(document).ready(function ($) {
             },
             success: function (response) {
                 // Get product IDs from data attribute
-                $(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash, $thisButton]);
+                triggerCartBodyEvent('removed_from_cart', [response.fragments || {}, response.cart_hash || '', $thisButton]);
                 var product_ids = $('.one-page-checkout-product-list').data('product-ids');
 
                 // Refresh the list of products
@@ -1010,7 +1098,7 @@ jQuery(document).ready(function ($) {
                     window.onepaqucproRefreshPopupCheckout();
                 }
 
-                $(document.body).trigger('added_to_cart', [response.fragments || {}, response.cart_hash || '', $editor]);
+                triggerCartBodyEvent('added_to_cart', [response.fragments || {}, response.cart_hash || '', $editor]);
                 $(document.body).trigger('update_checkout');
             },
             error: function () {
@@ -1717,7 +1805,7 @@ jQuery(document).ready(function ($) {
                     const shouldOpenSideCart = methodKey === 'side_cart' && !$isonepagewidget && !hasInlineCheckoutFormOnPage();
 
                     debouncedUpdate(shouldOpenSideCart);
-                    $(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash, $button]);
+                    triggerCartBodyEvent('added_to_cart', [response.fragments || {}, response.cart_hash || '', $button]);
 
                     if (callbacks.success) {
                         callbacks.success(response, shouldOpenSideCart);
@@ -1850,7 +1938,7 @@ jQuery(document).ready(function ($) {
                         const cartDrawer = $('.cart-drawer');
 
                         // Trigger WooCommerce hook
-                        $(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash, $button]);
+                        triggerCartBodyEvent('added_to_cart', [response.fragments || {}, response.cart_hash || '', $button]);
 
                         // Redirect or UI handling
                         if (methodKey === 'ajax_add') {
@@ -2106,9 +2194,9 @@ jQuery(document).ready(function ($) {
                     }
 
                     // Trigger WooCommerce hook
-                    $(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash]);
+                    triggerCartBodyEvent('added_to_cart', [response.fragments || {}, response.cart_hash || '', $button]);
 
-                    debouncedUpdate();
+                    updateCartContent(false);
 
                     // Clear message after delay
                     setTimeout(() => {
