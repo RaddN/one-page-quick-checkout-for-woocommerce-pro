@@ -198,7 +198,11 @@ document.addEventListener("DOMContentLoaded", function () {
     let activeVisualField = "";
     let activeVisualNode = null;
     let actionHideTimer = null;
+    let editModalDependencyTimer = null;
     const textFallbacks = {};
+    const explicitTextFallbacks = {
+        rmenu_floating_cart_related_add_to_cart_text: "Add to cart"
+    };
 
     function getControl(field) {
         return editor.querySelector('[data-floating-cart-control="' + field + '"]');
@@ -223,6 +227,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (textFallbacks[field]) {
             return textFallbacks[field];
+        }
+
+        if (explicitTextFallbacks[field]) {
+            return explicitTextFallbacks[field];
         }
 
         if (control && control.getAttribute("placeholder")) {
@@ -264,7 +272,8 @@ document.addEventListener("DOMContentLoaded", function () {
         const control = getControl(field);
         const textNodes = collectTextNodes(targetNode);
         const hasToggleSetting = !!control && control.type === "checkbox";
-        const hasPanelSettings = textNodes.length > 0 || targetNode.querySelector("[data-preview-icon]") || targetNode.matches("[data-preview-icon]");
+        const fieldPanelSettings = ["rmenu_floating_cart_show_item_meta", "rmenu_floating_cart_group_items"].indexOf(field) !== -1;
+        const hasPanelSettings = fieldPanelSettings || textNodes.length > 0 || targetNode.querySelector("[data-preview-icon], [data-preview-group-icon]") || targetNode.matches("[data-preview-icon], [data-preview-group-icon]");
         const hasEditableSettings = hasToggleSetting || hasPanelSettings;
 
         if (!hasEditableSettings) {
@@ -335,7 +344,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function updatePreviewText(field) {
         const nodes = editor.querySelectorAll('[data-preview-text="' + field + '"]');
-        const rawValue = getControlValue(field);
+        const rawValue = String(getControlValue(field) || "").trim();
         const value = rawValue || getTextFallback(field);
 
         nodes.forEach(function (node) {
@@ -389,10 +398,12 @@ document.addEventListener("DOMContentLoaded", function () {
         const input = document.createElement("input");
 
         row.className = "onepaqucpro-floating-edit-field";
+        row.setAttribute("data-modal-control-wrap", field);
         row.innerHTML = "<span></span>";
         row.querySelector("span").textContent = getFieldLabel(field);
         input.type = "text";
         input.value = getControlValue(field) || getTextFallback(field);
+        input.setAttribute("data-modal-control-field", field);
         input.addEventListener("input", function () {
             setControlValue(field, input.value);
             updatePreviewText(field);
@@ -413,13 +424,16 @@ document.addEventListener("DOMContentLoaded", function () {
         const text = document.createElement("span");
 
         row.className = "onepaqucpro-floating-edit-toggle";
+        row.setAttribute("data-modal-control-wrap", field);
         input.type = "checkbox";
         input.checked = control.checked;
         input.disabled = control.disabled;
+        input.setAttribute("data-modal-control-field", field);
         text.textContent = labelText || "Show this element";
         input.addEventListener("change", function () {
             control.checked = input.checked;
             control.dispatchEvent(new Event("change", { bubbles: true }));
+            updateEditModalDependencies(body);
         });
         row.appendChild(input);
         row.appendChild(text);
@@ -459,6 +473,100 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+        const sourceBuilder = control.closest("[data-meta-builder]");
+        if (sourceBuilder) {
+            const row = document.createElement("div");
+            const label = document.createElement("span");
+            const builder = sourceBuilder.cloneNode(true);
+            const clonedHidden = builder.querySelector("[data-floating-cart-control]");
+
+            row.className = "onepaqucpro-floating-edit-field onepaqucpro-floating-edit-field--wide";
+            row.setAttribute("data-modal-control-wrap", field);
+            label.textContent = getFieldLabel(field);
+            row.appendChild(label);
+            builder.removeAttribute("data-meta-builder-ready");
+            builder.querySelectorAll("[name]").forEach(function (node) {
+                node.removeAttribute("name");
+            });
+            if (clonedHidden) {
+                clonedHidden.value = control.value;
+                clonedHidden.setAttribute("data-modal-control-field", field);
+            }
+            row.appendChild(builder);
+            body.appendChild(row);
+            initMetaBuilders(row);
+            if (clonedHidden) {
+                clonedHidden.addEventListener("change", function () {
+                    control.value = clonedHidden.value;
+                    control.dispatchEvent(new Event("input", { bubbles: true }));
+                    control.dispatchEvent(new Event("change", { bubbles: true }));
+                    rebuildMetaBuilderRows(sourceBuilder, parseMetaBuilderValue(clonedHidden.value));
+                    updateEditModalDependencies(body);
+                });
+            }
+            return;
+        }
+
+        const sourcePicker = control.closest("[data-meta-picker]");
+        if (sourcePicker) {
+            const row = document.createElement("div");
+            const label = document.createElement("span");
+            const picker = sourcePicker.cloneNode(true);
+            const clonedHidden = picker.querySelector("[data-floating-cart-control]");
+            const clonedSelect = picker.querySelector("select");
+
+            row.className = "onepaqucpro-floating-edit-field";
+            row.setAttribute("data-modal-control-wrap", field);
+            label.textContent = getFieldLabel(field);
+            row.appendChild(label);
+            picker.removeAttribute("data-meta-picker-ready");
+            picker.querySelectorAll(".select2").forEach(function (node) {
+                node.remove();
+            });
+            picker.querySelectorAll("[name]").forEach(function (node) {
+                node.removeAttribute("name");
+            });
+            if (clonedHidden) {
+                clonedHidden.value = control.value;
+                clonedHidden.setAttribute("data-modal-control-field", field);
+            }
+            if (clonedSelect) {
+                clonedSelect.classList.remove("select2-hidden-accessible");
+                clonedSelect.removeAttribute("data-select2-id");
+                clonedSelect.removeAttribute("aria-hidden");
+                clonedSelect.removeAttribute("tabindex");
+                const selected = control.value.split(",").map(function (item) { return item.trim(); });
+                Array.prototype.forEach.call(clonedSelect.options, function (option) {
+                    option.removeAttribute("data-select2-id");
+                    option.selected = selected.indexOf(option.value) !== -1;
+                });
+            }
+            row.appendChild(picker);
+            body.appendChild(row);
+            initMetaPickers(row);
+            if (clonedHidden) {
+                clonedHidden.addEventListener("change", function () {
+                    control.value = clonedHidden.value;
+                    control.dispatchEvent(new Event("input", { bubbles: true }));
+                    control.dispatchEvent(new Event("change", { bubbles: true }));
+                    updateEditModalDependencies(body);
+                    const sourceSelect = sourcePicker.querySelector("select");
+                    const selected = clonedHidden.value.split(",").map(function (item) { return item.trim(); });
+                    if (sourceSelect) {
+                        Array.prototype.forEach.call(clonedSelect.options, function (option) {
+                            if (!sourceSelect.querySelector('option[value="' + option.value + '"]')) {
+                                sourceSelect.appendChild(option.cloneNode(true));
+                            }
+                        });
+                        Array.prototype.forEach.call(sourceSelect.options, function (option) {
+                            option.selected = selected.indexOf(option.value) !== -1;
+                        });
+                    }
+                });
+            }
+            return;
+        }
+
         if (control.type === "checkbox") {
             buildToggleSetting(body, field, getFieldLabel(field));
             return;
@@ -468,6 +576,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const fieldControl = control.tagName === "SELECT" ? document.createElement("select") : document.createElement("input");
 
         row.className = "onepaqucpro-floating-edit-field";
+        row.setAttribute("data-modal-control-wrap", field);
         row.innerHTML = "<span></span>";
         row.querySelector("span").textContent = getFieldLabel(field);
 
@@ -483,16 +592,412 @@ document.addEventListener("DOMContentLoaded", function () {
 
         fieldControl.value = control.value;
         fieldControl.disabled = control.disabled;
+        fieldControl.setAttribute("data-modal-control-field", field);
         fieldControl.addEventListener("input", function () {
             control.value = fieldControl.value;
             control.dispatchEvent(new Event("input", { bubbles: true }));
+            updateEditModalDependencies(body);
         });
         fieldControl.addEventListener("change", function () {
             control.value = fieldControl.value;
             control.dispatchEvent(new Event("change", { bubbles: true }));
+            updateEditModalDependencies(body);
         });
         row.appendChild(fieldControl);
         body.appendChild(row);
+    }
+
+    function syncMetaPicker(picker) {
+        const hidden = picker.querySelector("[data-floating-cart-control]");
+        const select = picker.querySelector("select");
+
+        if (!hidden || !select) {
+            return;
+        }
+
+        const values = Array.prototype.slice.call(select.selectedOptions).map(function (option) {
+            return option.value;
+        });
+
+        hidden.value = values.join(",");
+        hidden.dispatchEvent(new Event("input", { bubbles: true }));
+        hidden.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+
+    function initMetaPickers(root) {
+        root.querySelectorAll("[data-meta-picker]").forEach(function (picker) {
+            const select = picker.querySelector("select");
+            const customInput = picker.querySelector(".onepaqucpro-meta-picker__custom input");
+            const customButton = picker.querySelector(".onepaqucpro-meta-picker__custom button");
+            const multiple = picker.getAttribute("data-meta-picker-multiple") === "1";
+
+            if (!select || picker.getAttribute("data-meta-picker-ready") === "1") {
+                return;
+            }
+
+            picker.setAttribute("data-meta-picker-ready", "1");
+            select.addEventListener("change", function () {
+                syncMetaPicker(picker);
+            });
+
+            if (customButton && customInput) {
+                customButton.addEventListener("click", function () {
+                    const value = customInput.value.trim();
+                    const normalized = value.toLowerCase().replace(/[^a-z0-9_ -]/g, "").replace(/\s+/g, "-");
+
+                    if (!normalized) {
+                        return;
+                    }
+
+                    let option = select.querySelector('option[value="' + normalized + '"]');
+                    if (!option) {
+                        option = document.createElement("option");
+                        option.value = normalized;
+                        option.textContent = value;
+                        select.appendChild(option);
+                    }
+
+                    if (!multiple) {
+                        Array.prototype.forEach.call(select.options, function (item) {
+                            item.selected = false;
+                        });
+                    }
+
+                    option.selected = true;
+                    customInput.value = "";
+                    syncMetaPicker(picker);
+                    if (window.jQuery && window.jQuery.fn && window.jQuery.fn.select2 && select.getAttribute("data-use-select2") === "1") {
+                        window.jQuery(select).trigger("change.select2");
+                    }
+                });
+            }
+
+            if (window.jQuery && window.jQuery.fn && window.jQuery.fn.select2 && select.getAttribute("data-use-select2") === "1") {
+                const $select = window.jQuery(select);
+                if ($select.data("select2")) {
+                    $select.select2("destroy");
+                }
+                window.jQuery(select).select2({
+                    tags: true,
+                    tokenSeparators: [","],
+                    width: "100%",
+                    placeholder: "Select meta keys",
+                    dropdownParent: window.jQuery(select).closest(".onepaqucpro-floating-edit-modal__panel").length
+                        ? window.jQuery(select).closest(".onepaqucpro-floating-edit-modal__panel")
+                        : window.jQuery(document.body)
+                }).on("change", function () {
+                    syncMetaPicker(picker);
+                });
+            }
+        });
+    }
+
+    function parseMetaBuilderOptions(builder) {
+        try {
+            return JSON.parse(builder.getAttribute("data-meta-builder-options") || "[]");
+        } catch (error) {
+            return [];
+        }
+    }
+
+    function parseMetaBuilderValue(value) {
+        const raw = String(value || "").trim();
+        let rows = [];
+
+        if (raw && (raw.charAt(0) === "[" || raw.charAt(0) === "{")) {
+            try {
+                rows = JSON.parse(raw);
+            } catch (error) {
+                rows = [];
+            }
+        } else if (raw) {
+            rows = raw.split(",").map(function (item) {
+                return { key: item.trim(), title: "" };
+            });
+        }
+
+        if (rows && !Array.isArray(rows) && rows.key) {
+            rows = [rows];
+        }
+
+        return (Array.isArray(rows) ? rows : []).map(function (row) {
+            if (typeof row === "string") {
+                row = { key: row, title: "" };
+            }
+
+            return {
+                key: String(row && row.key ? row.key : "").trim(),
+                title: String(row && row.title ? row.title : "").trim()
+            };
+        }).filter(function (row) {
+            return row.key && row.key !== "mulopimfwc_location";
+        });
+    }
+
+    function getMetaBuilderOptionLabel(options, value) {
+        for (let index = 0; index < options.length; index++) {
+            if (options[index].value === value) {
+                return options[index].label;
+            }
+        }
+
+        return value;
+    }
+
+    function normalizeMetaBuilderTitle(label) {
+        return String(label || "").replace(/\s+\([^)]+\)$/, "").trim();
+    }
+
+    function formatMetaLabel(value) {
+        return normalizeMetaBuilderTitle(String(value || "")
+            .replace(/^attribute_/, "")
+            .replace(/[_-]+/g, " ")
+            .replace(/\s+/g, " ")
+            .trim())
+            .replace(/\b\w/g, function (char) {
+                return char.toUpperCase();
+            });
+    }
+
+    function getPreviewMetaSampleValue(key) {
+        const normalized = String(key || "").toLowerCase();
+
+        if (normalized.indexOf("location") !== -1) {
+            return "New-York";
+        }
+
+        if (normalized.indexOf("color") !== -1 || normalized.indexOf("colour") !== -1) {
+            return "Black";
+        }
+
+        if (normalized.indexOf("size") !== -1) {
+            return "Standard";
+        }
+
+        if (normalized.indexOf("brand") !== -1) {
+            return "Plugincy";
+        }
+
+        if (normalized.indexOf("store") !== -1 || normalized.indexOf("warehouse") !== -1) {
+            return "Main Store";
+        }
+
+        return "Sample value";
+    }
+
+    function fillMetaBuilderSelect(select, options, selectedValue) {
+        select.innerHTML = "";
+        options.forEach(function (optionData) {
+            const option = document.createElement("option");
+            option.value = optionData.value;
+            option.textContent = optionData.label;
+            option.selected = optionData.value === selectedValue;
+            select.appendChild(option);
+        });
+
+        if (selectedValue && !select.querySelector('option[value="' + selectedValue + '"]')) {
+            const option = document.createElement("option");
+            option.value = selectedValue;
+            option.textContent = selectedValue;
+            option.selected = true;
+            select.appendChild(option);
+        }
+    }
+
+    function createMetaBuilderRow(builder, rowData) {
+        const row = document.createElement("div");
+        const drag = document.createElement("button");
+        const dragIcon = document.createElement("span");
+        const select = document.createElement("select");
+        const title = document.createElement("input");
+        const remove = document.createElement("button");
+        const removeIcon = document.createElement("span");
+        const options = parseMetaBuilderOptions(builder);
+        const key = rowData && rowData.key ? rowData.key : (options[0] ? options[0].value : "");
+        const label = getMetaBuilderOptionLabel(options, key);
+
+        row.className = "onepaqucpro-meta-builder__row";
+        row.setAttribute("data-meta-builder-row", "1");
+        row.setAttribute("draggable", "true");
+
+        drag.type = "button";
+        drag.className = "onepaqucpro-meta-builder__drag";
+        drag.setAttribute("data-meta-builder-drag", "1");
+        drag.setAttribute("aria-label", "Reorder meta data");
+        dragIcon.className = "dashicons dashicons-menu";
+        drag.appendChild(dragIcon);
+
+        select.setAttribute("data-meta-builder-key", "1");
+        fillMetaBuilderSelect(select, options, key);
+
+        title.type = "text";
+        title.setAttribute("data-meta-builder-title", "1");
+        title.placeholder = "Display title";
+        title.value = rowData && rowData.title ? rowData.title : normalizeMetaBuilderTitle(label);
+
+        remove.type = "button";
+        remove.className = "onepaqucpro-meta-builder__remove";
+        remove.setAttribute("data-meta-builder-remove", "1");
+        remove.setAttribute("aria-label", "Remove meta data");
+        removeIcon.className = "dashicons dashicons-no-alt";
+        remove.appendChild(removeIcon);
+
+        row.appendChild(drag);
+        row.appendChild(select);
+        row.appendChild(title);
+        row.appendChild(remove);
+        bindMetaBuilderRow(builder, row);
+
+        return row;
+    }
+
+    function syncMetaBuilder(builder) {
+        const hidden = builder.querySelector("[data-floating-cart-control]");
+        const rows = Array.prototype.slice.call(builder.querySelectorAll("[data-meta-builder-row]"));
+        const data = rows.map(function (row) {
+            const select = row.querySelector("[data-meta-builder-key]");
+            const title = row.querySelector("[data-meta-builder-title]");
+
+            return {
+                key: select ? select.value : "",
+                title: title ? title.value.trim() : ""
+            };
+        }).filter(function (row) {
+            return row.key && row.key !== "mulopimfwc_location";
+        });
+
+        builder.classList.toggle("is-empty", data.length === 0);
+
+        if (!hidden) {
+            return;
+        }
+
+        hidden.value = JSON.stringify(data);
+        hidden.dispatchEvent(new Event("input", { bubbles: true }));
+        hidden.dispatchEvent(new Event("change", { bubbles: true }));
+        updateMetaPreview();
+        updateGroupTitle();
+    }
+
+    function bindMetaBuilderRow(builder, row) {
+        const select = row.querySelector("[data-meta-builder-key]");
+        const title = row.querySelector("[data-meta-builder-title]");
+        const remove = row.querySelector("[data-meta-builder-remove]");
+        const options = parseMetaBuilderOptions(builder);
+
+        if (row.getAttribute("data-meta-builder-row-ready") === "1") {
+            return;
+        }
+
+        row.setAttribute("data-meta-builder-row-ready", "1");
+
+        if (select) {
+            select.addEventListener("change", function () {
+                if (title && !title.value.trim()) {
+                    title.value = normalizeMetaBuilderTitle(getMetaBuilderOptionLabel(options, select.value));
+                }
+                syncMetaBuilder(builder);
+            });
+        }
+
+        if (title) {
+            title.addEventListener("input", function () {
+                syncMetaBuilder(builder);
+            });
+        }
+
+        if (remove) {
+            remove.addEventListener("click", function () {
+                row.remove();
+                syncMetaBuilder(builder);
+            });
+        }
+
+        row.addEventListener("dragstart", function (event) {
+            row.classList.add("is-dragging");
+            if (event.dataTransfer) {
+                event.dataTransfer.effectAllowed = "move";
+            }
+        });
+
+        row.addEventListener("dragend", function () {
+            row.classList.remove("is-dragging");
+            syncMetaBuilder(builder);
+        });
+    }
+
+    function getMetaBuilderDragAfterElement(container, y) {
+        const rows = Array.prototype.slice.call(container.querySelectorAll("[data-meta-builder-row]:not(.is-dragging)"));
+
+        return rows.reduce(function (closest, child) {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            }
+
+            return closest;
+        }, { offset: Number.NEGATIVE_INFINITY, element: null }).element;
+    }
+
+    function rebuildMetaBuilderRows(builder, rows) {
+        const container = builder.querySelector("[data-meta-builder-rows]");
+
+        if (!container) {
+            return;
+        }
+
+        container.innerHTML = "";
+        parseMetaBuilderValue(JSON.stringify(rows || [])).forEach(function (rowData) {
+            container.appendChild(createMetaBuilderRow(builder, rowData));
+        });
+        syncMetaBuilder(builder);
+    }
+
+    function initMetaBuilders(root) {
+        root.querySelectorAll("[data-meta-builder]").forEach(function (builder) {
+            const container = builder.querySelector("[data-meta-builder-rows]");
+            const add = builder.querySelector("[data-meta-builder-add]");
+            const hidden = builder.querySelector("[data-floating-cart-control]");
+
+            if (!container || builder.getAttribute("data-meta-builder-ready") === "1") {
+                return;
+            }
+
+            builder.setAttribute("data-meta-builder-ready", "1");
+            Array.prototype.slice.call(container.querySelectorAll("[data-meta-builder-row]")).forEach(function (row) {
+                bindMetaBuilderRow(builder, row);
+            });
+
+            if (!container.querySelector("[data-meta-builder-row]") && hidden && hidden.value) {
+                rebuildMetaBuilderRows(builder, parseMetaBuilderValue(hidden.value));
+            }
+
+            container.addEventListener("dragover", function (event) {
+                const dragging = container.querySelector(".is-dragging");
+                if (!dragging) {
+                    return;
+                }
+
+                event.preventDefault();
+                const afterElement = getMetaBuilderDragAfterElement(container, event.clientY);
+                if (afterElement === null) {
+                    container.appendChild(dragging);
+                } else {
+                    container.insertBefore(dragging, afterElement);
+                }
+            });
+
+            if (add) {
+                add.addEventListener("click", function () {
+                    container.appendChild(createMetaBuilderRow(builder, {}));
+                    syncMetaBuilder(builder);
+                });
+            }
+
+            syncMetaBuilder(builder);
+        });
     }
 
     function buildSectionTitle(body, title) {
@@ -501,6 +1006,120 @@ document.addEventListener("DOMContentLoaded", function () {
         heading.className = "onepaqucpro-floating-edit-section-title";
         heading.textContent = title;
         body.appendChild(heading);
+    }
+
+    function getModalControlValue(body, field) {
+        const modalControl = body.querySelector('[data-modal-control-field="' + field + '"]');
+
+        if (modalControl) {
+            if (modalControl.type === "checkbox") {
+                return modalControl.checked ? "1" : "0";
+            }
+
+            return modalControl.value;
+        }
+
+        return getControlValue(field);
+    }
+
+    function setModalWrapVisible(body, field, visible) {
+        body.querySelectorAll('[data-modal-control-wrap="' + field + '"]').forEach(function (wrap) {
+            wrap.hidden = !visible;
+        });
+    }
+
+    function updateEditModalDependencies(body) {
+        const selectedEnabled = activeVisualField ? getModalControlValue(body, activeVisualField) === "1" : true;
+
+        if (activeVisualField === "rmenu_floating_cart_show_item_meta") {
+            setModalWrapVisible(body, "rmenu_floating_cart_meta_include", selectedEnabled);
+        }
+
+        if (activeVisualField === "rmenu_floating_cart_group_items") {
+            const groupByControl = body.querySelector('[data-modal-control-field="rmenu_floating_cart_group_by"]');
+            const groupBy = groupByControl ? groupByControl.value : getModalControlValue(body, "rmenu_floating_cart_group_by");
+            setModalWrapVisible(body, "rmenu_floating_cart_group_by", selectedEnabled);
+            setModalWrapVisible(body, "rmenu_floating_cart_group_icon", selectedEnabled);
+            setModalWrapVisible(body, "rmenu_floating_cart_group_meta_key", selectedEnabled && groupBy === "meta");
+        }
+
+        if (activeVisualField === "rmenu_floating_cart_show_shipping_options") {
+            setModalWrapVisible(body, "rmenu_floating_cart_shipping_options_label", selectedEnabled);
+        }
+
+        if (activeVisualField === "rmenu_floating_cart_show_checkout") {
+            setModalWrapVisible(body, "rmenu_cart_checkout_behavior", selectedEnabled);
+            setModalWrapVisible(body, "txt_checkout", selectedEnabled);
+        }
+    }
+
+    function syncModalControlsToSource(body) {
+        body.querySelectorAll("[data-modal-control-field]").forEach(function (modalControl) {
+            const field = modalControl.getAttribute("data-modal-control-field");
+            const sourceControl = getControl(field);
+
+            if (!sourceControl || sourceControl === modalControl || modalControl.disabled || sourceControl.disabled) {
+                return;
+            }
+
+            if (modalControl.type === "checkbox") {
+                if (sourceControl.type === "checkbox" && sourceControl.checked !== modalControl.checked) {
+                    sourceControl.checked = modalControl.checked;
+                    sourceControl.dispatchEvent(new Event("change", { bubbles: true }));
+                }
+                return;
+            }
+
+            if (sourceControl.value !== modalControl.value) {
+                sourceControl.value = modalControl.value;
+                sourceControl.dispatchEvent(new Event("input", { bubbles: true }));
+                sourceControl.dispatchEvent(new Event("change", { bubbles: true }));
+            }
+        });
+    }
+
+    function refreshEditModalDependencies(body) {
+        syncModalControlsToSource(body);
+        updateEditModalDependencies(body);
+    }
+
+    function stopEditModalDependencyMonitor() {
+        if (editModalDependencyTimer) {
+            window.clearInterval(editModalDependencyTimer);
+            editModalDependencyTimer = null;
+        }
+    }
+
+    function startEditModalDependencyMonitor(body) {
+        stopEditModalDependencyMonitor();
+        refreshEditModalDependencies(body);
+        editModalDependencyTimer = window.setInterval(function () {
+            if (editModal.hidden) {
+                stopEditModalDependencyMonitor();
+                return;
+            }
+
+            refreshEditModalDependencies(body);
+        }, 150);
+    }
+
+    function closeEditModal() {
+        editModal.hidden = true;
+        stopEditModalDependencyMonitor();
+    }
+
+    function bindEditModalDependencies(body) {
+        body.querySelectorAll("[data-modal-control-field]").forEach(function (control) {
+            control.addEventListener("input", function () {
+                refreshEditModalDependencies(body);
+            });
+            control.addEventListener("change", function () {
+                refreshEditModalDependencies(body);
+                window.setTimeout(function () {
+                    refreshEditModalDependencies(body);
+                }, 0);
+            });
+        });
     }
 
     function openEditModal() {
@@ -513,6 +1132,8 @@ document.addEventListener("DOMContentLoaded", function () {
         const textNodes = collectTextNodes(activeVisualNode);
         const isCartLauncher = activeVisualNode.classList.contains("onepaqucpro-floating-preview-button") || activeVisualNode.matches("[data-preview-icon]") || activeVisualNode.querySelector("[data-preview-icon]");
         const isCheckoutButton = activeVisualNode.classList.contains("onepaqucpro-floating-preview-checkout");
+        const isItemMeta = activeVisualField === "rmenu_floating_cart_show_item_meta";
+        const isGroup = activeVisualField === "rmenu_floating_cart_group_items" || activeVisualNode.matches("[data-preview-group-icon]") || activeVisualNode.querySelector("[data-preview-group-icon]");
 
         body.innerHTML = "";
         heading.textContent = getFieldLabel(activeVisualField);
@@ -531,6 +1152,16 @@ document.addEventListener("DOMContentLoaded", function () {
             buildControlSetting(body, "rmenu_cart_checkout_behavior");
         }
 
+        if (isItemMeta) {
+            buildControlSetting(body, "rmenu_floating_cart_meta_include");
+        }
+
+        if (isGroup) {
+            buildControlSetting(body, "rmenu_floating_cart_group_by");
+            buildControlSetting(body, "rmenu_floating_cart_group_meta_key");
+            buildControlSetting(body, "rmenu_floating_cart_group_icon");
+        }
+
         textNodes.forEach(function (node) {
             buildTextSetting(body, node);
         });
@@ -543,6 +1174,11 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         editModal.hidden = false;
+        bindEditModalDependencies(body);
+        startEditModalDependencyMonitor(body);
+        window.setTimeout(function () {
+            refreshEditModalDependencies(body);
+        }, 0);
     }
 
     function updateCartIcon() {
@@ -554,6 +1190,79 @@ document.addEventListener("DOMContentLoaded", function () {
                 icon.classList.remove(iconClassMap[key]);
             });
             icon.classList.add(iconClass);
+        });
+    }
+
+    function updateGroupIcon() {
+        const value = getControlValue("rmenu_floating_cart_group_icon") || "tag";
+        const icons = {
+            none: "",
+            tag: "●",
+            folder: "■",
+            star: "★"
+        };
+        const locationIcon = '<svg class="onepaqucpro-floating-preview-group-icon-svg" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>';
+
+        editor.querySelectorAll("[data-preview-group-icon]").forEach(function (icon) {
+            if (value === "location") {
+                icon.innerHTML = locationIcon;
+                return;
+            }
+
+            icon.textContent = icons[value] || icons.tag;
+        });
+    }
+
+    function updateGroupTitle() {
+        const titleNodes = editor.querySelectorAll("[data-preview-group-title]");
+        const groupBy = getControlValue("rmenu_floating_cart_group_by") || "category";
+        let title = "Gaming Accessories";
+
+        if (groupBy === "brand") {
+            title = "Plugincy";
+        } else if (groupBy === "meta") {
+            const metaKey = getControlValue("rmenu_floating_cart_group_meta_key");
+            title = metaKey ? getPreviewMetaSampleValue(metaKey) : "Choose a meta key";
+        }
+
+        titleNodes.forEach(function (node) {
+            node.textContent = title;
+        });
+    }
+
+    function updateMetaPreview() {
+        const metaLists = editor.querySelectorAll("[data-preview-meta-list]");
+        const rules = parseMetaBuilderValue(getControlValue("rmenu_floating_cart_meta_include"));
+        const itemMetaEnabled = getControlValue("rmenu_floating_cart_show_item_meta") === "1";
+
+        metaLists.forEach(function (list) {
+            list.innerHTML = "";
+            list.classList.toggle("is-preview-hidden", !itemMetaEnabled);
+
+            if (!itemMetaEnabled) {
+                return;
+            }
+
+            if (!rules.length) {
+                const placeholder = document.createElement("div");
+                placeholder.className = "onepaqucpro-floating-preview-meta-placeholder";
+                placeholder.textContent = "No meta data selected.";
+                list.appendChild(placeholder);
+                return;
+            }
+
+            rules.forEach(function (rule) {
+                const row = document.createElement("div");
+                const dt = document.createElement("dt");
+                const dd = document.createElement("dd");
+                const title = rule.title || formatMetaLabel(rule.key);
+
+                dt.textContent = title;
+                dd.textContent = getPreviewMetaSampleValue(rule.key);
+                row.appendChild(dt);
+                row.appendChild(dd);
+                list.appendChild(row);
+            });
         });
     }
 
@@ -629,6 +1338,13 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function updateDependencyVisibility() {
+        function setControlWrapVisible(field, visible) {
+            editor.querySelectorAll('[data-floating-control-wrap="' + field + '"]').forEach(function (wrap) {
+                wrap.hidden = !visible;
+                wrap.classList.toggle("is-dependency-hidden", !visible);
+            });
+        }
+
         const itemSelectEnabled = getControlValue("rmenu_floating_cart_show_item_select") === "1";
         const selectBarParts = editor.querySelectorAll('[data-preview-part="rmenu_floating_cart_show_select_bar"]');
 
@@ -638,11 +1354,29 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         const summaryEnabled = getControlValue("rmenu_floating_cart_show_summary") === "1";
-        ["rmenu_floating_cart_show_subtotal", "rmenu_floating_cart_show_discount", "rmenu_floating_cart_show_total"].forEach(function (field) {
+        ["rmenu_floating_cart_show_subtotal", "rmenu_floating_cart_show_discount", "rmenu_floating_cart_show_shipping_total", "rmenu_floating_cart_show_tax_total", "rmenu_floating_cart_show_total"].forEach(function (field) {
+            setControlWrapVisible(field, summaryEnabled);
             editor.querySelectorAll('[data-preview-part="' + field + '"]').forEach(function (part) {
                 part.classList.toggle("is-preview-hidden", !summaryEnabled || getControlValue(field) !== "1");
             });
         });
+
+        const itemMetaEnabled = getControlValue("rmenu_floating_cart_show_item_meta") === "1";
+        setControlWrapVisible("rmenu_floating_cart_meta_include", itemMetaEnabled);
+
+        const groupingEnabled = getControlValue("rmenu_floating_cart_group_items") === "1";
+        const groupByMeta = getControlValue("rmenu_floating_cart_group_by") === "meta";
+        setControlWrapVisible("rmenu_floating_cart_group_by", groupingEnabled);
+        setControlWrapVisible("rmenu_floating_cart_group_icon", groupingEnabled);
+        setControlWrapVisible("rmenu_floating_cart_group_meta_key", groupingEnabled && groupByMeta);
+
+        const shippingOptionsEnabled = getControlValue("rmenu_floating_cart_show_shipping_options") === "1";
+        setControlWrapVisible("rmenu_floating_cart_shipping_options_label", shippingOptionsEnabled);
+
+        const shippingTotalEnabled = summaryEnabled && getControlValue("rmenu_floating_cart_show_shipping_total") === "1";
+        const taxTotalEnabled = summaryEnabled && getControlValue("rmenu_floating_cart_show_tax_total") === "1";
+        setControlWrapVisible("rmenu_floating_cart_shipping_label", shippingTotalEnabled);
+        setControlWrapVisible("rmenu_floating_cart_tax_label", taxTotalEnabled);
     }
 
     function syncPreview() {
@@ -658,6 +1392,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
         updateButtonStyle();
         updateCartIcon();
+        updateGroupIcon();
+        updateGroupTitle();
+        updateMetaPreview();
         updateLauncherPosition();
         updateDependencyVisibility();
     }
@@ -677,6 +1414,9 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         });
     });
+
+    initMetaPickers(editor);
+    initMetaBuilders(editor);
 
     editor.querySelectorAll("[data-preview-text]").forEach(function (node) {
         const field = node.getAttribute("data-preview-text");
@@ -745,13 +1485,13 @@ document.addEventListener("DOMContentLoaded", function () {
     editModal.addEventListener("click", function (event) {
         if (event.target.closest("[data-floating-edit-close]")) {
             event.preventDefault();
-            editModal.hidden = true;
+            closeEditModal();
         }
     });
 
     document.addEventListener("keydown", function (event) {
         if (event.key === "Escape" && !editModal.hidden) {
-            editModal.hidden = true;
+            closeEditModal();
         }
     });
 

@@ -142,6 +142,22 @@ jQuery(document).ready(function ($) {
         });
     }
 
+    $(document).on('change', '.floating-cart-shipping-methods input.shipping_method', function () {
+        if (typeof onepaqucpro_wc_cart_params === 'undefined' || !onepaqucpro_wc_cart_params.ajax_url) {
+            return;
+        }
+
+        $.ajax({
+            type: 'POST',
+            url: onepaqucpro_wc_cart_params.ajax_url,
+            data: $('.floating-cart-shipping-methods input.shipping_method:checked').serialize() + '&action=onepaqucpro_update_shipping_method&nonce=' + encodeURIComponent(onepaqucpro_wc_cart_params.update_shipping_method || ''),
+            success: function () {
+                $(document.body).trigger('updated_shipping_method');
+                updateCartContent(false);
+            }
+        });
+    });
+
     window.updateCartCount = function (isIncrement = true, Value = 1) {
         // Select the cart count element
         const cartCountElement = document.querySelector('span.cart-count');

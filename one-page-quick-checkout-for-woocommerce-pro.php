@@ -89,6 +89,7 @@ if (is_admin()) {
 }
 
 // admin menu
+require_once plugin_dir_path(__FILE__) . 'includes/floating-cart-meta.php';
 require_once plugin_dir_path(__FILE__) . 'includes/admin.php';
 
 // include one page checkout shortcode
@@ -249,6 +250,10 @@ $onepaqucpro_string_settings_fields = [
     "rmenu_cart_hover_text",
     "rmenu_cart_border_radius",
     "rmenu_floating_cart_icon",
+    "rmenu_floating_cart_meta_include",
+    "rmenu_floating_cart_group_by",
+    "rmenu_floating_cart_group_meta_key",
+    "rmenu_floating_cart_group_icon",
     "rmenu_show_cart_icon",
     "rmenu_show_cart_count",
     "rmenu_show_cart_total",
@@ -272,10 +277,15 @@ $onepaqucpro_floating_cart_premium_checkbox_fields = [
     'rmenu_floating_cart_show_summary' => '1',
     'rmenu_floating_cart_show_subtotal' => '1',
     'rmenu_floating_cart_show_discount' => '1',
+    'rmenu_floating_cart_show_shipping_options' => '0',
+    'rmenu_floating_cart_show_shipping_total' => '1',
+    'rmenu_floating_cart_show_tax_total' => '1',
     'rmenu_floating_cart_show_total' => '1',
     'rmenu_floating_cart_show_checkout' => '1',
     'rmenu_floating_cart_show_empty_icon' => '1',
     'rmenu_floating_cart_show_shop_button' => '1',
+    'rmenu_floating_cart_show_item_meta' => '1',
+    'rmenu_floating_cart_group_items' => '0',
 ];
 
 $onepaqucpro_floating_cart_premium_text_fields = [
@@ -296,7 +306,10 @@ $onepaqucpro_floating_cart_premium_text_fields = [
     'rmenu_floating_cart_applied_coupons_heading' => 'Applied Coupons:',
     'rmenu_floating_cart_remove_coupon_text' => 'Remove',
     'rmenu_floating_cart_discount_label' => 'Discount',
-    'rmenu_floating_cart_related_add_to_cart_text' => '',
+    'rmenu_floating_cart_shipping_options_label' => 'Shipping options',
+    'rmenu_floating_cart_shipping_label' => 'Shipping',
+    'rmenu_floating_cart_tax_label' => 'Tax',
+    'rmenu_floating_cart_related_add_to_cart_text' => 'Add to cart',
 ];
 
 $onepaqucpro_string_settings_fields = array_values(array_unique(array_merge(
@@ -454,6 +467,7 @@ function onepaqucpro_cart_enqueue_scripts()
         'get_cart_content_none' => esc_js(wp_create_nonce('get_cart_content_none')),
         'update_cart_item_quantity' => esc_js(wp_create_nonce('update_cart_item_quantity')),
         'remove_cart_item' => esc_js(wp_create_nonce('remove_cart_item')),
+        'update_shipping_method' => esc_js(wp_create_nonce('update_shipping_method')),
         'update_cart_item_variation' => esc_js(wp_create_nonce('update_cart_item_variation')),
         'get_cart_item_variation_editor' => esc_js(wp_create_nonce('get_cart_item_variation_editor')),
         'update_cart_item_variation' => esc_js(wp_create_nonce('update_cart_item_variation')),
@@ -523,7 +537,7 @@ function onepaqucpro_cart_admin_styles($hook)
     $current_page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
 
     if ($hook === 'toplevel_page_onepaqucpro_cart' || $current_page === 'onepaqucpro_cart_recovery' || $current_page === 'onepaqucpro_cart_recovery_template') {
-        wp_enqueue_style('onepaqucpro_cart_admin_css', plugin_dir_url(__FILE__) . 'assets/css/admin-style.css', array(), "1.1.9.35");
+        wp_enqueue_style('onepaqucpro_cart_admin_css', plugin_dir_url(__FILE__) . 'assets/css/admin-style.css', array(), filemtime(plugin_dir_path(__FILE__) . 'assets/css/admin-style.css'));
         wp_enqueue_style('select2-css', plugin_dir_url(__FILE__) . 'assets/css/select2.min.css', array(), "1.1.9.35");
         wp_enqueue_script('select2-js', plugin_dir_url(__FILE__) . 'assets/js/select2.min.js', array('jquery'), "1.1.9.35", true);
     }
@@ -542,8 +556,8 @@ function onepaqucpro_cart_admin_styles($hook)
             true
         );
     }
-    wp_enqueue_style('onepaqucpro_cart_admin_css', plugin_dir_url(__FILE__) . 'assets/css/admin-documentation.css', array(), "1.1.9.35");
-    wp_enqueue_script('rmenupro-admin-script', plugin_dir_url(__FILE__) . 'assets/js/admin-documentation.js', array('jquery'), "1.1.9.35", true);
+    wp_enqueue_style('onepaqucpro_cart_admin_css', plugin_dir_url(__FILE__) . 'assets/css/admin-documentation.css', array(), filemtime(plugin_dir_path(__FILE__) . 'assets/css/admin-documentation.css'));
+    wp_enqueue_script('rmenupro-admin-script', plugin_dir_url(__FILE__) . 'assets/js/admin-documentation.js', array('jquery'), filemtime(plugin_dir_path(__FILE__) . 'assets/js/admin-documentation.js'), true);
     wp_enqueue_editor();
 }
 

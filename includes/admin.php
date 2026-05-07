@@ -145,6 +145,174 @@ function onepaqucpro_get_floating_cart_admin_preview_text($name, $defaults, $fal
     return trim((string) $value) !== '' ? $value : $default;
 }
 
+function onepaqucpro_get_floating_cart_admin_meta_preview_value($key)
+{
+    $key = strtolower((string) $key);
+
+    if (strpos($key, 'location') !== false) {
+        return 'New-York';
+    }
+
+    if (strpos($key, 'color') !== false || strpos($key, 'colour') !== false) {
+        return 'Black';
+    }
+
+    if (strpos($key, 'size') !== false) {
+        return 'Standard';
+    }
+
+    if (strpos($key, 'brand') !== false) {
+        return 'Plugincy';
+    }
+
+    if (strpos($key, 'store') !== false || strpos($key, 'warehouse') !== false) {
+        return 'Main Store';
+    }
+
+    return 'Sample value';
+}
+
+function onepaqucpro_get_floating_cart_admin_meta_options()
+{
+    $options = array();
+
+    if (function_exists('onepaqucpro_maybe_load_floating_cart_context')) {
+        onepaqucpro_maybe_load_floating_cart_context();
+    }
+
+    if (function_exists('WC') && WC() && WC()->cart) {
+        foreach (WC()->cart->get_cart() as $cart_item) {
+            foreach (onepaqucpro_get_floating_cart_cart_item_meta_rows($cart_item) as $row) {
+                if (empty($row['id']) || empty($row['label'])) {
+                    continue;
+                }
+
+                if (onepaqucpro_is_hidden_floating_cart_admin_meta_key($row['id'])) {
+                    continue;
+                }
+
+                $label = (string) $row['label'];
+                if (isset($row['source']) && $row['source'] === 'raw') {
+                    $label .= ' (' . $row['id'] . ')';
+                }
+
+                $options[$row['id']] = $label;
+            }
+        }
+    }
+
+    natcasesort($options);
+
+    return $options;
+}
+
+function onepaqucpro_get_hidden_floating_cart_admin_meta_keys()
+{
+    return apply_filters('onepaqucpro_hidden_floating_cart_admin_meta_keys', onepaqucpro_get_hidden_floating_cart_meta_keys());
+}
+
+function onepaqucpro_is_hidden_floating_cart_admin_meta_key($meta_key)
+{
+    return in_array(
+        onepaqucpro_normalize_floating_cart_meta_identifier($meta_key),
+        array_map('onepaqucpro_normalize_floating_cart_meta_identifier', onepaqucpro_get_hidden_floating_cart_admin_meta_keys()),
+        true
+    );
+}
+
+function onepaqucpro_render_floating_cart_meta_picker($name, $label, $multiple = true)
+{
+    $premium_enabled = function_exists('onepaqucpro_can_use_floating_cart_premium_settings') && onepaqucpro_can_use_floating_cart_premium_settings();
+    $field_name = $premium_enabled ? $name : 'pro_' . $name;
+    $value = $premium_enabled ? get_option($name, '') : '';
+    $selected_values = array_filter(array_map('trim', explode(',', (string) $value)));
+    $selected_values = array_values(array_filter($selected_values, function ($selected_value) {
+        return !onepaqucpro_is_hidden_floating_cart_admin_meta_key($selected_value);
+    }));
+    $value = implode(',', $selected_values);
+    $options = onepaqucpro_get_floating_cart_admin_meta_options();
+    ?>
+    <div class="rmenupro-settings-field plugincy_row items_center onepaqucpro-floating-control" data-floating-control-wrap="<?php echo esc_attr($name); ?>">
+        <label class="rmenupro-settings-label"><?php echo esc_html($label); ?></label>
+        <div class="rmenupro-settings-control onepaqucpro-meta-picker" data-meta-picker="<?php echo esc_attr($name); ?>" data-meta-picker-multiple="<?php echo $multiple ? '1' : '0'; ?>">
+            <input type="hidden" name="<?php echo esc_attr($field_name); ?>" value="<?php echo esc_attr($value); ?>" data-floating-cart-control="<?php echo esc_attr($name); ?>" <?php echo !$premium_enabled ? 'disabled' : ''; ?> />
+            <select class="<?php echo $multiple ? 'onepaqucpro-meta-picker-select2' : ''; ?>" <?php echo $multiple ? 'multiple data-use-select2="1"' : ''; ?> <?php echo !$premium_enabled ? 'disabled' : ''; ?>>
+                <?php foreach ($options as $option_value => $option_label) : ?>
+                    <option value="<?php echo esc_attr($option_value); ?>" <?php selected(in_array($option_value, $selected_values, true), true); ?>><?php echo esc_html($option_label); ?></option>
+                <?php endforeach; ?>
+                <?php foreach ($selected_values as $selected_value) : ?>
+                    <?php if (!isset($options[$selected_value])) : ?>
+                        <option value="<?php echo esc_attr($selected_value); ?>" selected><?php echo esc_html($selected_value); ?></option>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+            </select>
+            <div class="onepaqucpro-meta-picker__custom">
+                <input type="text" placeholder="<?php esc_attr_e('Add custom meta key', 'one-page-quick-checkout-for-woocommerce-pro'); ?>" <?php echo !$premium_enabled ? 'disabled' : ''; ?> />
+                <button type="button" class="button" <?php echo !$premium_enabled ? 'disabled' : ''; ?>><?php esc_html_e('Add', 'one-page-quick-checkout-for-woocommerce-pro'); ?></button>
+            </div>
+        </div>
+    </div>
+    <?php
+}
+
+function onepaqucpro_render_floating_cart_meta_rule_builder($name, $label)
+{
+    $premium_enabled = function_exists('onepaqucpro_can_use_floating_cart_premium_settings') && onepaqucpro_can_use_floating_cart_premium_settings();
+    $field_name = $premium_enabled ? $name : 'pro_' . $name;
+    $saved_value = $premium_enabled ? get_option($name, '') : '';
+    $options = onepaqucpro_get_floating_cart_admin_meta_options();
+    $rules = onepaqucpro_decode_floating_cart_meta_rules($saved_value, $options);
+    $value = onepaqucpro_encode_floating_cart_meta_rules($rules);
+    $options_payload = array();
+
+    foreach ($options as $option_value => $option_label) {
+        $options_payload[] = array(
+            'value' => (string) $option_value,
+            'label' => wp_strip_all_tags((string) $option_label),
+        );
+    }
+    ?>
+    <div class="rmenupro-settings-field plugincy_row items_center onepaqucpro-floating-control" data-floating-control-wrap="<?php echo esc_attr($name); ?>">
+        <label class="rmenupro-settings-label"><?php echo esc_html($label); ?></label>
+        <div class="rmenupro-settings-control onepaqucpro-meta-builder" data-meta-builder="<?php echo esc_attr($name); ?>" data-meta-builder-options="<?php echo esc_attr(wp_json_encode($options_payload)); ?>">
+            <input type="hidden" name="<?php echo esc_attr($field_name); ?>" value="<?php echo esc_attr($value); ?>" data-floating-cart-control="<?php echo esc_attr($name); ?>" <?php echo !$premium_enabled ? 'disabled' : ''; ?> />
+            <div class="onepaqucpro-meta-builder__head" aria-hidden="true">
+                <span></span>
+                <span><?php esc_html_e('Meta', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                <span><?php esc_html_e('Title', 'one-page-quick-checkout-for-woocommerce-pro'); ?></span>
+                <span></span>
+            </div>
+            <div class="onepaqucpro-meta-builder__rows" data-meta-builder-rows>
+                <?php foreach ($rules as $rule) : ?>
+                    <?php
+                    $rule_key = isset($rule['key']) ? (string) $rule['key'] : '';
+                    $rule_title = isset($rule['title']) ? (string) $rule['title'] : '';
+                    ?>
+                    <div class="onepaqucpro-meta-builder__row" data-meta-builder-row draggable="true">
+                        <button type="button" class="onepaqucpro-meta-builder__drag" data-meta-builder-drag aria-label="<?php esc_attr_e('Reorder meta data', 'one-page-quick-checkout-for-woocommerce-pro'); ?>" <?php echo !$premium_enabled ? 'disabled' : ''; ?>>
+                            <span class="dashicons dashicons-menu"></span>
+                        </button>
+                        <select data-meta-builder-key <?php echo !$premium_enabled ? 'disabled' : ''; ?>>
+                            <?php foreach ($options as $option_value => $option_label) : ?>
+                                <option value="<?php echo esc_attr($option_value); ?>" <?php selected($rule_key, $option_value); ?>><?php echo esc_html($option_label); ?></option>
+                            <?php endforeach; ?>
+                            <?php if ($rule_key !== '' && !isset($options[$rule_key])) : ?>
+                                <option value="<?php echo esc_attr($rule_key); ?>" selected><?php echo esc_html($rule_key); ?></option>
+                            <?php endif; ?>
+                        </select>
+                        <input type="text" value="<?php echo esc_attr($rule_title); ?>" placeholder="<?php esc_attr_e('Display title', 'one-page-quick-checkout-for-woocommerce-pro'); ?>" data-meta-builder-title <?php echo !$premium_enabled ? 'disabled' : ''; ?> />
+                        <button type="button" class="onepaqucpro-meta-builder__remove" data-meta-builder-remove aria-label="<?php esc_attr_e('Remove meta data', 'one-page-quick-checkout-for-woocommerce-pro'); ?>" <?php echo !$premium_enabled ? 'disabled' : ''; ?>>
+                            <span class="dashicons dashicons-no-alt"></span>
+                        </button>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+            <button type="button" class="button onepaqucpro-meta-builder__add" data-meta-builder-add <?php echo !$premium_enabled ? 'disabled' : ''; ?>><?php esc_html_e('Add meta data', 'one-page-quick-checkout-for-woocommerce-pro'); ?></button>
+        </div>
+    </div>
+    <?php
+}
+
 // Dashboard page
 function onepaqucpro_cart_dashboard()
 {
@@ -858,10 +1026,15 @@ function onepaqucpro_cart_dashboard()
                         'rmenu_floating_cart_show_summary' => 'Cart Summary',
                         'rmenu_floating_cart_show_subtotal' => 'Subtotal Row',
                         'rmenu_floating_cart_show_discount' => 'Discount Row',
+                        'rmenu_floating_cart_show_shipping_options' => 'Shipping Options',
+                        'rmenu_floating_cart_show_shipping_total' => 'Shipping Row',
+                        'rmenu_floating_cart_show_tax_total' => 'Tax Row',
                         'rmenu_floating_cart_show_total' => 'Total Row',
                         'rmenu_floating_cart_show_checkout' => 'Checkout Button',
                         'rmenu_floating_cart_show_empty_icon' => 'Empty Cart Icon',
                         'rmenu_floating_cart_show_shop_button' => 'Shop Button',
+                        'rmenu_floating_cart_show_item_meta' => 'Cart Item Meta',
+                        'rmenu_floating_cart_group_items' => 'Group Cart Items',
                     );
                     ?>
                     <div class="rmenupro-settings-row rmenupro-settings-row-columns">
@@ -870,6 +1043,48 @@ function onepaqucpro_cart_dashboard()
                                 <?php onepaqucpro_render_floating_cart_pro_switch($field_name, $field_label, isset($floating_cart_element_defaults[$field_name]) ? $floating_cart_element_defaults[$field_name] : '1'); ?>
                             </div>
                         <?php endforeach; ?>
+                    </div>
+                </div>
+
+                <div class="rmenu-settings-section plugincy_card <?php echo !onepaqucpro_premium_feature() ? 'pro-only' : ''; ?> mb-4">
+                    <?php $onepaquc_helper->sec_head('h2', 'plugincy_sec_head', '<span class="dashicons dashicons-index-card"></span>', 'Cart Item Data & Grouping', 'Control cart item meta visibility and optional item grouping.'); ?>
+                    <div class="rmenupro-settings-row rmenupro-settings-row-columns">
+                        <div class="rmenu-settings-column">
+                            <?php onepaqucpro_render_floating_cart_meta_rule_builder('rmenu_floating_cart_meta_include', 'Meta Include'); ?>
+                        </div>
+                    </div>
+                    <div class="rmenupro-settings-row rmenupro-settings-row-columns">
+                        <div class="rmenu-settings-column">
+                            <div class="rmenupro-settings-field plugincy_row items_center" data-floating-control-wrap="rmenu_floating_cart_group_by">
+                                <label class="rmenupro-settings-label">Group Items By</label>
+                                <div class="rmenupro-settings-control">
+                                    <?php $floating_group_by = get_option('rmenu_floating_cart_group_by', 'category'); ?>
+                                    <select name="rmenu_floating_cart_group_by" class="rmenu-select" data-floating-cart-control="rmenu_floating_cart_group_by" <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?>>
+                                        <option value="category" <?php selected($floating_group_by, 'category'); ?>>Category</option>
+                                        <option value="brand" <?php selected($floating_group_by, 'brand'); ?>>Brand</option>
+                                        <option value="meta" <?php selected($floating_group_by, 'meta'); ?>>Cart Item Meta</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="rmenu-settings-column">
+                            <?php onepaqucpro_render_floating_cart_meta_picker('rmenu_floating_cart_group_meta_key', 'Group Meta Key', false); ?>
+                        </div>
+                    </div>
+                    <div class="rmenupro-settings-row">
+                        <div class="rmenupro-settings-field plugincy_row items_center" data-floating-control-wrap="rmenu_floating_cart_group_icon">
+                            <label class="rmenupro-settings-label">Group Title Icon</label>
+                            <div class="rmenupro-settings-control">
+                                <?php $floating_group_icon = get_option('rmenu_floating_cart_group_icon', 'tag'); ?>
+                                <select name="rmenu_floating_cart_group_icon" class="rmenu-select" data-floating-cart-control="rmenu_floating_cart_group_icon" <?php echo !onepaqucpro_premium_feature() ? 'disabled' : ''; ?>>
+                                    <option value="none" <?php selected($floating_group_icon, 'none'); ?>>No Icon</option>
+                                    <option value="tag" <?php selected($floating_group_icon, 'tag'); ?>>Tag</option>
+                                    <option value="folder" <?php selected($floating_group_icon, 'folder'); ?>>Folder</option>
+                                    <option value="star" <?php selected($floating_group_icon, 'star'); ?>>Star</option>
+                                    <option value="location" <?php selected($floating_group_icon, 'location'); ?>>Location</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -891,9 +1106,12 @@ function onepaqucpro_cart_dashboard()
                         'rmenu_floating_cart_applied_coupons_heading' => 'Applied Coupons Heading',
                         'rmenu_floating_cart_remove_coupon_text' => 'Remove Coupon',
                         'txt_you_may_like' => 'Related Products Heading',
-                        'rmenu_floating_cart_related_add_to_cart_text' => 'Related Product Button',
+                        'rmenu_floating_cart_related_add_to_cart_text' => 'Add to Cart Button',
                         'txt_subtotal' => 'Subtotal Label',
                         'rmenu_floating_cart_discount_label' => 'Discount Label',
+                        'rmenu_floating_cart_shipping_options_label' => 'Shipping Options Heading',
+                        'rmenu_floating_cart_shipping_label' => 'Shipping Label',
+                        'rmenu_floating_cart_tax_label' => 'Tax Label',
                         'txt_total' => 'Total Label',
                         'txt_checkout' => 'Checkout Button',
                     );
@@ -923,9 +1141,15 @@ function onepaqucpro_cart_dashboard()
                         'rmenu_floating_cart_related_add_to_cart_text' => onepaqucpro_get_floating_cart_admin_preview_text('rmenu_floating_cart_related_add_to_cart_text', $floating_cart_text_defaults, 'Add to cart'),
                         'txt_subtotal' => onepaqucpro_get_floating_cart_admin_preview_text('txt_subtotal', $floating_cart_text_defaults, 'Subtotal'),
                         'rmenu_floating_cart_discount_label' => onepaqucpro_get_floating_cart_admin_preview_text('rmenu_floating_cart_discount_label', $floating_cart_text_defaults, 'Discount'),
+                        'rmenu_floating_cart_shipping_options_label' => onepaqucpro_get_floating_cart_admin_preview_text('rmenu_floating_cart_shipping_options_label', $floating_cart_text_defaults, 'Shipping options'),
+                        'rmenu_floating_cart_shipping_label' => onepaqucpro_get_floating_cart_admin_preview_text('rmenu_floating_cart_shipping_label', $floating_cart_text_defaults, 'Shipping'),
+                        'rmenu_floating_cart_tax_label' => onepaqucpro_get_floating_cart_admin_preview_text('rmenu_floating_cart_tax_label', $floating_cart_text_defaults, 'Tax'),
                         'txt_total' => onepaqucpro_get_floating_cart_admin_preview_text('txt_total', $floating_cart_text_defaults, 'Total'),
                         'txt_checkout' => onepaqucpro_get_floating_cart_admin_preview_text('txt_checkout', $floating_cart_text_defaults, 'Checkout'),
                     );
+                    $floating_preview_meta_rules = function_exists('onepaqucpro_get_floating_cart_meta_rules_option')
+                        ? onepaqucpro_get_floating_cart_meta_rules_option('rmenu_floating_cart_meta_include')
+                        : array();
                     $floating_preview_bg = get_option('rmenu_cart_bg_color', '#96588a');
                     $floating_preview_text_color = get_option('rmenu_cart_text_color', '#ffffff');
                     $floating_preview_radius = get_option('rmenu_cart_border_radius', '5px 0 0 5px');
@@ -963,12 +1187,27 @@ function onepaqucpro_cart_dashboard()
                                 <span><input type="checkbox" checked> <span data-preview-text="txt_Select_All"><?php echo esc_html($floating_preview_text['txt_Select_All']); ?></span></span>
                                 <span>2 <span data-preview-text="txt_Selected"><?php echo esc_html($floating_preview_text['txt_Selected']); ?></span></span>
                             </div>
+                            <div class="onepaqucpro-floating-preview-group" data-preview-part="rmenu_floating_cart_group_items" data-preview-target="rmenu_floating_cart_group_items">
+                                <h4><span data-preview-group-icon>●</span><span data-preview-group-title>Gaming Accessories</span></h4>
+                            </div>
                             <div class="onepaqucpro-floating-preview-item">
                                 <input type="checkbox" checked data-preview-part="rmenu_floating_cart_show_item_select" data-preview-target="rmenu_floating_cart_show_item_select">
                                 <button type="button" class="onepaqucpro-floating-preview-remove" data-preview-part="rmenu_floating_cart_show_remove_item" data-preview-target="rmenu_floating_cart_show_remove_item">&times;</button>
                                 <div class="onepaqucpro-floating-preview-image" data-preview-part="rmenu_floating_cart_show_product_image" data-preview-target="rmenu_floating_cart_show_product_image"><span class="dashicons dashicons-format-image"></span></div>
                                 <div class="onepaqucpro-floating-preview-item-main">
                                     <div class="onepaqucpro-floating-preview-title" data-preview-part="rmenu_floating_cart_show_product_title" data-preview-target="rmenu_floating_cart_show_product_title">B100 Pro Wireless Gaming Headset - Black</div>
+                                    <dl class="onepaqucpro-floating-preview-meta" data-preview-part="rmenu_floating_cart_show_item_meta" data-preview-target="rmenu_floating_cart_show_item_meta" data-preview-meta-list>
+                                        <?php if (!empty($floating_preview_meta_rules)) : ?>
+                                            <?php foreach ($floating_preview_meta_rules as $floating_preview_meta_rule) : ?>
+                                                <div>
+                                                    <dt><?php echo esc_html(isset($floating_preview_meta_rule['title']) ? $floating_preview_meta_rule['title'] : 'Meta'); ?></dt>
+                                                    <dd><?php echo esc_html(onepaqucpro_get_floating_cart_admin_meta_preview_value(isset($floating_preview_meta_rule['key']) ? $floating_preview_meta_rule['key'] : '')); ?></dd>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        <?php else : ?>
+                                            <div class="onepaqucpro-floating-preview-meta-placeholder"><?php esc_html_e('No meta data selected. Add Meta Include to preview cart item data.', 'one-page-quick-checkout-for-woocommerce-pro'); ?></div>
+                                        <?php endif; ?>
+                                    </dl>
                                     <div class="onepaqucpro-floating-preview-actions">
                                         <div class="onepaqucpro-floating-preview-qty" data-preview-part="rmenu_floating_cart_show_quantity" data-preview-target="rmenu_floating_cart_show_quantity"><button type="button">-</button><span>1</span><button type="button">+</button></div>
                                         <div class="onepaqucpro-floating-preview-variation-editor" data-preview-part="rmenu_floating_cart_show_variation_editor" data-preview-target="rmenu_floating_cart_show_variation_editor">
@@ -1014,9 +1253,16 @@ function onepaqucpro_cart_dashboard()
                                     <div><span class="dashicons dashicons-format-image"></span><p>Desktop PC Core i5</p><strong>570.00&#2547;</strong><button type="button" data-preview-text="rmenu_floating_cart_related_add_to_cart_text"><?php echo esc_html($floating_preview_text['rmenu_floating_cart_related_add_to_cart_text'] ? $floating_preview_text['rmenu_floating_cart_related_add_to_cart_text'] : 'Add to cart'); ?></button></div>
                                 </div>
                             </div>
+                            <div class="onepaqucpro-floating-preview-shipping" data-preview-part="rmenu_floating_cart_show_shipping_options" data-preview-target="rmenu_floating_cart_show_shipping_options">
+                                <h4 data-preview-text="rmenu_floating_cart_shipping_options_label"><?php echo esc_html($floating_preview_text['rmenu_floating_cart_shipping_options_label']); ?></h4>
+                                <label><input type="radio" checked> Flat rate: 60.00&#2547;</label>
+                                <label><input type="radio"> Local pickup</label>
+                            </div>
                             <div class="onepaqucpro-floating-preview-summary" data-preview-part="rmenu_floating_cart_show_summary" data-preview-target="rmenu_floating_cart_show_summary">
                                 <div data-preview-part="rmenu_floating_cart_show_subtotal" data-preview-target="rmenu_floating_cart_show_subtotal"><span data-preview-text="txt_subtotal"><?php echo esc_html($floating_preview_text['txt_subtotal']); ?></span><span>1,150.00&#2547;</span></div>
                                 <div data-preview-part="rmenu_floating_cart_show_discount" data-preview-target="rmenu_floating_cart_show_discount"><span data-preview-text="rmenu_floating_cart_discount_label"><?php echo esc_html($floating_preview_text['rmenu_floating_cart_discount_label']); ?></span><span>- 50.00&#2547;</span></div>
+                                <div data-preview-part="rmenu_floating_cart_show_shipping_total" data-preview-target="rmenu_floating_cart_show_shipping_total"><span data-preview-text="rmenu_floating_cart_shipping_label"><?php echo esc_html($floating_preview_text['rmenu_floating_cart_shipping_label']); ?></span><span>60.00&#2547;</span></div>
+                                <div data-preview-part="rmenu_floating_cart_show_tax_total" data-preview-target="rmenu_floating_cart_show_tax_total"><span data-preview-text="rmenu_floating_cart_tax_label"><?php echo esc_html($floating_preview_text['rmenu_floating_cart_tax_label']); ?></span><span>50.00&#2547;</span></div>
                                 <div class="total" data-preview-part="rmenu_floating_cart_show_total" data-preview-target="rmenu_floating_cart_show_total"><span data-preview-text="txt_total"><?php echo esc_html($floating_preview_text['txt_total']); ?></span><span>1,210.00&#2547;</span></div>
                             </div>
                             <button type="button" class="onepaqucpro-floating-preview-checkout" data-preview-part="rmenu_floating_cart_show_checkout" data-preview-target="rmenu_floating_cart_show_checkout" data-preview-text="txt_checkout"><?php echo esc_html($floating_preview_text['txt_checkout']); ?></button>
@@ -4000,6 +4246,8 @@ function onepaqucpro_cart_settings()
         $legacy_floating_text_fields = array('your_cart', 'txt_Select_All', 'txt_Selected', 'txt_subtotal', 'txt_total', 'txt_checkout', 'txt_you_may_like');
         if ($field === 'rmenu_cart_checkout_behavior') {
             $sanitize_callback = 'onepaqucpro_sanitize_floating_cart_checkout_behavior';
+        } elseif ($field === 'rmenu_floating_cart_meta_include') {
+            $sanitize_callback = 'onepaqucpro_sanitize_floating_cart_meta_rules';
         } elseif (is_array($onepaqucpro_floating_cart_premium_checkbox_fields) && array_key_exists($field, $onepaqucpro_floating_cart_premium_checkbox_fields)) {
             $sanitize_callback = 'onepaqucpro_sanitize_premium_checkbox';
         } elseif (
@@ -4075,6 +4323,15 @@ function onepaqucpro_sanitize_premium_text_field($value)
     }
 
     return sanitize_text_field($value);
+}
+
+function onepaqucpro_sanitize_floating_cart_meta_rules($value)
+{
+    if (!function_exists('onepaqucpro_premium_feature') || !onepaqucpro_premium_feature()) {
+        return '';
+    }
+
+    return onepaqucpro_encode_floating_cart_meta_rules($value);
 }
 
 function onepaqucpro_handle_reset_settings()

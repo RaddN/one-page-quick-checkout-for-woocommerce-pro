@@ -16,10 +16,12 @@ function onepaqucpro_render_cart_drawer_item($cart_item_key, $cart_item, $produc
     $show_product_price = onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_product_price');
     $show_quantity = onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_quantity');
     $show_variation_editor = onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_variation_editor');
+    $show_item_meta = onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_item_meta');
     $thumbnail = $_product->get_image();
     $product_price = wc_price($_product->get_price());
     $product_quantity = isset($cart_item['quantity']) ? absint($cart_item['quantity']) : 1;
     $variation_editor = $show_variation_editor ? onepaqucpro_get_cart_item_variation_editor_html($cart_item, $cart_item_key, 'drawer') : '';
+    $item_meta = $show_item_meta ? onepaqucpro_get_filtered_cart_item_meta($cart_item) : array();
     ?>
     <div class="cart-item<?php echo !$show_item_select ? ' cart-item--no-select' : ''; ?><?php echo (!$show_product_image && !$show_remove_item) ? ' cart-item--no-media' : ''; ?>" data-cart-item-key="<?php echo esc_attr($cart_item_key); ?>">
         <?php if ($show_item_select) : ?>
@@ -56,6 +58,16 @@ function onepaqucpro_render_cart_drawer_item($cart_item_key, $cart_item, $produc
                         <p class="item-price"><?php echo wp_kses_post($product_price); ?></p>
                     <?php endif; ?>
                 </div>
+            <?php endif; ?>
+            <?php if (!empty($item_meta)) : ?>
+                <dl class="cart-item-meta">
+                    <?php foreach ($item_meta as $meta_row) : ?>
+                        <div class="cart-item-meta__row">
+                            <dt><?php echo esc_html($meta_row['key']); ?></dt>
+                            <dd><?php echo wp_kses_post($meta_row['display']); ?></dd>
+                        </div>
+                    <?php endforeach; ?>
+                </dl>
             <?php endif; ?>
             <?php if ($show_quantity || $variation_editor !== '') : ?>
                 <div class="cart-item__actions">
@@ -150,6 +162,222 @@ function onepaqucpro_hide_empty_cart_button_enabled()
     return get_option('rmenu_hide_empty_cart_button', '0') === '1';
 }
 
+function onepaqucpro_floating_cart_meta_row_matches_rule($row, $rule)
+{
+    if (!is_array($rule) || empty($rule['key'])) {
+        return false;
+    }
+
+    return onepaqucpro_floating_cart_meta_row_matches($row, onepaqucpro_get_floating_cart_meta_aliases($rule['key']));
+}
+
+function onepaqucpro_get_floating_cart_meta_row_output($row, $rule = null)
+{
+    $label = isset($row['label']) ? wp_strip_all_tags((string) $row['label']) : '';
+    $display = isset($row['display']) ? (string) $row['display'] : '';
+
+    if (is_array($rule) && !empty($rule['title'])) {
+        $label = wp_strip_all_tags((string) $rule['title']);
+    }
+
+    if ($label === '' || trim(wp_strip_all_tags($display)) === '') {
+        return null;
+    }
+
+    return array(
+        'key' => $label,
+        'display' => $display,
+    );
+}
+
+function onepaqucpro_get_filtered_cart_item_meta($cart_item)
+{
+    if (!function_exists('onepaqucpro_get_floating_cart_cart_item_meta_rows')) {
+        return array();
+    }
+
+    $rows = onepaqucpro_get_floating_cart_cart_item_meta_rows($cart_item);
+    if (!is_array($rows) || empty($rows)) {
+        return array();
+    }
+
+    $include = onepaqucpro_get_floating_cart_meta_rules_option('rmenu_floating_cart_meta_include');
+    $filtered = array();
+
+    if (empty($include)) {
+        return array();
+    }
+
+    $used_rows = array();
+    foreach ($include as $rule) {
+        foreach ($rows as $row_index => $row) {
+            if (isset($used_rows[$row_index])) {
+                continue;
+            }
+
+            if (!onepaqucpro_floating_cart_meta_row_matches_rule($row, $rule)) {
+                continue;
+            }
+
+            $output = onepaqucpro_get_floating_cart_meta_row_output($row, $rule);
+            if ($output !== null) {
+                $filtered[] = $output;
+                $used_rows[$row_index] = true;
+            }
+
+            break;
+        }
+    }
+
+    return $filtered;
+}
+
+function onepaqucpro_get_cart_item_group_label($cart_item)
+{
+    $group_by = get_option('rmenu_floating_cart_group_by', 'category');
+    $product_id = isset($cart_item['product_id']) ? absint($cart_item['product_id']) : 0;
+
+    if ($group_by === 'brand') {
+        foreach (array('product_brand', 'pa_brand') as $taxonomy) {
+            if (taxonomy_exists($taxonomy)) {
+                $terms = get_the_terms($product_id, $taxonomy);
+                if (!empty($terms) && !is_wp_error($terms)) {
+                    return $terms[0]->name;
+                }
+            }
+        }
+
+        return __('No brand', 'one-page-quick-checkout-for-woocommerce-pro');
+    }
+
+    if ($group_by === 'meta') {
+        $meta_key = get_option('rmenu_floating_cart_group_meta_key', '');
+        if ($meta_key !== '' && function_exists('onepaqucpro_get_floating_cart_cart_item_meta_value')) {
+            $meta_value = onepaqucpro_get_floating_cart_cart_item_meta_value($cart_item, $meta_key);
+            if ($meta_value !== '') {
+                return $meta_value;
+            }
+        }
+
+        return __('Other', 'one-page-quick-checkout-for-woocommerce-pro');
+    }
+
+    $terms = get_the_terms($product_id, 'product_cat');
+    if (!empty($terms) && !is_wp_error($terms)) {
+        return $terms[0]->name;
+    }
+
+    return __('Uncategorized', 'one-page-quick-checkout-for-woocommerce-pro');
+}
+
+function onepaqucpro_get_cart_item_group_icon()
+{
+    $icon = get_option('rmenu_floating_cart_group_icon', 'tag');
+    $icons = array(
+        'none' => '',
+        'tag' => '&#9679;',
+        'folder' => '&#9632;',
+        'star' => '&#9733;',
+        'location' => '<svg class="cart-item-group__icon-svg" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>',
+    );
+
+    return isset($icons[$icon]) ? $icons[$icon] : $icons['tag'];
+}
+
+function onepaqucpro_get_cart_item_group_icon_allowed_html()
+{
+    return array(
+        'svg' => array(
+            'class' => true,
+            'xmlns' => true,
+            'width' => true,
+            'height' => true,
+            'viewBox' => true,
+            'viewbox' => true,
+            'fill' => true,
+            'stroke' => true,
+            'stroke-width' => true,
+            'stroke-linecap' => true,
+            'stroke-linejoin' => true,
+            'aria-hidden' => true,
+            'focusable' => true,
+        ),
+        'path' => array(
+            'd' => true,
+        ),
+        'circle' => array(
+            'cx' => true,
+            'cy' => true,
+            'r' => true,
+        ),
+    );
+}
+
+function onepaqucpro_render_grouped_cart_drawer_items($cart_items, $product_title_tag)
+{
+    if (!onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_group_items', '0')) {
+        foreach ($cart_items as $cart_item_key => $cart_item) {
+            onepaqucpro_render_cart_drawer_item($cart_item_key, $cart_item, $product_title_tag);
+        }
+        return;
+    }
+
+    $groups = array();
+    foreach ($cart_items as $cart_item_key => $cart_item) {
+        $label = onepaqucpro_get_cart_item_group_label($cart_item);
+        $groups[$label][$cart_item_key] = $cart_item;
+    }
+
+    foreach ($groups as $label => $group_items) {
+        $icon = onepaqucpro_get_cart_item_group_icon();
+        echo '<div class="cart-item-group">';
+        echo '<h4 class="cart-item-group__title">';
+        if ($icon !== '') {
+            echo '<span class="cart-item-group__icon">' . wp_kses($icon, onepaqucpro_get_cart_item_group_icon_allowed_html()) . '</span>';
+        }
+        echo esc_html($label) . '</h4>';
+        foreach ($group_items as $cart_item_key => $cart_item) {
+            onepaqucpro_render_cart_drawer_item($cart_item_key, $cart_item, $product_title_tag);
+        }
+        echo '</div>';
+    }
+}
+
+function onepaqucpro_render_floating_cart_shipping_options()
+{
+    if (!WC()->cart->needs_shipping() || !WC()->shipping()) {
+        return '';
+    }
+
+    WC()->cart->calculate_shipping();
+    $packages = WC()->shipping()->get_packages();
+    if (empty($packages)) {
+        return '';
+    }
+
+    ob_start();
+    foreach ($packages as $package_key => $package) {
+        if (empty($package['rates'])) {
+            continue;
+        }
+
+        $chosen_method = WC()->session ? WC()->session->get('chosen_shipping_methods') : array();
+        echo '<ul class="floating-cart-shipping-methods">';
+        foreach ($package['rates'] as $rate_id => $rate) {
+            $selected = isset($chosen_method[$package_key]) ? $chosen_method[$package_key] : '';
+            echo '<li>';
+            echo '<label>';
+            echo '<input type="radio" class="shipping_method" name="shipping_method[' . esc_attr($package_key) . ']" value="' . esc_attr($rate_id) . '" ' . checked($selected, $rate_id, false) . '>';
+            echo wp_kses_post(wc_cart_totals_shipping_method_label($rate));
+            echo '</label>';
+            echo '</li>';
+        }
+        echo '</ul>';
+    }
+
+    return trim(ob_get_clean());
+}
+
 // Shortcode to display cart icon and drawer
 function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $product_title_tag = 'p', $position = "", $top = "", $left = "")
 {
@@ -177,6 +405,9 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
     $show_summary = onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_summary');
     $show_subtotal = onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_subtotal');
     $show_discount = onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_discount');
+    $show_shipping_options = onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_shipping_options', '0');
+    $show_shipping_total = onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_shipping_total');
+    $show_tax_total = onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_tax_total');
     $show_total = onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_total');
     $show_checkout = onepaqucpro_floating_cart_element_enabled('rmenu_floating_cart_show_checkout');
     $cart_title = onepaqucpro_get_floating_cart_text('your_cart', __('Your Cart', 'one-page-quick-checkout-for-woocommerce-pro'));
@@ -192,6 +423,9 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
     $you_may_like_label = onepaqucpro_get_floating_cart_text('txt_you_may_like', __('You may also like', 'one-page-quick-checkout-for-woocommerce-pro'));
     $subtotal_label = onepaqucpro_get_floating_cart_text('txt_subtotal', __('Subtotal', 'one-page-quick-checkout-for-woocommerce-pro'));
     $discount_label = onepaqucpro_get_floating_cart_text('rmenu_floating_cart_discount_label', __('Discount', 'one-page-quick-checkout-for-woocommerce-pro'));
+    $shipping_options_label = onepaqucpro_get_floating_cart_text('rmenu_floating_cart_shipping_options_label', __('Shipping options', 'one-page-quick-checkout-for-woocommerce-pro'));
+    $shipping_label = onepaqucpro_get_floating_cart_text('rmenu_floating_cart_shipping_label', __('Shipping', 'one-page-quick-checkout-for-woocommerce-pro'));
+    $tax_label = onepaqucpro_get_floating_cart_text('rmenu_floating_cart_tax_label', __('Tax', 'one-page-quick-checkout-for-woocommerce-pro'));
     $total_label = onepaqucpro_get_floating_cart_text('txt_total', __('Total', 'one-page-quick-checkout-for-woocommerce-pro'));
     $checkout_label = onepaqucpro_get_floating_cart_text('txt_checkout', __('Checkout', 'one-page-quick-checkout-for-woocommerce-pro'));
     $cart_button_classes = array(
@@ -307,9 +541,8 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
 
                     <div class="cart-items">
                         <?php
-                        foreach ($cart_items as $cart_item_key => $cart_item) {
-                            onepaqucpro_render_cart_drawer_item($cart_item_key, $cart_item, $product_title_tag);
-                        } ?>
+                        onepaqucpro_render_grouped_cart_drawer_items($cart_items, $product_title_tag);
+                        ?>
                     </div>
                     <!-- Coupon Section -->
                     <?php if ($show_coupon) : ?>
@@ -360,7 +593,17 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
                     <?php endif; ?>
 
                     <!-- Cart Summary -->
-                    <?php if ($show_summary && ($show_subtotal || $show_discount || $show_total)) : ?>
+                    <?php if ($show_shipping_options) : ?>
+                        <?php $shipping_options_html = onepaqucpro_render_floating_cart_shipping_options(); ?>
+                        <?php if ($shipping_options_html !== '') : ?>
+                            <div class="floating-cart-shipping-options">
+                                <h4><?php echo esc_html($shipping_options_label); ?></h4>
+                                <?php echo $shipping_options_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                            </div>
+                        <?php endif; ?>
+                    <?php endif; ?>
+
+                    <?php if ($show_summary && ($show_subtotal || $show_discount || $show_shipping_total || $show_tax_total || $show_total)) : ?>
                         <div class="cart-summary">
                             <?php if ($show_subtotal) : ?>
                                 <div class="summary-row">
@@ -373,6 +616,20 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
                                 <div class="summary-row discount">
                                     <span><?php echo esc_html($discount_label); ?></span>
                                     <span>- <?php echo wp_kses_post(wc_price(WC()->cart->get_discount_total())); ?></span>
+                                </div>
+                            <?php endif; ?>
+
+                            <?php if ($show_shipping_total && WC()->cart->needs_shipping()) : ?>
+                                <div class="summary-row shipping">
+                                    <span><?php echo esc_html($shipping_label); ?></span>
+                                    <span><?php echo wp_kses_post(WC()->cart->get_cart_shipping_total()); ?></span>
+                                </div>
+                            <?php endif; ?>
+
+                            <?php if ($show_tax_total && WC()->cart->get_total_tax() > 0) : ?>
+                                <div class="summary-row tax">
+                                    <span><?php echo esc_html($tax_label); ?></span>
+                                    <span><?php echo wp_kses_post(wc_price(WC()->cart->get_total_tax())); ?></span>
                                 </div>
                             <?php endif; ?>
 
@@ -640,6 +897,35 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
                 min-height: 130px;
             }
 
+            .cart-drawer .cart-item-group {
+                margin-bottom: 14px;
+            }
+
+            .cart-drawer .cart-item-group__title {
+                display: flex;
+                align-items: center;
+                gap: 7px;
+                margin: 0;
+                padding: 10px 0 2px;
+                color: var(--text-color);
+                font-size: 14px;
+                font-weight: 700;
+            }
+
+            .cart-drawer .cart-item-group__icon {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--cart-bg);
+                line-height: 1;
+            }
+
+            .cart-drawer .cart-item-group__icon-svg {
+                display: block;
+                width: 15px;
+                height: 15px;
+            }
+
             .cart-drawer .cart-item {
                 display: flex;
                 align-items: flex-start;
@@ -681,6 +967,32 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
                 margin: 0 0 10px;
                 color: var(--cart-bg);
                 font-weight: 500;
+            }
+
+            .cart-drawer .cart-item-meta {
+                display: grid;
+                gap: 4px;
+                margin: 0 0 10px;
+                color: var(--text-color);
+                font-size: 12px;
+            }
+
+            .cart-drawer .cart-item-meta__row {
+                display: flex;
+                gap: 6px;
+                line-height: 1.35;
+            }
+
+            .cart-drawer .cart-item-meta dt {
+                font-weight: 700;
+            }
+
+            .cart-drawer .cart-item-meta dt::after {
+                content: ":";
+            }
+
+            .cart-drawer .cart-item-meta dd {
+                margin: 0;
             }
 
             .cart-drawer .quantity-controls {
@@ -831,6 +1143,36 @@ function onepaqucpro_cart($drawer_position = 'right', $cart_icon = 'cart', $prod
                 color: var(--danger-color);
                 cursor: pointer;
                 font-size: 12px;
+            }
+
+            .cart-drawer .floating-cart-shipping-options {
+                margin: 0 0 16px;
+                padding: 15px;
+                background-color: var(--secondary-color);
+                border-radius: 8px;
+            }
+
+            .cart-drawer .floating-cart-shipping-options h4 {
+                margin: 0 0 10px;
+                color: var(--text-color);
+                font-size: 15px;
+                font-weight: 700;
+            }
+
+            .cart-drawer .floating-cart-shipping-methods {
+                display: grid;
+                gap: 8px;
+                margin: 0;
+                padding: 0;
+                list-style: none;
+            }
+
+            .cart-drawer .floating-cart-shipping-methods label {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                color: var(--text-color);
+                font-size: 13px;
             }
 
             .cart-drawer .cart-summary {
