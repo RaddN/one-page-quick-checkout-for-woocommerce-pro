@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const { execFileSync } = require("child_process");
 const { chromium } = require("playwright");
 const { PNG } = require("pngjs");
 const { GIFEncoder, quantize, applyPalette } = require("gifenc");
@@ -9,17 +10,173 @@ const adminUrl = `${siteUrl}/wp-admin/admin.php?page=onepaqucpro_cart`;
 const outputDir = path.join(__dirname, "floating-cart-gif");
 const gifPath = path.join(outputDir, "floating-cart-admin-visual-editor.gif");
 const posterPath = path.join(outputDir, "floating-cart-admin-visual-editor-poster.png");
+const wpLoadPath = path.resolve(__dirname, "../../../../..", "wp-load.php");
 const adminUser = process.env.AIOC_ADMIN_USER;
 const adminPassword = process.env.AIOC_ADMIN_PASSWORD;
 
 const viewport = { width: 935, height: 988 };
 const frameDelay = 105;
 
+const englishLabels = {
+  your_cart: "My Cart",
+  txt_Select_All: "Select all",
+  txt_Selected: "selected",
+  rmenu_floating_cart_empty_title: "Your cart is empty",
+  rmenu_floating_cart_shop_button_text: "Continue shopping",
+  rmenu_floating_cart_coupon_title: "Have a promo code?",
+  rmenu_floating_cart_coupon_placeholder: "Enter code",
+  rmenu_floating_cart_coupon_button_text: "Apply",
+  rmenu_floating_cart_variation_update_text: "Update",
+  rmenu_floating_cart_variation_cancel_text: "Cancel",
+  txt_you_may_like: "You may also like",
+  rmenu_floating_cart_related_add_to_cart_text: "Add to cart",
+  txt_subtotal: "Subtotal",
+  rmenu_floating_cart_discount_label: "Discount",
+  rmenu_floating_cart_shipping_options_label: "Shipping options",
+  rmenu_floating_cart_shipping_label: "Shipping",
+  rmenu_floating_cart_tax_label: "Tax",
+  txt_total: "Total",
+  txt_checkout: "Proceed to checkout",
+};
+
+const chineseLabels = {
+  your_cart: "我的购物车",
+  txt_Select_All: "全选",
+  txt_Selected: "已选择",
+  rmenu_floating_cart_empty_title: "购物车是空的",
+  rmenu_floating_cart_shop_button_text: "继续购物",
+  rmenu_floating_cart_coupon_title: "有优惠码吗？",
+  rmenu_floating_cart_coupon_placeholder: "输入优惠码",
+  rmenu_floating_cart_coupon_button_text: "应用",
+  rmenu_floating_cart_variation_update_text: "更新",
+  rmenu_floating_cart_variation_cancel_text: "取消",
+  txt_you_may_like: "你可能也喜欢",
+  rmenu_floating_cart_related_add_to_cart_text: "加入购物车",
+  txt_subtotal: "小计",
+  rmenu_floating_cart_discount_label: "折扣",
+  rmenu_floating_cart_shipping_options_label: "配送选项",
+  rmenu_floating_cart_shipping_label: "配送费",
+  rmenu_floating_cart_tax_label: "税费",
+  txt_total: "总计",
+  txt_checkout: "去结账",
+};
+
+const arabicLabels = {
+  your_cart: "سلة التسوق",
+  txt_Select_All: "تحديد الكل",
+  txt_Selected: "محدد",
+  rmenu_floating_cart_empty_title: "سلة التسوق فارغة",
+  rmenu_floating_cart_shop_button_text: "متابعة التسوق",
+  rmenu_floating_cart_coupon_title: "هل لديك رمز خصم؟",
+  rmenu_floating_cart_coupon_placeholder: "أدخل الرمز",
+  rmenu_floating_cart_coupon_button_text: "تطبيق",
+  rmenu_floating_cart_variation_update_text: "تحديث",
+  rmenu_floating_cart_variation_cancel_text: "إلغاء",
+  txt_you_may_like: "قد يعجبك أيضا",
+  rmenu_floating_cart_related_add_to_cart_text: "أضف إلى السلة",
+  txt_subtotal: "المجموع الفرعي",
+  rmenu_floating_cart_discount_label: "الخصم",
+  rmenu_floating_cart_shipping_options_label: "خيارات الشحن",
+  rmenu_floating_cart_shipping_label: "الشحن",
+  rmenu_floating_cart_tax_label: "الضريبة",
+  txt_total: "الإجمالي",
+  txt_checkout: "إتمام الشراء",
+};
+
 function ensureDir(dir) {
   fs.mkdirSync(dir, { recursive: true });
 }
 
+function getLocalMysqlPort() {
+  const sitesPath = process.env.APPDATA ? path.join(process.env.APPDATA, "Local", "sites.json") : "";
+  if (!sitesPath || !fs.existsSync(sitesPath)) {
+    return "";
+  }
+
+  try {
+    const sites = JSON.parse(fs.readFileSync(sitesPath, "utf8"));
+    const wpRoot = path.dirname(wpLoadPath).toLowerCase();
+    const site = Object.values(sites).find((candidate) => {
+      const sitePath = candidate && candidate.path ? path.resolve(candidate.path, "app", "public").toLowerCase() : "";
+      return candidate && candidate.domain === new URL(siteUrl).hostname && sitePath === wpRoot;
+    }) || Object.values(sites).find((candidate) => candidate && candidate.domain === new URL(siteUrl).hostname);
+
+    return site && site.services && site.services.mysql && site.services.mysql.ports && site.services.mysql.ports.MYSQL
+      ? String(site.services.mysql.ports.MYSQL[0] || "")
+      : "";
+  } catch (error) {
+    return "";
+  }
+}
+
+function getLocalAdminCookies() {
+  if (!fs.existsSync(wpLoadPath)) {
+    return [];
+  }
+
+  const host = new URL(siteUrl).hostname;
+  const mysqlPort = getLocalMysqlPort();
+  const phpCode = `
+$wp_load = $argv[1];
+$host = $argv[2];
+$_SERVER['HTTP_HOST'] = $host;
+$_SERVER['SERVER_NAME'] = $host;
+$_SERVER['REQUEST_URI'] = '/wp-admin/';
+$_SERVER['HTTPS'] = 'off';
+define('WP_USE_THEMES', false);
+ob_start();
+require $wp_load;
+ob_end_clean();
+$users = get_users(array('role' => 'administrator', 'number' => 1, 'orderby' => 'ID', 'order' => 'ASC'));
+if (empty($users)) {
+    fwrite(STDERR, 'No administrator user found.');
+    exit(2);
+}
+$user = $users[0];
+$expiration = time() + HOUR_IN_SECONDS;
+$scheme = is_ssl() ? 'secure_auth' : 'auth';
+$auth_name = $scheme === 'secure_auth' ? SECURE_AUTH_COOKIE : AUTH_COOKIE;
+$auth_cookie = wp_generate_auth_cookie($user->ID, $expiration, $scheme);
+$logged_in_cookie = wp_generate_auth_cookie($user->ID, $expiration, 'logged_in');
+$cookies = array(
+    array('name' => $auth_name, 'value' => $auth_cookie, 'domain' => $host, 'path' => ADMIN_COOKIE_PATH, 'expires' => $expiration, 'httpOnly' => true, 'secure' => false, 'sameSite' => 'Lax'),
+    array('name' => $auth_name, 'value' => $auth_cookie, 'domain' => $host, 'path' => PLUGINS_COOKIE_PATH, 'expires' => $expiration, 'httpOnly' => true, 'secure' => false, 'sameSite' => 'Lax'),
+    array('name' => LOGGED_IN_COOKIE, 'value' => $logged_in_cookie, 'domain' => $host, 'path' => COOKIEPATH, 'expires' => $expiration, 'httpOnly' => true, 'secure' => false, 'sameSite' => 'Lax'),
+);
+if (SITECOOKIEPATH !== COOKIEPATH) {
+    $cookies[] = array('name' => LOGGED_IN_COOKIE, 'value' => $logged_in_cookie, 'domain' => $host, 'path' => SITECOOKIEPATH, 'expires' => $expiration, 'httpOnly' => true, 'secure' => false, 'sameSite' => 'Lax');
+}
+echo wp_json_encode($cookies);
+`;
+
+  try {
+    const phpArgs = mysqlPort ? ["-d", "mysqli.default_port=" + mysqlPort, "-r", phpCode, wpLoadPath, host] : ["-r", phpCode, wpLoadPath, host];
+    const output = execFileSync("php", phpArgs, {
+      encoding: "utf8",
+      timeout: 15000,
+    }).trim();
+
+    return JSON.parse(output);
+  } catch (error) {
+    return [];
+  }
+}
+
+async function useLocalAdminCookies(page) {
+  const cookies = getLocalAdminCookies();
+  if (!cookies.length) {
+    return false;
+  }
+
+  await page.context().addCookies(cookies);
+  return true;
+}
+
 async function loginIfNeeded(page) {
+  if (!adminUser || !adminPassword) {
+    await useLocalAdminCookies(page);
+  }
+
   await page.goto(adminUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
 
   if ((await page.locator("#user_login").count()) === 0) {
@@ -115,12 +272,27 @@ async function prepareAdminPresentation(page) {
       setControl("rmenu_floating_cart_empty_icon", "package");
       setControl("rmenu_floating_cart_summary_collapsible", "1");
       setControl("rmenu_floating_cart_summary_initially_collapsed", "1");
-      setControl("your_cart", "My Cart");
-      setControl("rmenu_floating_cart_coupon_title", "Have a promo code?");
-      setControl("rmenu_floating_cart_coupon_placeholder", "Enter code");
-      setControl("rmenu_floating_cart_coupon_button_text", "Apply");
-      setControl("txt_you_may_like", "You may also like");
-      setControl("txt_checkout", "Proceed to checkout");
+      Object.entries({
+        your_cart: "My Cart",
+        txt_Select_All: "Select all",
+        txt_Selected: "selected",
+        rmenu_floating_cart_empty_title: "Your cart is empty",
+        rmenu_floating_cart_shop_button_text: "Continue shopping",
+        rmenu_floating_cart_coupon_title: "Have a promo code?",
+        rmenu_floating_cart_coupon_placeholder: "Enter code",
+        rmenu_floating_cart_coupon_button_text: "Apply",
+        rmenu_floating_cart_variation_update_text: "Update",
+        rmenu_floating_cart_variation_cancel_text: "Cancel",
+        txt_you_may_like: "You may also like",
+        rmenu_floating_cart_related_add_to_cart_text: "Add to cart",
+        txt_subtotal: "Subtotal",
+        rmenu_floating_cart_discount_label: "Discount",
+        rmenu_floating_cart_shipping_options_label: "Shipping options",
+        rmenu_floating_cart_shipping_label: "Shipping",
+        rmenu_floating_cart_tax_label: "Tax",
+        txt_total: "Total",
+        txt_checkout: "Proceed to checkout",
+      }).forEach(([field, value]) => setControl(field, value));
     }
 
     enableDefaultPreview();
@@ -378,6 +550,26 @@ async function prepareAdminPresentation(page) {
         border-left: 2px solid #fff;
         border-bottom: 2px solid #fff;
         transform: rotate(-45deg);
+      }
+      .admin-gif-check.is-off {
+        color: #9399ac;
+        text-decoration: line-through;
+      }
+      .admin-gif-check.is-off::before {
+        background: #c4cad8;
+        box-shadow: inset 0 0 0 1px #a8b0c5;
+      }
+      .admin-gif-check.is-off::after {
+        left: 4px;
+        top: 7px;
+        width: 8px;
+        height: 2px;
+        border: 0;
+        background: #fff;
+        transform: none;
+      }
+      .admin-gif-check.is-switching::before {
+        box-shadow: 0 0 0 4px rgba(139, 53, 244, .16);
       }
       .admin-gif-preview {
         position: relative;
@@ -640,6 +832,48 @@ async function prepareAdminPresentation(page) {
       .onepaqucpro-floating-preview-empty-body p {
         color: #272a6c !important;
       }
+      .onepaqucpro-floating-preview-stage .admin-gif-typing {
+        position: relative !important;
+        outline: 3px solid rgba(20, 184, 166, .42) !important;
+        outline-offset: 3px !important;
+        border-radius: 8px !important;
+      }
+      .onepaqucpro-floating-preview-stage .admin-gif-typing::after {
+        content: "";
+        display: inline-block;
+        width: 2px;
+        height: 1em;
+        margin-left: 4px;
+        background: #14b8a6;
+        vertical-align: -0.14em;
+        animation: adminGifCaret .7s steps(2, start) infinite;
+      }
+      .admin-gif-rtl .onepaqucpro-floating-preview-drawer [data-preview-text] {
+        direction: rtl;
+        unicode-bidi: plaintext;
+      }
+      .admin-gif-rtl .onepaqucpro-floating-preview-header,
+      .admin-gif-rtl .onepaqucpro-floating-preview-select,
+      .admin-gif-rtl .onepaqucpro-floating-preview-coupon,
+      .admin-gif-rtl .onepaqucpro-floating-preview-related,
+      .admin-gif-rtl .onepaqucpro-floating-preview-shipping,
+      .admin-gif-rtl .onepaqucpro-floating-preview-summary,
+      .admin-gif-rtl .onepaqucpro-floating-preview-empty-body {
+        direction: rtl;
+        text-align: right;
+      }
+      .admin-gif-rtl .onepaqucpro-floating-preview-stage .admin-gif-typing::after {
+        margin-left: 0;
+        margin-right: 4px;
+      }
+      .onepaqucpro-floating-edit-modal .admin-gif-modal-field-focus {
+        border-color: rgba(20, 184, 166, .45) !important;
+        box-shadow: 0 0 0 4px rgba(20, 184, 166, .12) !important;
+        background: #f5fffd !important;
+      }
+      @keyframes adminGifCaret {
+        50% { opacity: 0; }
+      }
       .onepaqucpro-floating-preview-variation-editor.is-demo-open .onepaqucpro-floating-preview-variation-panel {
         display: grid !important;
         opacity: 1 !important;
@@ -757,10 +991,10 @@ async function prepareAdminPresentation(page) {
                 <strong>Drawer elements</strong>
                 <span>Choose exactly what appears in the side cart.</span>
                 <div class="admin-gif-checklist">
-                  <span class="admin-gif-check">Image</span>
-                  <span class="admin-gif-check">Quantity</span>
-                  <span class="admin-gif-check">Coupon</span>
-                  <span class="admin-gif-check">Summary</span>
+                  <span class="admin-gif-check" data-admin-gif-check="rmenu_floating_cart_show_product_image">Image</span>
+                  <span class="admin-gif-check" data-admin-gif-check="rmenu_floating_cart_show_quantity">Quantity</span>
+                  <span class="admin-gif-check" data-admin-gif-check="rmenu_floating_cart_show_coupon">Coupon</span>
+                  <span class="admin-gif-check" data-admin-gif-check="rmenu_floating_cart_show_summary">Summary</span>
                 </div>
               </div>
             </div>
@@ -822,6 +1056,40 @@ async function prepareAdminPresentation(page) {
 
     ensureStickyFooter();
 
+    function setDrawerChecklist(field, enabled, switching = false) {
+      const check = stage.querySelector(`[data-admin-gif-check="${field}"]`);
+      if (!check) {
+        return;
+      }
+
+      check.classList.toggle("is-off", !enabled);
+      check.classList.toggle("is-switching", !!switching);
+    }
+
+    function syncDrawerChecklist() {
+      [
+        "rmenu_floating_cart_show_product_image",
+        "rmenu_floating_cart_show_quantity",
+        "rmenu_floating_cart_show_coupon",
+        "rmenu_floating_cart_show_summary",
+      ].forEach((field) => {
+        const control = editor.querySelector(`[data-floating-cart-control="${field}"]`);
+        const enabled = !control || (control.type === "checkbox" ? control.checked : control.value === "1");
+        setDrawerChecklist(field, enabled, false);
+      });
+    }
+
+    function setDrawerElement(field, enabled, switching = true) {
+      setControl(field, enabled ? "1" : "0");
+      setDrawerChecklist(field, enabled, switching);
+    }
+
+    function setDrawerElementStates(states) {
+      Object.entries(states).forEach(([field, enabled]) => {
+        setDrawerElement(field, enabled, true);
+      });
+    }
+
     function setActiveControl(name) {
       stage.querySelectorAll("[data-admin-gif-control]").forEach((control) => {
         control.classList.toggle("is-active", control.getAttribute("data-admin-gif-control") === name);
@@ -875,10 +1143,32 @@ async function prepareAdminPresentation(page) {
       }
     }
 
+    function setLanguageDirection(direction) {
+      stage.classList.toggle("admin-gif-rtl", direction === "rtl");
+    }
+
+    function applyLabels(labels, direction = "ltr") {
+      Object.entries(labels).forEach(([field, value]) => setControl(field, value));
+      setLanguageDirection(direction);
+    }
+
+    function clearTypingTarget() {
+      stage.querySelectorAll(".admin-gif-typing").forEach((node) => node.classList.remove("admin-gif-typing"));
+    }
+
+    function setTypingTarget(selector) {
+      clearTypingTarget();
+      const node = stage.querySelector(selector);
+      if (node) {
+        node.classList.add("admin-gif-typing");
+      }
+    }
+
     function clearHighlights() {
       stage.querySelectorAll(".admin-gif-highlight").forEach((node) => node.classList.remove("admin-gif-highlight"));
       stage.querySelectorAll(".is-demo-open").forEach((node) => node.classList.remove("is-demo-open"));
       stage.querySelectorAll(".admin-gif-summary-dropup").forEach((node) => node.classList.remove("admin-gif-summary-dropup"));
+      stage.querySelectorAll(".admin-gif-check.is-switching").forEach((node) => node.classList.remove("is-switching"));
       stage.querySelectorAll(".onepaqucpro-floating-visual-actionbar").forEach((node) => {
         node.hidden = true;
       });
@@ -965,16 +1255,50 @@ async function prepareAdminPresentation(page) {
       if (closeButton) {
         closeButton.click();
       }
+      editor.querySelectorAll(".admin-gif-modal-field-focus").forEach((node) => node.classList.remove("admin-gif-modal-field-focus"));
     }
+
+    function focusModalField(field) {
+      editor.querySelectorAll(".admin-gif-modal-field-focus").forEach((node) => node.classList.remove("admin-gif-modal-field-focus"));
+      const row = editor.querySelector(`.onepaqucpro-floating-edit-modal [data-modal-control-wrap="${field}"]`);
+      if (!row) {
+        return;
+      }
+
+      row.classList.add("admin-gif-modal-field-focus");
+      const control = row.querySelector("[data-modal-control-field]");
+      if (control && typeof control.focus === "function") {
+        control.focus();
+      }
+    }
+
+    function setModalFieldValue(field, value) {
+      const modalControl = editor.querySelector(`.onepaqucpro-floating-edit-modal [data-modal-control-field="${field}"]`);
+      if (!modalControl) {
+        setControl(field, value);
+        return;
+      }
+
+      modalControl.value = value;
+      modalControl.dispatchEvent(new Event("input", { bubbles: true }));
+      modalControl.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+
+    syncDrawerChecklist();
+    setLanguageDirection("ltr");
 
     body.setAttribute("data-floating-admin-gif-ready", "1");
     window.__floatingAdminGif = {
       setControl,
+      applyLabels,
       applyColorTheme,
       setActiveControl,
       setActiveSwatch,
       setCaption,
       setStepText,
+      setLanguageDirection,
+      setTypingTarget,
+      clearTypingTarget,
       clearHighlights,
       highlight,
       addHighlight,
@@ -982,9 +1306,12 @@ async function prepareAdminPresentation(page) {
       scrollDrawer,
       openVariationPanel,
       setSummaryDropup,
+      setDrawerElementStates,
       showEditorActions,
       openEditorModal,
       closeEditorModal,
+      focusModalField,
+      setModalFieldValue,
       ensureStickyFooter,
       enableDefaultPreview,
     };
@@ -1004,10 +1331,52 @@ async function hold(page, frames, count) {
   }
 }
 
-async function applyStep(page, frames, count, script) {
-  await page.evaluate(script);
+async function applyStep(page, frames, count, script, arg) {
+  await page.evaluate(script, arg);
   await page.waitForTimeout(150);
   await hold(page, frames, count);
+}
+
+async function typePreviewText(page, frames, field, text, selector, direction = "ltr") {
+  await page.evaluate(({ field: targetField, selector: targetSelector, direction: textDirection }) => {
+    window.__floatingAdminGif.setLanguageDirection(textDirection);
+    window.__floatingAdminGif.setTypingTarget(targetSelector);
+    window.__floatingAdminGif.setControl(targetField, "");
+  }, { field, selector, direction });
+  await hold(page, frames, 2);
+
+  let value = "";
+  for (const char of Array.from(text)) {
+    value += char;
+    await page.evaluate(({ field: targetField, value: nextValue }) => {
+      window.__floatingAdminGif.setControl(targetField, nextValue);
+    }, { field, value });
+    await page.waitForTimeout(60);
+    await hold(page, frames, 1);
+  }
+
+  await hold(page, frames, 3);
+}
+
+async function typeModalText(page, frames, field, text, direction = "ltr") {
+  await page.evaluate(({ field: targetField, direction: textDirection }) => {
+    window.__floatingAdminGif.setLanguageDirection(textDirection);
+    window.__floatingAdminGif.focusModalField(targetField);
+    window.__floatingAdminGif.setModalFieldValue(targetField, "");
+  }, { field, direction });
+  await hold(page, frames, 2);
+
+  let value = "";
+  for (const char of Array.from(text)) {
+    value += char;
+    await page.evaluate(({ field: targetField, value: nextValue }) => {
+      window.__floatingAdminGif.setModalFieldValue(targetField, nextValue);
+    }, { field, value });
+    await page.waitForTimeout(60);
+    await hold(page, frames, 1);
+  }
+
+  await hold(page, frames, 3);
 }
 
 function encodeGif(frames) {
@@ -1078,10 +1447,33 @@ async function main() {
   await applyStep(page, frames, 8, () => {
     window.__floatingAdminGif.closeEditorModal();
     window.__floatingAdminGif.setActiveControl("elements");
-    window.__floatingAdminGif.setCaption("Control product image, remove button, quantity, coupon, recommendations, totals, and checkout");
-    window.__floatingAdminGif.setStepText("Drawer element controls make the cart layout visually configurable.");
+    window.__floatingAdminGif.setCaption("Enable or disable drawer elements from the visual editor");
+    window.__floatingAdminGif.setStepText("Turn individual parts of the side cart on or off and see the drawer update immediately.");
     window.__floatingAdminGif.scrollDrawer(0);
     window.__floatingAdminGif.showEditorActions(".onepaqucpro-floating-preview-item");
+  });
+
+  await applyStep(page, frames, 7, () => {
+    window.__floatingAdminGif.setActiveControl("elements");
+    window.__floatingAdminGif.setCaption("Disable product image and coupon to simplify the drawer layout");
+    window.__floatingAdminGif.setStepText("Two drawer elements are switched off here, and the preview removes them instantly.");
+    window.__floatingAdminGif.clearHighlights();
+    window.__floatingAdminGif.setDrawerElementStates({
+      rmenu_floating_cart_show_product_image: false,
+      rmenu_floating_cart_show_coupon: false,
+    });
+    window.__floatingAdminGif.addHighlight(".onepaqucpro-floating-preview-item");
+  });
+
+  await applyStep(page, frames, 7, () => {
+    window.__floatingAdminGif.setActiveControl("elements");
+    window.__floatingAdminGif.setCaption("Enable those elements again when the cart needs the full shopper view");
+    window.__floatingAdminGif.setStepText("The same controls can restore image and coupon sections without leaving the editor.");
+    window.__floatingAdminGif.setDrawerElementStates({
+      rmenu_floating_cart_show_product_image: true,
+      rmenu_floating_cart_show_coupon: true,
+    });
+    window.__floatingAdminGif.showEditorActions(".onepaqucpro-floating-preview-coupon");
   });
 
   await applyStep(page, frames, 8, () => {
@@ -1094,16 +1486,60 @@ async function main() {
     window.__floatingAdminGif.addHighlight(".onepaqucpro-floating-preview-variation-toggle");
   });
 
-  await applyStep(page, frames, 8, () => {
+  await applyStep(page, frames, 4, (labels) => {
+    window.__floatingAdminGif.closeEditorModal();
+    window.__floatingAdminGif.applyLabels(labels, "ltr");
     window.__floatingAdminGif.setActiveControl("text");
-    window.__floatingAdminGif.setCaption("The pen popup also edits customer-facing cart text");
-    window.__floatingAdminGif.setStepText("Titles, coupon labels, checkout copy, and empty-cart labels can be customized.");
+    window.__floatingAdminGif.setCaption("Editable Labels can be changed directly in the cart preview");
+    window.__floatingAdminGif.setStepText("Typing in visual mode updates the customer-facing cart title as you edit.");
     window.__floatingAdminGif.openVariationPanel(false);
-    window.__floatingAdminGif.setControl("your_cart", "Your Bag");
-    window.__floatingAdminGif.setControl("rmenu_floating_cart_coupon_title", "Apply discount code");
-    window.__floatingAdminGif.setControl("txt_checkout", "Checkout now");
+    window.__floatingAdminGif.clearHighlights();
+    window.__floatingAdminGif.setMode("cart");
+    window.__floatingAdminGif.scrollDrawer(0);
+    window.__floatingAdminGif.setTypingTarget('.onepaqucpro-floating-preview-header [data-preview-text="your_cart"]');
+  }, englishLabels);
+
+  await typePreviewText(
+    page,
+    frames,
+    "your_cart",
+    chineseLabels.your_cart,
+    '.onepaqucpro-floating-preview-header [data-preview-text="your_cart"]',
+    "ltr"
+  );
+
+  await applyStep(page, frames, 11, (labels) => {
+    window.__floatingAdminGif.applyLabels(labels, "ltr");
+    window.__floatingAdminGif.clearTypingTarget();
+    window.__floatingAdminGif.setActiveControl("text");
+    window.__floatingAdminGif.setCaption("All editable drawer labels are now previewed in Chinese");
+    window.__floatingAdminGif.setStepText("Cart title, coupon copy, totals, recommendations, and checkout text change together.");
+    window.__floatingAdminGif.clearHighlights();
+    window.__floatingAdminGif.scrollDrawer(0);
+    window.__floatingAdminGif.highlight(".onepaqucpro-floating-preview-drawer");
+  }, chineseLabels);
+
+  await applyStep(page, frames, 5, () => {
+    window.__floatingAdminGif.setActiveControl("text");
+    window.__floatingAdminGif.setCaption("The popup editor can change the same labels with focused fields");
+    window.__floatingAdminGif.setStepText("Open the coupon text popup and type a new label from the element settings panel.");
+    window.__floatingAdminGif.clearHighlights();
     window.__floatingAdminGif.openEditorModal(".onepaqucpro-floating-preview-coupon");
   });
+
+  await typeModalText(page, frames, "rmenu_floating_cart_coupon_title", arabicLabels.rmenu_floating_cart_coupon_title, "rtl");
+
+  await applyStep(page, frames, 10, (labels) => {
+    window.__floatingAdminGif.closeEditorModal();
+    window.__floatingAdminGif.applyLabels(labels, "rtl");
+    window.__floatingAdminGif.clearTypingTarget();
+    window.__floatingAdminGif.setActiveControl("text");
+    window.__floatingAdminGif.setCaption("After popup editing, every editable drawer label is previewed in Arabic");
+    window.__floatingAdminGif.setStepText("Right-to-left labels are shown in the drawer before saving the settings.");
+    window.__floatingAdminGif.clearHighlights();
+    window.__floatingAdminGif.scrollDrawer(0);
+    window.__floatingAdminGif.highlight(".onepaqucpro-floating-preview-drawer");
+  }, arabicLabels);
 
   await applyStep(page, frames, 9, () => {
     window.__floatingAdminGif.closeEditorModal();
